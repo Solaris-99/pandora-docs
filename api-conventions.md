@@ -65,6 +65,7 @@ Todo error devuelto por la API (errores 4xx y 5xx) sigue una estructura JSON hom
 | `FORBIDDEN` | 403 | El usuario autenticado carece de permisos suficientes para la acción. |
 | `USER_BANNED` | 403 | La cuenta del usuario ha sido baneada permanentemente por moderación. |
 | `USER_SUSPENDED` | 403 | La cuenta del usuario está suspendida temporalmente. |
+| `USER_NOT_VERIFIED` | 403 | La acción requiere una cuenta con email verificado (p. ej. publicar una obra o comentar). |
 | `NOT_FOUND` | 404 | El recurso solicitado no existe. |
 | `USER_NOT_FOUND` | 404 | El usuario especificado no fue encontrado. |
 | `CONFLICT` | 409 | Conflicto de estado o duplicidad de clave única en la base de datos. |
@@ -350,3 +351,153 @@ El token emitido por `/auth/login` y `/auth/register` contiene las siguientes cl
 
 ### 8.5 Paginación Estándar
 A partir de la Fase 2, los endpoints con listados paginados aceptan `page` y `limit` como query params y devuelven el envoltorio `{ items, total, page, limit, totalPages }`. Este es el formato que deben esperar el portal web y la app móvil para toda nueva colección paginada (galería de obras, notificaciones, reportes, etc. en fases posteriores).
+
+---
+
+## 9. Contrato de Endpoints de Obras (Fase 3)
+
+### 9.1 Subir Obra
+- **Ruta:** `POST /api/v1/artworks`
+- **Acceso:** Protegido + **cuenta con email verificado** (ver 9.6)
+- **Content-Type:** `multipart/form-data` (no JSON). Campos:
+
+| Campo | Tipo | Obligatorio | Notas |
+|---|---|---|---|
+| `title` | string | Sí | 1–50 caracteres |
+| `description` | string | No | Hasta 300 caracteres (el "Lore") |
+| `image` | file | Sí | PNG/JPG/JPEG/WEBP, máx. 25 MB |
+| `conversionRequest` | `"true"` \| `"false"` | No | Default `true` si se omite |
+| `tags` | string | No | Lista de tags. Acepta un JSON array serializado (`'["fantasy","paisaje"]'`) o una lista separada por comas (`"fantasy,paisaje"`) |
+
+- Los tags se normalizan a minúsculas y se crean automáticamente si no existen (no hay endpoint de administración de tags en esta fase).
+- **Respuesta de éxito (201):** ver forma completa en 9.3 (Detalle de Obra).
+- **Errores:** `VALIDATION_ERROR` (400, incluye imagen faltante/formato inválido/demasiado grande), `USER_NOT_VERIFIED` (403, ver 9.6).
+
+### 9.2 Editar / Eliminar Obra
+- **Ruta:** `PATCH /api/v1/artworks/:id` — **Acceso:** Protegido, sólo el autor.
+  - Mismo `multipart/form-data` que la creación, pero **todos los campos son opcionales**. Omitir `image` conserva la imagen actual; si se envía una nueva, la anterior se elimina de Cloudinary. Omitir `tags` conserva los tags actuales; enviar `tags` reemplaza la lista completa (enviar una lista vacía la limpia).
+  - **Errores:** `FORBIDDEN` (403, no es el autor), `NOT_FOUND` (404).
+- **Ruta:** `DELETE /api/v1/artworks/:id` — **Acceso:** Protegido, autor **o** moderador/admin. Eliminación lógica (la obra deja de listarse pero no se borra físicamente).
+  - **Errores:** `FORBIDDEN` (403), `NOT_FOUND` (404).
+
+### 9.3 Detalle de Obra
+- **Ruta:** `GET /api/v1/artworks/:id` — **Acceso:** Público.
+- **Respuesta de éxito (200 OK):**
+```json
+{
+  "id": 1,
+  "title": "Atardecer en la niebla",
+  "description": "Lore opcional de la obra.",
+  "author": { "id": 1, "username": "solaris", "avatarUrl": null },
+  "image": {
+    "original": "https://res.cloudinary.com/.../original.png",
+    "medium": "https://res.cloudinary.com/.../medium.png",
+    "thumbnail": "https://res.cloudinary.com/.../thumb.png"
+  },
+  "tags": ["fantasy", "paisaje"],
+  "conversionRequest": true,
+  "conversionStatus": "pending",
+  "qualification": {
+    "startedAt": "2026-09-16T20:00:00.000Z",
+    "endsAt": "2026-09-23T20:00:00.000Z",
+    "active": true
+  },
+  "createdAt": "2026-09-16T20:00:00.000Z",
+  "updatedAt": null
+}
+```
+- `conversionStatus` es uno de: `pending`, `processing`, `converted`, `skipped`, `failed` (la conversión a carta en sí llega en la Fase 5; por ahora toda obra nueva queda en `pending`).
+- `qualification.active` indica si la obra todavía admite valoraciones Q2Q (el sistema de ratings llega en la Fase 4; por ahora es informativo).
+- **Errores:** `NOT_FOUND` (404, obra inexistente o eliminada).
+
+### 9.4 Explorador de Obras
+- **Ruta:** `GET /api/v1/artworks` — **Acceso:** Público.
+- **Query params (todos opcionales):**
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `page`, `limit` | number | Paginación estándar (ver 8.5) |
+| `search` | string | Búsqueda parcial (case-insensitive) en `title` y `description` |
+| `authorId` | number | Filtra por autor |
+| `tag` | string | Filtra por un tag exacto (normalizado a minúsculas) |
+| `from`, `until` | string (ISO 8601) | Rango de `createdAt` |
+| `converted` | boolean | `true` = sólo obras con carta generada; `false` = el resto |
+| `qualificationOnly` | boolean | `true` = sólo obras aún dentro de su semana de calificación |
+| `sort` | `recent` \| `oldest` \| `title` | Orden del listado. Default `recent` |
+
+- **Respuesta:** envoltorio de paginación estándar (8.5) con `items` en el mismo formato que 9.3.
+- **Nota:** el filtro por `rarity` mencionado en el diseño original queda pendiente hasta que exista el modelo de Cartas (Fase 5).
+
+### 9.5 Obras en Período de Calificación
+- **Ruta:** `GET /api/v1/artworks/qualification` — **Acceso:** Público.
+- Atajo equivalente a `GET /artworks?qualificationOnly=true`, con los mismos query params de paginación/orden/filtro (excepto `qualificationOnly`, que queda fijo en `true`).
+
+### 9.6 Obras Propias
+- **Ruta:** `GET /api/v1/users/me/artworks` — **Acceso:** Protegido.
+- Lista paginada (formato 8.5) de las obras del usuario autenticado, mismo formato de item que 9.3.
+
+### 9.7 Requisito de Email Verificado
+A partir de esta fase, **crear una obra** y **comentar una obra** (ver 9.9) requieren, además del JWT, que la cuenta tenga el email verificado. Si no lo está, la API responde:
+```json
+{
+  "statusCode": 403,
+  "code": "USER_NOT_VERIFIED",
+  "message": "Debes verificar tu correo electrónico antes de realizar esta acción."
+}
+```
+El resto de las acciones de escritura sobre obras (editar, eliminar) **no** exigen este requisito, sólo sesión + ownership.
+
+---
+
+## 10. Contrato de Endpoints de Tags (Fase 3)
+
+- **Ruta:** `GET /api/v1/tags` — **Acceso:** Público.
+- **Respuesta de éxito (200 OK):**
+```json
+[
+  { "id": 1, "name": "fantasy" },
+  { "id": 2, "name": "paisaje" }
+]
+```
+- No hay endpoints de creación/edición/borrado manual de tags en esta fase: se crean dinámicamente al publicar o editar una obra (ver 9.1).
+
+---
+
+## 11. Contrato de Endpoints de Comentarios (Fase 3)
+
+Los comentarios están anidados bajo la obra a la que pertenecen; no existe un `/comments` de nivel superior.
+
+### 11.1 Listar Comentarios de una Obra
+- **Ruta:** `GET /api/v1/artworks/:id/comments` — **Acceso:** Público.
+- **Query params:** paginación estándar (`page`, `limit`, ver 8.5).
+- **Respuesta:** envoltorio de paginación estándar con `items`:
+```json
+{
+  "items": [
+    {
+      "id": 10,
+      "comment": "¡Qué obra tan increíble!",
+      "author": { "id": 2, "username": "otroArtista", "avatarUrl": null },
+      "createdAt": "2026-09-16T21:00:00.000Z",
+      "updatedAt": null
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 1
+}
+```
+
+### 11.2 Comentar una Obra
+- **Ruta:** `POST /api/v1/artworks/:id/comments` — **Acceso:** Protegido + email verificado (ver 9.7).
+- **Cuerpo de la petición:**
+```json
+{ "comment": "¡Qué obra tan increíble!" }
+```
+- `comment`: obligatorio después de recortar espacios, máximo 300 caracteres.
+- Las obras permanecen comentables aunque su período de calificación Q2Q ya haya terminado.
+- **Respuesta de éxito (201 Created):** mismo formato que un ítem de 11.1.
+- **Errores:** `VALIDATION_ERROR` (400), `NOT_FOUND` (404, obra inexistente/eliminada), `USER_NOT_VERIFIED` (403).
+
+> No existe todavía edición ni borrado de comentarios por parte del propio usuario; la eliminación de comentarios llega junto con el panel de moderación (Fase 8).
