@@ -103,7 +103,7 @@ Authorization: Bearer <accessToken>
 ```
 
 ### 5.2 Estructura del Payload del JWT
-El token emitido por `/auth/login` y `/auth/register` contiene las siguientes claims:
+El `accessToken` emitido por `/auth/login`, `/auth/register` y demás endpoints de autenticación contiene las siguientes claims:
 
 ```json
 {
@@ -112,7 +112,7 @@ El token emitido por `/auth/login` y `/auth/register` contiene las siguientes cl
   "email": "artist@pandora.art",
   "roles": ["user"],
   "iat": 1726442400,
-  "exp": 1727047200
+  "exp": 1726443300
 }
 ```
 
@@ -122,6 +122,42 @@ El token emitido por `/auth/login` y `/auth/register` contiene las siguientes cl
 | Usuario estándar | `user` | Rol por defecto al registrarse. Habilita publicación de obras, calificación Q2Q, apertura de paquetes, colección y autobattler. |
 | Moderador | `moderator` | Acceso a panel de reportes, resolución de denuncias, advertencias y moderación de contenido. |
 | Administrador | `admin` | Permisos totales sobre configuración, roles y auditoría. |
+
+### 5.4 Access Token + Refresh Token (Fase 4)
+A partir de la Fase 4, **todo endpoint que autentica** (registro, login, verificación de email, login con Google y refresh) devuelve **dos** tokens en vez de uno:
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "6177fb5b0a35c484132b9c47884e2372ea824c82c2dfc44702d31a29d8a85ef",
+  "user": { "...": "..." }
+}
+```
+
+| Token | Formato | Vigencia por defecto | Uso |
+|---|---|---|---|
+| `accessToken` | JWT | **15 minutos** | Se envía en `Authorization: Bearer <accessToken>` en cada request a una ruta protegida. |
+| `refreshToken` | Cadena opaca (no es un JWT, no se puede decodificar) | **30 días** | Se guarda de forma segura en el cliente (ver nota) y se usa **sólo** contra `POST /auth/refresh` para obtener un `accessToken` nuevo sin pedir credenciales de nuevo. |
+
+**Importante — antes de esta fase el `accessToken` duraba 7 días y no existía `refreshToken`.** Cualquier cliente que todavía asuma sesiones de larga duración con un solo token debe actualizarse: ahora hay que refrescar la sesión periódicamente (por ejemplo, al recibir un `401 UNAUTHORIZED` de una ruta protegida, o proactivamente unos minutos antes de que expire el `accessToken` decodificando su claim `exp`).
+
+**Rotación:** cada `refreshToken` es de un solo uso. Al llamar a `/auth/refresh`, el token enviado queda invalidado y la respuesta trae un `refreshToken` nuevo — el cliente debe reemplazar el que tenía guardado por el nuevo en cada refresh. Reutilizar un `refreshToken` ya usado (o uno después de `/auth/logout`) responde `401 INVALID_TOKEN`.
+
+**Dónde guardar el `refreshToken` en el cliente:** al ser una credencial de larga duración, no debe guardarse en `localStorage` de forma expuesta a XSS si se puede evitar; se recomienda un almacenamiento seguro (Keystore/Keychain en Android, `httpOnly` cookie o almacenamiento cifrado en web) — la implementación concreta queda a criterio de cada cliente.
+
+#### Refrescar la sesión
+- **Ruta:** `POST /api/v1/auth/refresh`
+- **Acceso:** Público (no requiere `Authorization`, la validez la da el propio `refreshToken`).
+- **Cuerpo:** `{ "refreshToken": "..." }`
+- **Respuesta de éxito (200):** mismo formato que 5.4 (accessToken + refreshToken nuevos + user).
+- **Errores:** `INVALID_TOKEN` (401, token inexistente, ya usado o revocado por logout), `TOKEN_EXPIRED` (401, token vencido — hay que iniciar sesión de nuevo), `USER_BANNED` / `USER_SUSPENDED` (403).
+
+#### Cerrar sesión
+- **Ruta:** `POST /api/v1/auth/logout`
+- **Acceso:** Protegido (`Authorization: Bearer <accessToken>`)
+- **Cuerpo:** `{ "refreshToken": "..." }`
+- **Respuesta de éxito (200):** `{ "message": "Sesión cerrada correctamente." }` — idempotente, siempre responde igual aunque el token ya estuviera invalidado.
+- Invalida únicamente el `refreshToken` enviado (la sesión de otros dispositivos, si el usuario tiene varios `refreshToken` activos, no se ve afectada). El `accessToken` vigente sigue siendo técnicamente válido hasta que expira por sí solo (máx. 15 minutos), ya que los access tokens no se revocan individualmente.
 
 ---
 
@@ -142,6 +178,7 @@ El token emitido por `/auth/login` y `/auth/register` contiene las siguientes cl
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "6177fb5b0a35c484132b9c47884e2372ea824c82c2dfc44702d31a29d8a85ef",
   "user": {
     "id": 1,
     "username": "solaris",
@@ -152,6 +189,7 @@ El token emitido por `/auth/login` y `/auth/register` contiene las siguientes cl
   }
 }
 ```
+> Ver 5.4 para el significado y manejo de `accessToken`/`refreshToken`.
 
 ### 6.2 Inicio de Sesión (Login)
 - **Ruta:** `POST /api/v1/auth/login`
@@ -167,6 +205,7 @@ El token emitido por `/auth/login` y `/auth/register` contiene las siguientes cl
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "6177fb5b0a35c484132b9c47884e2372ea824c82c2dfc44702d31a29d8a85ef",
   "user": {
     "id": 1,
     "username": "solaris",
@@ -215,6 +254,7 @@ El token emitido por `/auth/login` y `/auth/register` contiene las siguientes cl
 {
   "message": "Correo electrónico verificado exitosamente.",
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "6177fb5b0a35c484132b9c47884e2372ea824c82c2dfc44702d31a29d8a85ef",
   "user": {
     "id": 1,
     "username": "solaris",
@@ -253,6 +293,7 @@ El token emitido por `/auth/login` y `/auth/register` contiene las siguientes cl
   ```
   El frontend debe leer `token` de la query string en esa ruta y guardarlo como el `accessToken` habitual.
   Si la petición envía `Accept: application/json`, responde en su lugar el mismo JSON que 7.4 (útil sólo para pruebas manuales, no para el flujo real de navegador).
+  **El `refreshToken` no viaja en la URL de redirección** (para no exponer una credencial de larga duración en el historial del navegador ni en logs) — el flujo de redirección sólo entrega un `accessToken` de corta duración. Si el portal web necesita mantener sesión más allá de esos 15 minutos sin repetir el consentimiento de Google, debe usar el flujo 7.4 (por ejemplo, vía un popup/fetch en lugar de una redirección de página completa) para recibir el `refreshToken` en el cuerpo JSON.
 
 ### 7.4 Login con Google — App / SPA (ID Token)
 - **Ruta:** `POST /api/v1/auth/google`
@@ -266,6 +307,7 @@ El token emitido por `/auth/login` y `/auth/register` contiene las siguientes cl
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "6177fb5b0a35c484132b9c47884e2372ea824c82c2dfc44702d31a29d8a85ef",
   "user": {
     "id": 2,
     "username": "solaris_google",
