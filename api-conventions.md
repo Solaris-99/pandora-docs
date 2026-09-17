@@ -607,3 +607,58 @@ Igual que los comentarios, las calificaciones están anidadas bajo la obra; no e
 - `averageStars` es `null` cuando `totalVotes` es `0`.
 - **No se expone** el desglose de votos por emoción — sólo el total y el promedio de estrellas. Ver `docs/fase-4-q2q.md` §1.4 para el razonamiento (evitar exponer datos que permitan manipular el futuro cálculo de estadísticas de la carta, Fase 5).
 - **Errores:** `NOT_FOUND` (404, obra inexistente/eliminada).
+
+---
+
+## 13. Contrato de Endpoints de Cartas (Fase 5)
+
+Las cartas se generan automáticamente cuando el Scheduler convierte una obra elegible (ver `docs/fase-5-cartas.md`); no hay ningún endpoint para crearlas manualmente.
+
+### 13.1 Forma Común de una Carta
+Tanto el explorador público como la colección propia devuelven cartas con esta misma forma:
+```json
+{
+  "id": 1,
+  "artwork": {
+    "id": 10,
+    "title": "Retrato legendario",
+    "thumbnailUrl": "https://res.cloudinary.com/.../thumb.png",
+    "authorId": 3
+  },
+  "rarity": "legendary",
+  "owned": true,
+  "copies": 2,
+  "stats": {
+    "attack": 140,
+    "defense": 140,
+    "hp": 2800,
+    "speed": 14
+  },
+  "createdAt": "2026-09-17T21:03:46.438Z"
+}
+```
+- `rarity` es uno de: `common`, `uncommon`, `rare`, `epic`, `legendary`.
+- **`stats` es `null` cuando `owned` es `false`** (RG 7.5.5: el detalle de una carta no poseída oculta sus estadísticas). `owned`/`copies` reflejan siempre al usuario que hace la petición: `copies: 0` cuando no se posee, y ambos campos son "neutros" (`owned: false, copies: 0`) en una petición anónima.
+
+### 13.2 Explorador de Cartas
+- **Ruta:** `GET /api/v1/cards` — **Acceso:** Público. Si se envía `Authorization: Bearer <accessToken>` válido, `owned`/`copies`/`stats` reflejan la posesión real del usuario.
+- **Query params:** paginación estándar (`page`, `limit`, ver 8.5) + `rarity` (opcional, uno de los valores de 13.1).
+- **Respuesta:** envoltorio de paginación estándar con `items` en el formato de 13.1.
+
+### 13.3 Detalle de Carta
+- **Ruta:** `GET /api/v1/cards/:id` — **Acceso:** Público (igual que 13.2, enriquecido si autenticado).
+- **Respuesta de éxito (200 OK):** un ítem con el formato de 13.1.
+- **Errores:** `NOT_FOUND` (404).
+
+### 13.4 Colección Propia
+- **Ruta:** `GET /api/v1/users/me/cards` — **Acceso:** Protegido.
+- Devuelve el **catálogo completo** de cartas del juego (no sólo las obtenidas), cada una anotada con las copias del usuario autenticado — así se pueden mostrar también las "cartas aún no obtenidas" (RF13) en una vista tipo álbum.
+- **Query params:** paginación estándar.
+- **Respuesta:** envoltorio de paginación estándar con `items` en el formato de 13.1.
+
+### 13.5 Detalle de Carta Propia
+- **Ruta:** `GET /api/v1/users/me/cards/:id` — **Acceso:** Protegido.
+- Mismo formato que 13.3, pero siempre evaluado desde la perspectiva del usuario autenticado (no hace falta enviar nada adicional). Funciona igual para una carta no poseída (no da 404; simplemente `owned: false, stats: null`).
+- **Errores:** `NOT_FOUND` (404, la carta en sí no existe).
+
+> **Nota:** hasta que exista el sistema de paquetes (Fase 6), ningún usuario posee cartas — `GET /users/me/cards` devolverá todo el catálogo con `owned: false` para todos los ítems. No es un error.
