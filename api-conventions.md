@@ -77,6 +77,10 @@ Todo error devuelto por la API (errores 4xx y 5xx) sigue una estructura JSON hom
 | `CANNOT_FOLLOW_SELF` | 400 | Se intentó seguir/dejar de seguir a la propia cuenta. |
 | `QUALIFICATION_ENDED` | 403 | Se intentó crear, actualizar o retirar una valoración Q2Q fuera de la semana de calificación de la obra. |
 | `OAUTH_ERROR` | 400/401 | Falla al validar el `idToken` o el perfil devuelto por Google. |
+| `NO_PACKAGES_AVAILABLE` | 409 | Se intentó abrir un paquete sin tener ninguno disponible. |
+| `NO_CARDS_AVAILABLE` | 409 | Aún no existe ninguna carta en el sistema para otorgar al abrir un paquete. |
+| `CARD_NOT_OWNED` | 403 | Se intentó usar como propia una carta que el usuario no posee (p. ej. al pedir un rival de batalla). |
+| `NO_OPPONENT_AVAILABLE` | 409 | No existe ninguna otra carta en el sistema para actuar como rival de batalla. |
 | `TOO_MANY_REQUESTS` | 429 | Límite de peticiones excedido (rate limiting). |
 | `INTERNAL_SERVER_ERROR` | 500 | Error no previsto en el servidor. |
 | `DATABASE_ERROR` | 500 | Falla en la persistencia de datos. |
@@ -662,3 +666,63 @@ Tanto el explorador público como la colección propia devuelven cartas con esta
 - **Errores:** `NOT_FOUND` (404, la carta en sí no existe).
 
 > **Nota:** hasta que exista el sistema de paquetes (Fase 6), ningún usuario posee cartas — `GET /users/me/cards` devolverá todo el catálogo con `owned: false` para todos los ítems. No es un error.
+
+---
+
+## 14. Contrato de Endpoints de Paquetes (Fase 6)
+
+Cada usuario tiene un inventario de paquetes (0 a 10) que se regenera solo, a razón de 1 paquete por minuto (ver `docs/fase-6-paquetes.md` para el detalle de la fórmula). No hace falta ningún endpoint para "crear" el inventario: se crea automáticamente (vacío) en la primera consulta.
+
+### 14.1 Consultar Inventario de Paquetes
+- **Ruta:** `GET /api/v1/users/me/packages` — **Acceso:** Protegido.
+- Aplica y persiste la regeneración pendiente antes de responder (el valor devuelto es siempre el real "a este instante", no uno desactualizado).
+- **Respuesta de éxito (200 OK):**
+```json
+{
+  "amount": 4,
+  "capacity": 10,
+  "lastRegenerationAt": "2026-09-17T21:00:00.000Z",
+  "secondsUntilNextPack": 37
+}
+```
+- `secondsUntilNextPack` es `null` cuando el inventario está al máximo (no hay "próximo paquete" que esperar).
+
+### 14.2 Abrir un Paquete
+- **Ruta:** `POST /api/v1/users/me/packages/open` — **Acceso:** Protegido.
+- Operación atómica (RG 7.6, CU08): consume exactamente un paquete y otorga 5 cartas en una única transacción — si algo falla, ni el paquete se descuenta ni se otorga ninguna carta.
+- Protegida contra doble consumo concurrente (CU08-A2): ante dos peticiones simultáneas del mismo usuario, sólo prosperan tantas como paquetes disponibles haya.
+- **Respuesta de éxito (200 OK):**
+```json
+{
+  "packOpened": true,
+  "remainingPackages": 3,
+  "cardsObtained": [
+    { "id": 12, "artwork": { "...": "..." }, "rarity": "common", "owned": true, "copies": 3, "stats": { "...": "..." }, "createdAt": "..." }
+  ]
+}
+```
+  Cada elemento de `cardsObtained` usa la misma forma que 13.1 — si el paquete otorgó cartas repetidas entre sí, `copies` ya refleja el total acumulado en la colección tras la apertura (no sólo las obtenidas en este paquete).
+- **Errores:** `NO_PACKAGES_AVAILABLE` (409, CU08-A1 — no hay paquetes disponibles), `NO_CARDS_AVAILABLE` (409 — aún no existe ninguna carta en el sistema; ver nota de diseño en `docs/fase-6-paquetes.md`).
+
+---
+
+## 15. Contrato de Endpoints de Batalla (Fase 7)
+
+RG 7.8 / CU09: la batalla es enteramente local en el cliente. El backend sólo resuelve la selección del rival; no existen endpoints para iniciar partidas, guardar resultados o consultar historial.
+
+### 15.1 Obtener Rival
+- **Ruta:** `GET /api/v1/battle/opponent?cardId=<id>` — **Acceso:** Protegido.
+- `cardId` (query, requerido): la carta propia que el usuario eligió para la batalla.
+- **Respuesta de éxito (200 OK):**
+```json
+{
+  "opponent": {
+    "id": 7,
+    "artwork": { "id": 20, "title": "...", "thumbnailUrl": "...", "authorId": 9 },
+    "rarity": "epic",
+    "stats": { "attack": 90, "defense": 60, "hp": 1200, "speed": 40 }
+  }
+}
+```
+- A diferencia de las cartas de la colección (13.1), la carta rival **siempre** incluye `stats` completos — es necesaria para que el cliente simule la batalla, y no representa la colección privada de otro jugador (es una carta cualquiera del catálogo, no la de un rival humano real).
+- **Errores:** `NOT_FOUND` (404, CU09-A2 — la carta indicada no existe), `CARD_NOT_OWNED` (403, CU09-A1 — el usuario no posee la carta elegida), `NO_OPPONENT_AVAILABLE` (409, CU09-A3 — no existe ninguna otra carta en el sistema que pueda actuar como rival).
