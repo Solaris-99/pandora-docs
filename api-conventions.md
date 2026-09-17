@@ -75,6 +75,7 @@ Todo error devuelto por la API (errores 4xx y 5xx) sigue una estructura JSON hom
 | `TOKEN_EXPIRED` | 400 | Token de verificación de email expirado (vigencia: 24 horas). |
 | `USER_ALREADY_VERIFIED` | 400 | Se intentó reenviar verificación a una cuenta ya verificada. |
 | `CANNOT_FOLLOW_SELF` | 400 | Se intentó seguir/dejar de seguir a la propia cuenta. |
+| `QUALIFICATION_ENDED` | 403 | Se intentó crear, actualizar o retirar una valoración Q2Q fuera de la semana de calificación de la obra. |
 | `OAUTH_ERROR` | 400/401 | Falla al validar el `idToken` o el perfil devuelto por Google. |
 | `TOO_MANY_REQUESTS` | 429 | Límite de peticiones excedido (rate limiting). |
 | `INTERNAL_SERVER_ERROR` | 500 | Error no previsto en el servidor. |
@@ -543,3 +544,66 @@ Los comentarios están anidados bajo la obra a la que pertenecen; no existe un `
 - **Errores:** `VALIDATION_ERROR` (400), `NOT_FOUND` (404, obra inexistente/eliminada), `USER_NOT_VERIFIED` (403).
 
 > No existe todavía edición ni borrado de comentarios por parte del propio usuario; la eliminación de comentarios llega junto con el panel de moderación (Fase 8).
+
+---
+
+## 12. Contrato de Endpoints de Calificaciones Q2Q (Fase 4)
+
+Igual que los comentarios, las calificaciones están anidadas bajo la obra; no existe un `/ratings` de nivel superior.
+
+### 12.1 Calificar (crear o actualizar)
+- **Ruta:** `PUT /api/v1/artworks/:id/rating` — **Acceso:** Protegido + **cuenta con email verificado** (ver 9.7).
+- **Cuerpo de la petición:**
+```json
+{ "stars": 5, "emotion": "joy" }
+```
+
+| Campo | Tipo | Reglas |
+|---|---|---|
+| `stars` | integer | 1 a 5 |
+| `emotion` | string | Uno de: `joy`, `fear`, `anger`, `serenity`, `grief`, `awe` |
+
+- Es una operación **upsert**: si el usuario ya había calificado esta obra, su valoración se actualiza (no se crea una segunda fila, no hay error de duplicado).
+- Sólo funciona mientras la obra está dentro de su semana de calificación (ver `qualification.active` en el detalle de obra, 9.3, o en 12.3).
+- **Respuesta de éxito (200 OK):**
+```json
+{
+  "stars": 5,
+  "emotion": "joy",
+  "createdAt": "2026-09-16T21:00:00.000Z",
+  "updatedAt": "2026-09-16T21:00:00.000Z"
+}
+```
+- **Errores:** `VALIDATION_ERROR` (400), `NOT_FOUND` (404, obra inexistente/eliminada), `QUALIFICATION_ENDED` (403, el período ya cerró), `USER_NOT_VERIFIED` (403).
+
+### 12.2 Retirar Calificación
+- **Ruta:** `DELETE /api/v1/artworks/:id/rating` — **Acceso:** Protegido (no requiere email verificado).
+- Idempotente: si el usuario no había calificado la obra, no es un error.
+- **Respuesta de éxito (200 OK):** `{ "message": "Se retiró tu valoración de la obra." }`
+- **Errores:** `NOT_FOUND` (404), `QUALIFICATION_ENDED` (403 — al igual que crear/actualizar, retirar un voto sólo se permite mientras el período sigue activo; ver `docs/fase-4-q2q.md` para el razonamiento de esta decisión).
+
+### 12.3 Resumen de Calificaciones
+- **Ruta:** `GET /api/v1/artworks/:id/ratings` — **Acceso:** Público. Si se envía `Authorization: Bearer <accessToken>` válido, la respuesta incluye `myRating`.
+- **Respuesta de éxito (200 OK):**
+```json
+{
+  "artworkId": 1,
+  "totalVotes": 37,
+  "averageStars": 4.3,
+  "qualification": {
+    "startedAt": "2026-09-16T20:00:00.000Z",
+    "endsAt": "2026-09-23T20:00:00.000Z",
+    "active": true
+  },
+  "myRating": {
+    "stars": 5,
+    "emotion": "joy",
+    "createdAt": "2026-09-16T21:00:00.000Z",
+    "updatedAt": "2026-09-16T21:00:00.000Z"
+  }
+}
+```
+- `myRating` es `null` cuando la petición es anónima o el usuario autenticado todavía no calificó esta obra.
+- `averageStars` es `null` cuando `totalVotes` es `0`.
+- **No se expone** el desglose de votos por emoción — sólo el total y el promedio de estrellas. Ver `docs/fase-4-q2q.md` §1.4 para el razonamiento (evitar exponer datos que permitan manipular el futuro cálculo de estadísticas de la carta, Fase 5).
+- **Errores:** `NOT_FOUND` (404, obra inexistente/eliminada).
