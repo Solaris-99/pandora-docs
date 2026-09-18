@@ -804,11 +804,33 @@ Forma común de una notificación:
   "createdAt": "2026-09-18T00:00:00.000Z"
 }
 ```
-`type` es una de: `user_follow`, `follow_upload`, `qualification_ended`, `artwork_converted`, `artwork_comment`, `comment_removed`, `artwork_removed`, `user_warned`, `user_banned`, `report_resolved`. (`artwork_vote_summary` está definida en el diseño pero no se emite — ver `docs/todo.md`.)
+`type` es una de: `user_follow`, `follow_upload`, `qualification_ended`, `artwork_converted`, `artwork_comment`, `artwork_vote_summary`, `comment_removed`, `artwork_removed`, `user_warned`, `user_banned`, `report_resolved`.
+
+**`artwork_vote_summary` es apilable**: cada voto sobre una obra notifica a su autor, pero mientras la notificación siga sin leerse, un nuevo voto **actualiza la misma fila** en vez de crear una nueva — el `content` se reescribe para nombrar a todos los votantes acumulados ("ana ha votado tu obra…" → "ana y beto han votado tu obra…" → "ana, beto y 2 más han votado tu obra…") y su `createdAt` se adelanta, así vuelve a aparecer arriba del listado. Una vez leída, el siguiente voto abre una notificación nueva. Ver `docs/mejoras-post-fase-8.md` sección 6.
 
 - **`GET /api/v1/notifications`** — Protegido. Paginación estándar. Devuelve las notificaciones del usuario autenticado, más recientes primero.
 - **`GET /api/v1/notifications/unread-count`** — Protegido. Respuesta: `{ "count": 3 }`.
 - **`PATCH /api/v1/notifications/:id/read`** — Protegido. Marca una notificación propia como leída (idempotente). **Errores:** `NOTIFICATION_NOT_FOUND` (404, incluye el caso de una notificación de otro usuario).
 - **`POST /api/v1/notifications/read-all`** — Protegido. Respuesta: `{ "updated": 4 }` (cantidad de notificaciones que pasaron de no leídas a leídas).
+
+---
+
+## 17. Contrato de Endpoints de Favoritos (CU11)
+
+RG CU11: sólo se puede destacar una obra propia o una carta que se posee — no es un "me gusta" general sobre contenido ajeno (ver `docs/mejoras-post-fase-8.md` sección 4).
+
+### 17.1 Destacar/quitar destacado de una obra
+- **`POST /api/v1/artworks/:id/favorite`** — Protegido. Idempotente (CU11-A3). **Errores:** `NOT_FOUND` (404), `FORBIDDEN` (403, CU11-A1 — la obra no es propia).
+- **`DELETE /api/v1/artworks/:id/favorite`** — Protegido. No falla si no estaba destacada.
+
+### 17.2 Destacar/quitar destacado de una carta
+- **`POST /api/v1/cards/:id/favorite`** — Protegido. Idempotente. **Errores:** `NOT_FOUND` (404), `CARD_NOT_OWNED` (403, CU11-A2 — no se posee la carta).
+- **`DELETE /api/v1/cards/:id/favorite`** — Protegido. No falla si no estaba destacada.
+
+### 17.3 Listar obras destacadas
+- **`GET /api/v1/users/me/favorites/artworks`** — Protegido. Paginación estándar. Cada ítem usa la misma forma de obra que el resto de la API (ver 9.3).
+
+### 17.4 Listar cartas destacadas
+- **`GET /api/v1/users/me/favorites/cards`** — Protegido. Paginación estándar. Cada ítem usa la misma forma de carta que 13.1 — dado que sólo se pueden destacar cartas poseídas, `owned` es siempre `true` aquí.
 
 No existe ningún endpoint para crear notificaciones manualmente: siempre son un efecto secundario de otra acción (seguir a alguien, publicar una obra, comentar, que termine una calificación, que se resuelva un reporte, etc.).
