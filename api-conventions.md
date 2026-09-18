@@ -81,6 +81,11 @@ Todo error devuelto por la API (errores 4xx y 5xx) sigue una estructura JSON hom
 | `NO_CARDS_AVAILABLE` | 409 | Aún no existe ninguna carta en el sistema para otorgar al abrir un paquete. |
 | `CARD_NOT_OWNED` | 403 | Se intentó usar como propia una carta que el usuario no posee (p. ej. al pedir un rival de batalla). |
 | `NO_OPPONENT_AVAILABLE` | 409 | No existe ninguna otra carta en el sistema para actuar como rival de batalla. |
+| `REPORT_ALREADY_PENDING` | 409 | El usuario ya tiene un reporte pendiente sobre esa misma obra/comentario. |
+| `REPORT_ALREADY_RESOLVED` | 409 | El reporte ya fue resuelto (por este u otro moderador) antes de esta petición. |
+| `CONTENT_ALREADY_REMOVED` | 409 | Se intentó reportar una obra o comentario que ya fue eliminado. |
+| `INVALID_REPORT_ACTION` | 400 | La acción de resolución no corresponde al tipo de contenido reportado (p. ej. `comment_removed` sobre un reporte de obra). |
+| `NOTIFICATION_NOT_FOUND` | 404 | La notificación no existe o no pertenece al usuario autenticado. |
 | `TOO_MANY_REQUESTS` | 429 | Límite de peticiones excedido (rate limiting). |
 | `INTERNAL_SERVER_ERROR` | 500 | Error no previsto en el servidor. |
 | `DATABASE_ERROR` | 500 | Falla en la persistencia de datos. |
@@ -726,3 +731,84 @@ RG 7.8 / CU09: la batalla es enteramente local en el cliente. El backend sólo r
 ```
 - A diferencia de las cartas de la colección (13.1), la carta rival **siempre** incluye `stats` completos — es necesaria para que el cliente simule la batalla, y no representa la colección privada de otro jugador (es una carta cualquiera del catálogo, no la de un rival humano real).
 - **Errores:** `NOT_FOUND` (404, CU09-A2 — la carta indicada no existe), `CARD_NOT_OWNED` (403, CU09-A1 — el usuario no posee la carta elegida), `NO_OPPONENT_AVAILABLE` (409, CU09-A3 — no existe ninguna otra carta en el sistema que pueda actuar como rival).
+
+---
+
+## 16. Contrato de Endpoints de Moderación y Notificaciones (Fase 8)
+
+### 16.1 Reportar una Obra (CU12)
+- **Ruta:** `POST /api/v1/artworks/:id/reports` — **Acceso:** Protegido + email verificado.
+- **Body:**
+```json
+{ "reason": "spam", "comment": "Texto opcional, máx. 300 caracteres" }
+```
+  `reason` es una de: `content_inappropriate`, `content_violent`, `content_sexual`, `illicit`, `copyright`, `plagiarism`, `spam`, `harassment`, `other`.
+- **Respuesta de éxito (201):** el reporte creado, con `status: "pending"`.
+- **Errores:** `NOT_FOUND` (404, CU12-A2), `CONTENT_ALREADY_REMOVED` (409, CU12-A3 — la obra ya fue eliminada), `REPORT_ALREADY_PENDING` (409, CU12-A4 — ya existe un reporte pendiente del mismo usuario sobre esta obra).
+
+### 16.2 Reportar un Comentario (CU13)
+- **Ruta:** `POST /api/v1/comments/:id/reports` — **Acceso:** Protegido + email verificado.
+- Mismo body y misma forma de respuesta que 16.1.
+- **Errores:** `NOT_FOUND` (404), `CONTENT_ALREADY_REMOVED` (409, CU13-A1), `REPORT_ALREADY_PENDING` (409, CU13-A3).
+
+### 16.3 Listar Reportes (CU14)
+- **Ruta:** `GET /api/v1/moderation/reports` — **Acceso:** Protegido, rol `moderator` o `admin`.
+- **Query params:** paginación estándar (`page`, `limit`) + `status` opcional (`pending` | `in_review` | `resolved` | `rejected`).
+- **Respuesta:** envoltorio de paginación estándar; cada ítem trae `targetType` (`artwork` | `comment`) además de los campos propios del reporte — necesario para saber qué pasarle a 16.4/16.5.
+- **Errores:** `FORBIDDEN` (403) si el usuario no es moderador/admin.
+
+### 16.4 Detalle de un Reporte (CU14)
+- **Ruta:** `GET /api/v1/moderation/reports/:id?targetType=artwork|comment` — **Acceso:** igual que 16.3.
+- `targetType` es **requerido**: los IDs de `artwork_reports` y `comment_reports` son independientes entre sí (ver `docs/fase-8-moderacion.md` sección 2.1), así que el mismo número puede referirse a dos reportes distintos según la tabla.
+- **Respuesta de éxito (200):** el reporte más un objeto `target` con el contexto del contenido denunciado:
+```json
+{
+  "id": 1,
+  "targetType": "artwork",
+  "targetId": 5,
+  "reporterId": 8,
+  "reason": "spam",
+  "comment": "parece spam",
+  "status": "pending",
+  "resolvedBy": null,
+  "resolution": null,
+  "createdAt": "2026-09-18T00:00:00.000Z",
+  "resolvedAt": null,
+  "target": { "id": 5, "title": "...", "thumbnailUrl": "...", "authorId": 7, "deleted": false }
+}
+```
+  `target` para un reporte de comentario trae `{ id, comment, authorId, artworkId, deleted }` en su lugar.
+- **Errores:** `NOT_FOUND` (404).
+
+### 16.5 Resolver un Reporte (CU14)
+- **Ruta:** `POST /api/v1/moderation/reports/:id/resolve` — **Acceso:** igual que 16.3.
+- **Body:**
+```json
+{ "targetType": "artwork", "action": "warning" }
+```
+  `action` es una de: `dismissed`, `warning`, `content_removed`, `comment_removed`, `user_banned`. `content_removed` sólo es válida con `targetType: "artwork"`; `comment_removed` sólo con `targetType: "comment"`.
+- **Efecto según `action`:** ver `docs/fase-8-moderacion.md` sección 3 para el detalle completo (qué se elimina, quién recibe qué notificación). El reportante **siempre** recibe una notificación `report_resolved`, sin importar la acción elegida.
+- **Respuesta de éxito (200):** el reporte actualizado (`status: "resolved"`).
+- **Errores:** `INVALID_REPORT_ACTION` (400 — la acción no corresponde al tipo de contenido), `NOT_FOUND` (404), `REPORT_ALREADY_RESOLVED` (409, CU14-A4 — otro moderador ya lo resolvió).
+
+### 16.6 Notificaciones (CU15)
+
+Forma común de una notificación:
+```json
+{
+  "id": 1,
+  "type": "user_follow",
+  "title": "Nuevo seguidor",
+  "content": "alguien comenzó a seguirte.",
+  "isRead": false,
+  "createdAt": "2026-09-18T00:00:00.000Z"
+}
+```
+`type` es una de: `user_follow`, `follow_upload`, `qualification_ended`, `artwork_converted`, `artwork_comment`, `comment_removed`, `artwork_removed`, `user_warned`, `user_banned`, `report_resolved`. (`artwork_vote_summary` está definida en el diseño pero no se emite — ver `docs/todo.md`.)
+
+- **`GET /api/v1/notifications`** — Protegido. Paginación estándar. Devuelve las notificaciones del usuario autenticado, más recientes primero.
+- **`GET /api/v1/notifications/unread-count`** — Protegido. Respuesta: `{ "count": 3 }`.
+- **`PATCH /api/v1/notifications/:id/read`** — Protegido. Marca una notificación propia como leída (idempotente). **Errores:** `NOTIFICATION_NOT_FOUND` (404, incluye el caso de una notificación de otro usuario).
+- **`POST /api/v1/notifications/read-all`** — Protegido. Respuesta: `{ "updated": 4 }` (cantidad de notificaciones que pasaron de no leídas a leídas).
+
+No existe ningún endpoint para crear notificaciones manualmente: siempre son un efecto secundario de otra acción (seguir a alguien, publicar una obra, comentar, que termine una calificación, que se resuelva un reporte, etc.).
