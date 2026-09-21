@@ -86,6 +86,10 @@ Todo error devuelto por la API (errores 4xx y 5xx) sigue una estructura JSON hom
 | `CONTENT_ALREADY_REMOVED` | 409 | Se intentó reportar una obra o comentario que ya fue eliminado. |
 | `INVALID_REPORT_ACTION` | 400 | La acción de resolución no corresponde al tipo de contenido reportado (p. ej. `comment_removed` sobre un reporte de obra). |
 | `NOTIFICATION_NOT_FOUND` | 404 | La notificación no existe o no pertenece al usuario autenticado. |
+| `APPEAL_ALREADY_EXISTS` | 409 | Ya existe una apelación (de cualquier estado) sobre esta sanción — sólo se permite una por reporte. |
+| `APPEAL_ALREADY_RESOLVED` | 409 | La apelación ya fue resuelta (por este u otro moderador) antes de esta petición. |
+| `APPEAL_REVIEWER_CONFLICT` | 403 | El moderador que intenta resolver la apelación es el mismo que resolvió el reporte original, y hay más de un moderador/admin disponible. |
+| `REPORT_NOT_OVERTURNABLE` | 400/409 | Se intentó reabrir un reporte que no está en estado `resolved`, o cuya resolución no tiene ninguna sanción que revertir (`dismissed`/`warning`), o que ya fue reabierto por otro camino. |
 | `TOO_MANY_REQUESTS` | 429 | Límite de peticiones excedido (rate limiting). |
 | `INTERNAL_SERVER_ERROR` | 500 | Error no previsto en el servidor. |
 | `DATABASE_ERROR` | 500 | Falla en la persistencia de datos. |
@@ -813,6 +817,8 @@ Forma común de una notificación:
 - **`PATCH /api/v1/notifications/:id/read`** — Protegido. Marca una notificación propia como leída (idempotente). **Errores:** `NOTIFICATION_NOT_FOUND` (404, incluye el caso de una notificación de otro usuario).
 - **`POST /api/v1/notifications/read-all`** — Protegido. Respuesta: `{ "updated": 4 }` (cantidad de notificaciones que pasaron de no leídas a leídas).
 
+No existe ningún endpoint para crear notificaciones manualmente: siempre son un efecto secundario de otra acción (seguir a alguien, publicar una obra, comentar, que termine una calificación, que se resuelva un reporte, etc.).
+
 ---
 
 ## 17. Contrato de Endpoints de Favoritos (CU11)
@@ -833,4 +839,51 @@ RG CU11: sólo se puede destacar una obra propia o una carta que se posee — no
 ### 17.4 Listar cartas destacadas
 - **`GET /api/v1/users/me/favorites/cards`** — Protegido. Paginación estándar. Cada ítem usa la misma forma de carta que 13.1 — dado que sólo se pueden destacar cartas poseídas, `owned` es siempre `true` aquí.
 
-No existe ningún endpoint para crear notificaciones manualmente: siempre son un efecto secundario de otra acción (seguir a alguien, publicar una obra, comentar, que termine una calificación, que se resuelva un reporte, etc.).
+---
+
+## 18. Contrato de Endpoints de Administración y Apelaciones
+
+Ver `docs/mejoras-admin-apelaciones.md` para el razonamiento detrás de estas decisiones (por qué una única tabla de apelaciones, por qué un usuario baneado sí puede autenticarse, por qué "reabrir" es una reversión de un solo sentido, etc.).
+
+### 18.1 Gestión de moderadores (Admin)
+- **`POST /api/v1/roles/moderators/:userId`** — Protegido, rol `admin`. Otorga el rol `moderator` al usuario indicado. Idempotente. **Errores:** `USER_NOT_FOUND` (404).
+- **`DELETE /api/v1/roles/moderators/:userId`** — Protegido, rol `admin`. Revoca el rol `moderator`. Idempotente.
+
+Un admin **no** puede otorgar/revocar el rol `admin` mismo por esta vía — sólo `moderator`.
+
+### 18.2 Reapertura directa de un reporte resuelto (Admin)
+- **`POST /api/v1/moderation/reports/:id/reopen`** — Protegido, rol **`admin`** (a diferencia del resto de `/moderation/*`, que acepta `moderator` o `admin`).
+- **Body:** `{ "targetType": "artwork" | "comment" }` (mismo motivo que en el resto de `/moderation/reports/*`: los IDs de `artwork_reports`/`comment_reports` no son globalmente únicos).
+- **Efecto:** reversión de un solo sentido — restaura la obra/comentario o desbanea al usuario según la `resolution` original, y marca el reporte como `status: "overturned"`. No vuelve a poner el reporte en el flujo normal de resolución ni permite elegir una sanción distinta en el mismo paso.
+- **Respuesta de éxito (200):** el reporte actualizado.
+- **Errores:** `NOT_FOUND` (404), `REPORT_NOT_OVERTURNABLE` (409 si el reporte no está `resolved` o ya fue revertido; 400 si su `resolution` es `dismissed`/`warning` — no hay nada que revertir).
+
+### 18.3 Apelar una obra eliminada
+- **`POST /api/v1/artworks/:id/appeals`** — Protegido. Sólo el autor de la obra puede apelar su propia eliminación.
+- **Body:**
+```json
+{ "reason": "excessive_punishment", "detail": "Texto opcional, máx. 500 caracteres" }
+```
+  `reason` es una de: `excessive_punishment`, `mistaken_identity`, `missing_context`, `false_report`, `other`.
+- **Respuesta de éxito (201):** la apelación creada, con `status: "pending"`.
+- **Errores:** `NOT_FOUND` (404 — la obra no existe, o no hay ninguna sanción apelable: no fue eliminada por un reporte resuelto con `content_removed`), `FORBIDDEN` (403 — no sos el autor), `APPEAL_ALREADY_EXISTS` (409 — esa sanción ya fue apelada).
+
+### 18.4 Apelar un comentario eliminado
+- **`POST /api/v1/comments/:id/appeals`** — Protegido. Mismo contrato que 18.3, para el autor del comentario.
+
+### 18.5 Apelar el propio baneo
+- **`POST /api/v1/users/me/ban-appeal`** — Protegido, **sin `BannedUserGuard`**: es la vía por la que una cuenta baneada recupera acceso. Mismo body/respuesta que 18.3. Localiza automáticamente el reporte que causó el baneo — no hace falta indicar cuál.
+- **`GET /api/v1/users/me/appeals`** — Protegido, sin `BannedUserGuard`. Paginación estándar. Lista las apelaciones propias (de cualquier tipo: obra, comentario o baneo), para poder consultar su estado sin acceso de moderación.
+
+### 18.6 Panel de moderación de apelaciones
+- **`GET /api/v1/moderation/appeals`** — Protegido, rol `moderator`/`admin`. Paginación estándar + `status` opcional. **Excluye automáticamente** las apelaciones cuyo reporte original resolvió el propio moderador que hace la consulta — salvo que sea el único miembro de moderación activo (`moderator` + `admin` combinados).
+- **`GET /api/v1/moderation/appeals/:id`** — Protegido, rol `moderator`/`admin`. Incluye el reporte original referenciado (`report`).
+- **`POST /api/v1/moderation/appeals/:id/resolve`** — Protegido, rol `moderator`/`admin`.
+  - **Body:** `{ "action": "approve" | "reject" }`.
+  - **Aprobar:** aplica la misma reversión de 18.2 (restaura contenido / desbanea) y marca el reporte original como `overturned`. **Rechazar:** no modifica nada del reporte.
+  - En ambos casos se notifica al apelante (`appeal_resolved`).
+  - **Respuesta de éxito (200):** la apelación actualizada.
+  - **Errores:** `NOT_FOUND` (404), `APPEAL_REVIEWER_CONFLICT` (403 — sos el mismo moderador que resolvió el reporte original, y hay más de un moderador/admin), `APPEAL_ALREADY_RESOLVED` (409 — ya fue resuelta).
+
+### 18.7 Notificaciones nuevas
+`type` gana cuatro valores: `artwork_restored`, `comment_restored`, `user_unbanned` (al afectado, cuando una sanción se revierte por cualquiera de los dos caminos de arriba) y `appeal_resolved` (al apelante, siempre, sin importar el resultado).

@@ -75,6 +75,8 @@ Fuente base: la propuesta define web, backend centralizado y aplicación móvil,
 - Autobattler local.
 - Denuncias.
 - Panel de moderación para usuarios autorizados.
+- Apelaciones de sanciones (eliminación de obra/comentario, baneo).
+- Panel de administración (gestión de moderadores, reapertura de reportes resueltos).
 
 ### Aplicación Android
 
@@ -95,6 +97,8 @@ Debe cubrir las funcionalidades de usuario previstas para móvil, compartiendo e
 - Seguimientos.
 - Favoritos.
 - Reportes.
+- Apelaciones.
+- Administración (gestión de moderadores, reapertura de reportes).
 - Notificaciones.
 - Conversión periódica mediante CRON.
 
@@ -168,6 +172,15 @@ Puede:
 - banear usuarios;
 - descartar reportes.
 
+## 4.4 Admin
+
+Puede hacer todo lo que puede hacer un moderador, más:
+
+- otorgar y revocar el rol `moderator` a otros usuarios;
+- revisar reportes ya resueltos (archivados) y reabrirlos, revirtiendo la sanción aplicada (restaurar obra/comentario o desbanear al usuario) sin pasar por el flujo de apelación.
+
+El rol `admin` no se otorga ni se revoca a través de la aplicación — es un rol de confianza asignado fuera de este flujo (p. ej. directamente en base de datos).
+
 ---
 
 # 5. Requerimientos funcionales
@@ -198,6 +211,9 @@ Puede:
 | RF22 | Reportes de comentarios | Registrar denuncias sobre comentarios. |
 | RF23 | Moderación | Revisar y resolver reportes mediante descarte, advertencia, eliminación o baneo según corresponda. |
 | RF24 | Estados de contenido | Respetar estados de publicación, eliminación, conversión, moderación y calificación. |
+| RF25 | Gestión de moderadores | Un admin puede otorgar o revocar el rol `moderator` a cualquier usuario. |
+| RF26 | Reapertura de reportes | Un admin puede reabrir un reporte ya resuelto con sanción punitiva, revirtiendo la sanción aplicada. |
+| RF27 | Apelaciones | Un usuario cuya obra, comentario o cuenta fue sancionada por un reporte resuelto puede apelar esa sanción una única vez, indicando un motivo predefinido y un texto opcional. Un moderador o admin distinto de quien resolvió el reporte original (salvo que sea el único miembro de moderación) revisa la apelación y la aprueba o rechaza. |
 
 ---
 
@@ -329,6 +345,16 @@ Efecto de las rarezas (valor r)
 | rare      | 4     |
 | epic      | 6     |
 | legendary | 9     |
+
+## 7.11 Apelaciones y administración
+
+1. Toda apelación remite a un único reporte ya resuelto con una sanción punitiva (`content_removed`, `comment_removed` o `user_banned`); un reporte resuelto como `dismissed` o `warning` no tiene nada que apelar ni que reabrir.
+2. Un reporte sólo puede apelarse una vez: si la apelación es rechazada, no puede volver a apelarse la misma sanción.
+3. Sólo el autor de la obra/comentario sancionado, o el propio usuario baneado, puede apelar esa sanción.
+4. El moderador o admin que revisa una apelación no puede ser quien resolvió el reporte original, salvo que en ese momento exista exactamente un miembro de personal de moderación (`moderator` + `admin` contados juntos).
+5. Aprobar una apelación, o reabrir un reporte directamente como admin, es una reversión de un solo sentido: deshace exactamente el efecto de la sanción original (restaura el contenido o desbanea al usuario). No permite reemplazar la sanción por otra distinta en el mismo paso.
+6. Un usuario baneado puede autenticarse igual que cualquier otro usuario, pero sus operaciones de escritura quedan bloqueadas salvo apelar su propio baneo, consultar el estado de sus apelaciones y consultar/gestionar sus notificaciones.
+7. La suspensión (`UserStatus.suspended`) no forma parte del sistema de apelaciones: una cuenta suspendida sigue sin poder autenticarse, sin excepción.
 
 ---
 
@@ -747,6 +773,101 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
+## CU17 — Gestionar rol de moderador
+
+**Actor principal:** Admin  
+**Precondición:** El actor posee el rol `admin`.  
+**Postcondición:** El usuario objetivo gana o pierde el rol `moderator`.
+
+### Flujo principal
+
+1. El admin abre el panel de administración.
+2. Selecciona un usuario.
+3. Otorga o revoca el rol `moderator`.
+4. El sistema actualiza los roles del usuario objetivo.
+5. Se confirma la acción.
+
+### Alternativo
+
+- **A1:** El usuario ya tiene (u otorgar) o ya no tiene (revocar) el rol -> operación idempotente, no es un error.
+- **A2:** Usuario objetivo inexistente -> 404.
+- **A3:** Actor sin rol `admin` -> 403.
+- **A4:** El rol `admin` en sí mismo no se otorga ni revoca por este medio -> fuera de alcance de este caso de uso.
+
+---
+
+## CU18 — Reabrir un reporte resuelto
+
+**Actor principal:** Admin  
+**Precondición:** Existe un reporte con `status = resolved` y una `resolution` punitiva (`content_removed`, `comment_removed` o `user_banned`).  
+**Postcondición:** La sanción original queda revertida (contenido restaurado o usuario desbaneado) y el reporte pasa a `status = overturned`.
+
+### Flujo principal
+
+1. El admin abre el listado de reportes resueltos.
+2. Selecciona un reporte con sanción aplicada.
+3. Confirma la reapertura.
+4. El sistema revierte el efecto de la sanción original.
+5. El sistema marca el reporte como `overturned`.
+6. Se notifica al usuario afectado (obra/comentario restaurado, o cuenta desbaneada).
+
+### Alternativo
+
+- **A1:** El reporte ya fue reabierto o ya tiene una apelación aprobada en paralelo -> 409 (nada que revertir dos veces).
+- **A2:** La `resolution` del reporte no es punitiva (`dismissed`/`warning`) -> 400, no hay nada que revertir.
+- **A3:** El reporte no existe o no está resuelto -> 404.
+- **A4:** Actor sin rol `admin` (un moderador sin `admin` no puede reabrir) -> 403.
+
+---
+
+## CU19 — Apelar una sanción
+
+**Actor principal:** Usuario autenticado afectado (autor de la obra/comentario eliminado, o usuario baneado apelando su propia cuenta)  
+**Precondición:** Existe un reporte resuelto con sanción punitiva sobre su obra, comentario o cuenta, y esa sanción todavía no fue apelada.  
+**Postcondición:** Se registra una apelación en estado `pending`, visible para el personal de moderación.
+
+### Flujo principal
+
+1. El usuario ve que su obra, comentario o cuenta fue sancionada.
+2. Abre la opción de apelar.
+3. Selecciona un motivo predefinido (sanción excesiva o incorrecta, identidad equivocada, falta de contexto, reporte falso, otro).
+4. Opcionalmente agrega un texto explicando su caso.
+5. Envía la apelación.
+6. El sistema la registra en estado `pending`.
+
+### Alternativo
+
+- **A1:** Ya existe una apelación previa para esa misma sanción -> 409, no se admite una segunda.
+- **A2:** No existe una sanción punitiva apelable sobre ese contenido/cuenta -> 404.
+- **A3:** El usuario no es el autor del contenido ni el usuario baneado -> 403.
+- **A4:** El usuario apelando su propio baneo está autenticado pero baneado -> se le permite igual: apelar el propio baneo, consultar sus apelaciones y sus notificaciones son las únicas operaciones de escritura/lectura que una cuenta baneada conserva.
+
+---
+
+## CU20 — Revisar una apelación
+
+**Actor principal:** Moderador o Admin  
+**Precondición:** Existe una apelación en estado `pending`; el revisor no resolvió el reporte original que la apelación referencia, salvo que sea el único miembro de moderación (`moderator` + `admin`) en el sistema.  
+**Postcondición:** La apelación queda `approved` o `rejected`; si fue aprobada, la sanción original queda revertida igual que en CU18.
+
+### Flujo principal
+
+1. El moderador abre el listado de apelaciones pendientes (el sistema excluye las que él mismo originó al resolver el reporte, salvo la excepción de moderador único).
+2. Abre el detalle de una apelación: motivo, texto opcional, y el reporte/sanción que referencia.
+3. Decide aprobar o rechazar.
+4. Si aprueba: el sistema revierte la sanción original (mismo mecanismo que CU18) y notifica al afectado.
+5. Si rechaza: no se modifica el contenido ni el reporte.
+6. En ambos casos se notifica el resultado al apelante.
+
+### Alternativo
+
+- **A1:** El revisor resolvió el reporte original y hay más de un miembro de personal de moderación -> 403, debe revisarla otro moderador/admin.
+- **A2:** La apelación ya fue resuelta por otro moderador -> 409.
+- **A3:** La aprobación compite con una reapertura directa (CU18) del mismo reporte -> no es un error para la apelación: se considera igualmente aprobada, ya que el resultado deseado ya ocurrió.
+- **A4:** Actor sin rol `moderator`/`admin` -> 403.
+
+---
+
 # 9. Modelo de datos
 
 La definición inicial incluye usuarios, artworks, comentarios, ratings, cartas, inventario, paquetes, reportes, follows, favoritos y tags. Esta versión agrega las estructuras necesarias para soportar notificaciones, moderación y verificación de email. 
@@ -1123,7 +1244,10 @@ pending
 in_review
 resolved
 rejected
+overturned
 ```
+
+`overturned` se alcanza únicamente desde `resolved` (reapertura por admin o apelación aprobada), y sólo cuando la `resolution` original fue punitiva. `rejected` está reservado para un futuro mecanismo de auto-rechazo (p. ej. deduplicación) que ningún flujo actual produce todavía.
 
 ### Enum `report_resolution`
 
@@ -1160,6 +1284,10 @@ comment_removed
 artwork_removed
 user_warned
 user_banned
+artwork_restored
+comment_restored
+user_unbanned
+appeal_resolved
 ```
 
 El conjunto no es exhaustivo y puede ampliarse.
@@ -1222,6 +1350,50 @@ Para Google OAuth puede incorporarse una tabla separada si se requiere soportar 
 
 ---
 
+## 9.18 appeals
+
+Tabla única, no dividida por tipo de contenido: toda apelación remite a un único reporte ya resuelto (`report_target_type` + `report_id`, mismo discriminador de `report_target_type` usado en 9.14), y ese reporte ya indica mediante su `resolution` si la sanción fue sobre una obra, un comentario o un usuario baneado.
+
+| Campo | Tipo | Reglas |
+|---|---|---|
+| id | bigint | PK |
+| report_target_type | enum | NOT NULL — mismo discriminador que reports (`artwork`, `comment`) |
+| report_id | bigint | NOT NULL — referencia lógica a `artwork_reports.id` o `comment_reports.id` según `report_target_type` |
+| appellant_id | bigint | FK users.id, NOT NULL |
+| reason | enum | NOT NULL |
+| detail | varchar(500) | nullable |
+| status | enum | NOT NULL, default `pending` |
+| reviewed_by | bigint | FK users.id, nullable |
+| reviewed_at | timestamp | nullable |
+| created_at | timestamp | NOT NULL |
+
+### Enum `appeal_reason`
+
+```text
+excessive_punishment
+mistaken_identity
+missing_context
+false_report
+other
+```
+
+### Enum `appeal_status`
+
+```text
+pending
+approved
+rejected
+```
+
+### Constraints y reglas
+
+- `UNIQUE(report_target_type, report_id)`: un reporte sólo puede apelarse una vez, sin importar el resultado.
+- Un baneo de usuario se representa igual que una apelación de obra/comentario: `report_target_type`/`report_id` apuntan al reporte cuya `resolution` fue `user_banned`; no existe un tercer valor de `report_target_type` para "usuario".
+- `reviewed_by` y `reviewed_at` sólo se completan al resolver (`approved`/`rejected`).
+- El usuario que revisa (`reviewed_by`) no puede ser el mismo que aparece en `resolved_by` del reporte referenciado, salvo que en ese momento exista exactamente un miembro de personal de moderación (`moderator` + `admin` combinados).
+
+---
+
 # 10. Relaciones principales
 
 ```text
@@ -1244,6 +1416,10 @@ users 1 ─── N reports
 users 1 ─── N email_verification_tokens
 users 1 ─── N oauth_accounts
 users N ─── N roles        (user_roles)
+users 1 ─── N appeals      (appellant_id)
+users 1 ─── N appeals      (reviewed_by, nullable)
+artwork_reports  1 ─── 0..1 appeals  (report_target_type = artwork)
+comment_reports  1 ─── 0..1 appeals  (report_target_type = comment)
 ```
 
 ---
@@ -1385,6 +1561,23 @@ No se recomienda implementar `/battle/start`, `/battle/result` o `/battle/histor
 
 La administración de tags puede restringirse a administrador si dejan de ser libres.
 
+## 11.12 Administración y Apelaciones
+
+| Método | Endpoint | Uso | Auth |
+|---|---|---|---|
+| POST | `/roles/moderators/:userId` | Otorgar rol `moderator` | Admin |
+| DELETE | `/roles/moderators/:userId` | Revocar rol `moderator` | Admin |
+| POST | `/moderation/reports/:id/reopen` | Reabrir un reporte resuelto (reversión directa) | Admin |
+| POST | `/artworks/:id/appeals` | Apelar la eliminación de una obra propia | Auth |
+| POST | `/comments/:id/appeals` | Apelar la eliminación de un comentario propio | Auth |
+| POST | `/users/me/ban-appeal` | Apelar el propio baneo | Auth (permitido para cuenta baneada) |
+| GET | `/users/me/appeals` | Consultar apelaciones propias | Auth (permitido para cuenta baneada) |
+| GET | `/moderation/appeals` | Listar apelaciones pendientes (excluye las que el revisor no puede resolver) | Moderator/Admin |
+| GET | `/moderation/appeals/:id` | Detalle de una apelación | Moderator/Admin |
+| POST | `/moderation/appeals/:id/resolve` | Aprobar o rechazar una apelación | Moderator/Admin |
+
+`POST /moderation/reports/:id/reopen` es el único endpoint de `/moderation/*` restringido a `admin` exclusivamente; el resto de `/moderation/*` acepta `moderator` o `admin` por igual.
+
 ---
 
 # 12. Guards y autorización
@@ -1416,9 +1609,19 @@ Ejemplo:
 ```text
 GET  /moderation/reports
 POST /moderation/reports/:id/resolve
+GET  /moderation/appeals
+POST /moderation/appeals/:id/resolve
 ```
 
-requieren `moderator` o `admin`.
+requieren `moderator` o `admin`. En cambio:
+
+```text
+POST   /roles/moderators/:userId
+DELETE /roles/moderators/:userId
+POST   /moderation/reports/:id/reopen
+```
+
+requieren exclusivamente `admin`.
 
 ## 12.3 `OwnershipGuard`
 
@@ -1458,7 +1661,12 @@ Debe proteger, como mínimo:
 
 ## 12.6 `BannedUserGuard`
 
-Un usuario baneado no debería poder utilizar funcionalidades de escritura aunque posea un JWT válido.
+Un usuario baneado no debería poder utilizar funcionalidades de escritura aunque posea un JWT válido — pero sí debe poder **autenticarse**, porque necesita un token para apelar su propio baneo. Por eso el chequeo de estado `banned` no vive en `JwtStrategy`/`AuthService` (eso impediría obtener un token en absoluto), sino en este guard, aplicado junto a `JwtAuthGuard` en prácticamente todos los endpoints protegidos, **excepto**:
+
+- `POST /users/me/ban-appeal` y `GET /users/me/appeals` (para poder apelar y consultar el resultado);
+- todo `/notifications/*` (para poder leer la notificación que confirma el desenlace de la apelación).
+
+El estado `suspended` es distinto: sigue bloqueado directamente en `JwtStrategy`/`AuthService`, sin ninguna excepción — la suspensión no forma parte del sistema de apelaciones.
 
 ---
 
@@ -1769,9 +1977,33 @@ Reporte resuelto
       |
       v
 Auditoría + notificación
+      |
+      v
+¿Sanción punitiva? (content_removed / comment_removed / user_banned)
+      |
+      +---- No (dismissed/warning) -> no hay nada que reabrir ni apelar
+      |
+      v
+Sí:
+      +---- Admin reabre directamente ─────────────┐
+      |                                             v
+      +---- Afectado apela ──► Apelación pending    │
+                    │                                │
+                    v                                │
+          Otro moderador/admin revisa                │
+          (no quien resolvió, salvo único)            │
+                    │                                │
+          +---------+---------+                       │
+          |                   |                       │
+        rechaza            aprueba                     │
+          |                   |                       │
+          v                   v                       v
+   No se modifica     Revertir sanción  <──────────────┘
+   nada, se notifica  (restaurar obra/comentario
+   al apelante         o desbanear) + reporte -> overturned
+                        + notificar al afectado
+                        + notificar al apelante
 ```
-
-
 
 ---
 
@@ -1793,6 +2025,8 @@ follows(followed_id)
 notifications(user_id, is_read, created_at)
 artwork_reports(status, created_at)
 comment_reports(status, created_at)
+appeals(status, created_at)
+appeals(report_target_type, report_id)  -- ya cubierto por el UNIQUE
 ```
 
 Los índices exactos deben revisarse mediante consultas reales y `EXPLAIN ANALYZE` cuando el volumen de datos sea representativo.
@@ -1849,6 +2083,10 @@ RateArtworkDto
 CreateReportDto
 ResolveReportDto
 UpdateProfileDto
+CreateAppealDto
+ResolveAppealDto
+ReopenReportDto
+QueryAppealsDto
 ```
 
 No reutilizar automáticamente entidades TypeORM como DTOs de entrada.
@@ -2021,6 +2259,10 @@ Usuario -> Reporte -> Moderador -> Resolución
 - métricas;
 - revisión de queries e índices;
 - revisión de seguridad.
+
+## Extensión — Favoritos, borrado con cascada y rol de admin/apelaciones
+
+Construidos después de la Fase 8, a pedido directo y fuera del orden de fases original: favoritos de obras/cartas, borrado lógico de obras con cascada a comentarios/valoraciones/carta, validación real de contenido de archivo, notificación apilable de votos (RF19–RF21 y RF25–RF27 de la sección 5). El detalle de diseño e implementación de cada uno vive en `docs/mejoras-post-fase-8.md` y `docs/mejoras-admin-apelaciones.md`; este documento incorpora sus decisiones estructurales (actores, reglas de negocio, modelo de datos, endpoints y guards) para que el diseño general se mantenga como referencia única y actualizada.
 
 ---
 
