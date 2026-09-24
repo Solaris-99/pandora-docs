@@ -101,9 +101,29 @@ Todo error devuelto por la API (errores 4xx y 5xx) sigue una estructura JSON hom
 El backend implementa rechazo estricto de campos no permitidos (**whitelisting**):
 - Si el cliente envía propiedades adicionales o no reconocidas en el cuerpo JSON, el backend responderá con `400 Bad Request` (`VALIDATION_ERROR`).
 - Las cadenas de texto son sanitizadas y validadas según las siguientes reglas base:
-  - **username**: Obligatorio, entre 1 y 30 caracteres.
+  - **username**: Obligatorio, entre 1 y 30 caracteres, sólo letras/números/guión bajo (`^[a-zA-Z0-9_]+$`) — mismo charset exigido tanto al registrarse como al editar el perfil.
   - **email**: Formato de email válido (`user@domain.com`), máximo 30 caracteres.
   - **password**: Mínimo 6 caracteres, máximo 50 caracteres.
+  - **Todo campo de texto libre que un cliente pueda renderizar** (título/descripción de obra, tags, comentario, bio, campo `comment`/`detail` de reportes y apelaciones): se le remueve cualquier marcado HTML antes de persistir — ver 4.2.
+
+### 4.1 Rate limiting (RNF03, RNF08)
+
+Implementado con `@nestjs/throttler`, por IP:
+
+- **Límite global por defecto:** 100 peticiones / minuto, aplicado automáticamente a toda ruta que no tenga un override propio (red de seguridad general, incluye rutas públicas de sólo lectura).
+- **Endpoints de autenticación** (`POST /auth/register`, `/auth/login`, `/auth/resend-verification`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/refresh`): **5 peticiones / minuto**, cada endpoint con su propio contador independiente.
+- **Escritura sensible a spam** (`POST /artworks/:id/comments`, `PUT /artworks/:id/rating`, `POST /artworks/:id/reports`, `POST /comments/:id/reports`): **10 peticiones / minuto**.
+- Al exceder el límite: `429 Too Many Requests`, `code: "TOO_MANY_REQUESTS"` (mismo formato de error que el resto de la API, ver sección 2).
+- El contador es por IP y en memoria del proceso (sin Redis/almacenamiento compartido) — suficiente para una única instancia; una implementación multi-instancia necesitaría un `ThrottlerStorage` compartido.
+
+### 4.2 Sanitización de texto libre (XSS almacenado)
+
+Todo campo de texto libre que algún cliente (web o Android) pudiera renderizar se sanitiza en el backend al validarlo, sin depender de que cada cliente escape correctamente — defensa en profundidad contra XSS almacenado, independiente de cómo cada cliente termine mostrando el contenido:
+
+- **Campos afectados:** `title`/`description` de obras (incluida la carga directa de admin, 18.8), cada elemento de `tags`, `comment` de comentarios, `bio` de perfil, `comment` de reportes (16.1/16.2) y `detail` de apelaciones (18.3/18.4).
+- **Comportamiento:** se remueve cualquier etiqueta HTML pero se conserva el texto interno (`"<b>hola</b>"` → `"hola"`); el contenido de etiquetas peligrosas por diseño (`<script>`, `<style>`) se descarta por completo en vez de dejarlo como texto plano. Se aplica **antes** de los límites de longitud (`MaxLength`), así que no es posible burlar el límite rellenando con marcado que luego se remueve.
+- Los límites de longitud (`MaxLength`) documentados en cada endpoint ya reflejan el conteo sobre el texto sanitizado.
+- No afecta a `username` (que ya tiene su propio charset restringido, ver 4.) ni a campos que no son texto libre (emails, enums, IDs).
 
 ---
 
@@ -336,6 +356,35 @@ A partir de la Fase 4, **todo endpoint que autentica** (registro, login, verific
 - Si es la primera vez que ese email/cuenta de Google se ve, se crea un usuario nuevo automáticamente (`email_verified: true`, sin contraseña local). Si ya existía una cuenta local con ese email, se vincula y se marca el email como verificado.
 - **Errores:** `OAUTH_ERROR` (401) si el `idToken` es inválido o expiró.
 
+### 7.5 Recuperación de contraseña
+
+- **Ruta:** `POST /api/v1/auth/forgot-password` — **Acceso:** Público.
+- **Cuerpo de la petición:**
+```json
+{ "email": "solaris@pandora.art" }
+```
+- **Respuesta de éxito (200 OK):** mensaje neutro sin importar si la cuenta existe, si ya tiene contraseña verificada o no, o si es una cuenta exclusivamente de Google (evita enumeración de cuentas, mismo patrón que 7.2):
+```json
+{ "message": "Si la dirección de correo electrónico está registrada y tiene una contraseña configurada, se ha enviado un enlace para restablecerla." }
+```
+- Una cuenta creada únicamente por Google (sin contraseña local) recibe la misma respuesta neutra, pero **no** se le envía correo — no hay contraseña que recuperar, y confirmar esa distinción filtraría cómo se registró la cuenta.
+- Invalida cualquier token de recuperación previo sin usar antes de emitir uno nuevo (mismo mecanismo que 7.2 con `email_verification_tokens`, tabla propia `password_reset_tokens`). **Vigencia: 1 hora** (más corta que la de verificación de email por tratarse de un token más sensible), uso único.
+- **Rate limit:** 5 peticiones/minuto por IP (ver 4.1) — es el endpoint más sensible a spamear de todo `/auth/*` por costo de envío de correo y riesgo de enumeración.
+
+- **Ruta:** `POST /api/v1/auth/reset-password` — **Acceso:** Público.
+- **Cuerpo de la petición:**
+```json
+{ "token": "b7e2...f1a9", "newPassword": "miPasswordNueva123" }
+```
+- El `token` es el recibido por correo (parámetro `?token=` del enlace `{FRONTEND_URL}/reset-password?token=...`).
+- **Respuesta de éxito (200 OK):**
+```json
+{ "message": "Tu contraseña fue actualizada correctamente." }
+```
+- A diferencia de 7.1 (verificar email), **no** inicia sesión automáticamente ni devuelve un par de tokens: el usuario vuelve a iniciar sesión explícitamente con la contraseña nueva.
+- Efecto adicional: revoca todos los `refresh_tokens` activos del usuario — cualquier sesión abierta con la contraseña anterior deja de poder renovar su `accessToken` y debe volver a autenticarse.
+- **Errores:** `INVALID_TOKEN` (400, token inexistente o ya usado — mismo código que 7.1, no uno específico), `TOKEN_EXPIRED` (400).
+
 ---
 
 ## 8. Contrato de Endpoints de Usuarios (Fase 2)
@@ -459,11 +508,13 @@ A partir de la Fase 2, los endpoints con listados paginados aceptan `page` y `li
     "active": true
   },
   "createdAt": "2026-09-16T20:00:00.000Z",
-  "updatedAt": null
+  "updatedAt": null,
+  "isFavorited": true
 }
 ```
 - `conversionStatus` es uno de: `pending`, `processing`, `converted`, `skipped`, `failed` (la conversión a carta en sí llega en la Fase 5; por ahora toda obra nueva queda en `pending`).
 - `qualification.active` indica si la obra todavía admite valoraciones Q2Q (el sistema de ratings llega en la Fase 4; por ahora es informativo).
+- `isFavorited`: sólo presente con un token válido — indica si el usuario autenticado ya destacó esta obra (mismo patrón que `isFollowing` en 8.1). Ausente para peticiones anónimas.
 - **Errores:** `NOT_FOUND` (404, obra inexistente o eliminada).
 
 ### 9.4 Explorador de Obras
@@ -480,9 +531,9 @@ A partir de la Fase 2, los endpoints con listados paginados aceptan `page` y `li
 | `converted` | boolean | `true` = sólo obras con carta generada; `false` = el resto |
 | `qualificationOnly` | boolean | `true` = sólo obras aún dentro de su semana de calificación |
 | `sort` | `recent` \| `oldest` \| `title` | Orden del listado. Default `recent` |
+| `rarity` | `common`\|`uncommon`\|`rare`\|`epic`\|`legendary` | Filtra por la rareza de la carta ya generada para la obra. Una obra sin carta convertida de esa rareza no aparece — no existe un valor "sin rareza" |
 
 - **Respuesta:** envoltorio de paginación estándar (8.5) con `items` en el mismo formato que 9.3.
-- **Nota:** el filtro por `rarity` mencionado en el diseño original queda pendiente hasta que exista el modelo de Cartas (Fase 5).
 
 ### 9.5 Obras en Período de Calificación
 - **Ruta:** `GET /api/v1/artworks/qualification` — **Acceso:** Público.
@@ -508,7 +559,8 @@ El resto de las acciones de escritura sobre obras (editar, eliminar) **no** exig
 ## 10. Contrato de Endpoints de Tags (Fase 3)
 
 - **Ruta:** `GET /api/v1/tags` — **Acceso:** Público.
-- **Respuesta de éxito (200 OK):**
+- **Query params (opcional):** `search` (string) — filtra por nombre (`ILIKE`, insensible a mayúsculas), server-side.
+- **Respuesta de éxito (200 OK):** sigue siendo un array plano, sin envoltorio de paginación (el catálogo de tags es chico) — `search` reduce el array devuelto en vez de cambiar su forma:
 ```json
 [
   { "id": 1, "name": "fantasy" },
@@ -647,15 +699,17 @@ Tanto el explorador público como la colección propia devuelven cartas con esta
     "hp": 2800,
     "speed": 14
   },
-  "createdAt": "2026-09-17T21:03:46.438Z"
+  "createdAt": "2026-09-17T21:03:46.438Z",
+  "isFavorited": false
 }
 ```
 - `rarity` es uno de: `common`, `uncommon`, `rare`, `epic`, `legendary`.
 - **`stats` es `null` cuando `owned` es `false`** (RG 7.5.5: el detalle de una carta no poseída oculta sus estadísticas). `owned`/`copies` reflejan siempre al usuario que hace la petición: `copies: 0` cuando no se posee, y ambos campos son "neutros" (`owned: false, copies: 0`) en una petición anónima.
+- `isFavorited`: sólo presente con un token válido (mismo patrón que en 9.3) — ausente en una petición anónima. Sólo aparece en el detalle (13.3/13.5), no en los listados (13.2/13.4).
 
 ### 13.2 Explorador de Cartas
 - **Ruta:** `GET /api/v1/cards` — **Acceso:** Público. Si se envía `Authorization: Bearer <accessToken>` válido, `owned`/`copies`/`stats` reflejan la posesión real del usuario.
-- **Query params:** paginación estándar (`page`, `limit`, ver 8.5) + `rarity` (opcional, uno de los valores de 13.1).
+- **Query params:** paginación estándar (`page`, `limit`, ver 8.5) + `rarity` (opcional, uno de los valores de 13.1) + `owned` (opcional, boolean — ver 13.4).
 - **Respuesta:** envoltorio de paginación estándar con `items` en el formato de 13.1.
 
 ### 13.3 Detalle de Carta
@@ -666,7 +720,7 @@ Tanto el explorador público como la colección propia devuelven cartas con esta
 ### 13.4 Colección Propia
 - **Ruta:** `GET /api/v1/users/me/cards` — **Acceso:** Protegido.
 - Devuelve el **catálogo completo** de cartas del juego (no sólo las obtenidas), cada una anotada con las copias del usuario autenticado — así se pueden mostrar también las "cartas aún no obtenidas" (RF13) en una vista tipo álbum.
-- **Query params:** paginación estándar.
+- **Query params:** paginación estándar + `owned` (opcional, boolean). `owned=true` filtra a sólo las cartas que el usuario posee (`copies > 0`) — sin necesidad de traer el catálogo completo para filtrar en el cliente. Sin token, `owned=true` devuelve una lista vacía (no tiene sentido "poseer" nada anónimamente).
 - **Respuesta:** envoltorio de paginación estándar con `items` en el formato de 13.1.
 
 ### 13.5 Detalle de Carta Propia
@@ -810,6 +864,12 @@ Forma común de una notificación:
 ```
 `type` es una de: `user_follow`, `follow_upload`, `qualification_ended`, `artwork_converted`, `artwork_comment`, `artwork_vote_summary`, `comment_removed`, `artwork_removed`, `user_warned`, `user_banned`, `report_resolved`.
 
+**`data` (opcional)**: referencia al recurso afectado, para que el cliente arme un link directo sin parsear el texto de la notificación:
+```json
+{ "targetType": "artwork", "targetId": 26 }
+```
+Sólo presente en `artwork_removed`, `comment_removed`, `artwork_restored`, `comment_restored` (`targetType: "artwork"` o `"comment"`, `targetId` = id de la obra/comentario) y `appeal_resolved` (`targetType: "appeal"`, `targetId` = id de la apelación — consultable vía `GET /users/me/appeals`, sección 18.5). Ausente en el resto de los tipos, incluido `artwork_vote_summary` (que usa su propio mecanismo de apilado, no relacionado).
+
 **`artwork_vote_summary` es apilable**: cada voto sobre una obra notifica a su autor, pero mientras la notificación siga sin leerse, un nuevo voto **actualiza la misma fila** en vez de crear una nueva — el `content` se reescribe para nombrar a todos los votantes acumulados ("ana ha votado tu obra…" → "ana y beto han votado tu obra…" → "ana, beto y 2 más han votado tu obra…") y su `createdAt` se adelanta, así vuelve a aparecer arriba del listado. Una vez leída, el siguiente voto abre una notificación nueva. Ver `docs/mejoras-post-fase-8.md` sección 6.
 
 - **`GET /api/v1/notifications`** — Protegido. Paginación estándar. Devuelve las notificaciones del usuario autenticado, más recientes primero.
@@ -887,3 +947,27 @@ Un admin **no** puede otorgar/revocar el rol `admin` mismo por esta vía — só
 
 ### 18.7 Notificaciones nuevas
 `type` gana cuatro valores: `artwork_restored`, `comment_restored`, `user_unbanned` (al afectado, cuando una sanción se revierte por cualquiera de los dos caminos de arriba) y `appeal_resolved` (al apelante, siempre, sin importar el resultado).
+
+### 18.8 Carga directa de carta (Admin)
+- **Ruta:** `POST /api/v1/artworks/admin-upload` — **Acceso:** Protegido, rol **`admin`**.
+- **Content-Type:** `multipart/form-data`, mismos campos de imagen/título/descripción/tags que 9.1 (`POST /artworks`), más los datos de la carta:
+
+| Campo | Tipo | Obligatorio | Notas |
+|---|---|---|---|
+| `title` | string | Sí | 1–50 caracteres |
+| `description` | string | No | Hasta 300 caracteres |
+| `image` | file | Sí | PNG/JPG/JPEG/WEBP, máx. 25 MB |
+| `tags` | string | No | Mismo formato que 9.1 |
+| `rarity` | string | Sí | Una de `common`, `uncommon`, `rare`, `epic`, `legendary` |
+| `attack`, `defense`, `hp`, `speed` | number | No | Enteros ≥ 0. Cualquiera que se omita se completa con el mismo cálculo por rareza que usa el catálogo sembrado (`computeStatsForRarity`), campo por campo — no es todo o nada |
+
+- La obra se crea directamente con `conversionStatus: "converted"` (no pasa por el período de calificación real) y `conversionRequest: false`; la carta se crea en el mismo paso. El autor de la obra es el admin que hizo la carga.
+- A diferencia de 9.1, no notifica a los seguidores del admin (no es un upload orgánico).
+- **Respuesta de éxito (201):** la carta creada, misma forma que 13.1 (Forma Común de una Carta) — `stats` viaja en `null` salvo que el admin ya posea una copia (no ocurre automáticamente al crearla).
+- **Errores:** `VALIDATION_ERROR` (400), `FORBIDDEN` (403, no es admin).
+
+### 18.9 Disparo manual del ciclo de conversión (Admin)
+- **Ruta:** `POST /api/v1/conversion/run` — **Acceso:** Protegido, rol **`admin`**.
+- Ejecuta inmediatamente el mismo ciclo que corre el cron diario (RG 16.5): convierte en carta toda obra cuyo período de calificación ya terminó. Pensado para demos, para no tener que esperar al reloj real.
+- **Respuesta de éxito (200):** `{ "processed": number, "converted": number, "failed": number, "skipped": number }`.
+- **Errores:** `FORBIDDEN` (403, no es admin).

@@ -177,7 +177,9 @@ Puede:
 Puede hacer todo lo que puede hacer un moderador, más:
 
 - otorgar y revocar el rol `moderator` a otros usuarios;
-- revisar reportes ya resueltos (archivados) y reabrirlos, revirtiendo la sanción aplicada (restaurar obra/comentario o desbanear al usuario) sin pasar por el flujo de apelación.
+- revisar reportes ya resueltos (archivados) y reabrirlos, revirtiendo la sanción aplicada (restaurar obra/comentario o desbanear al usuario) sin pasar por el flujo de apelación;
+- cargar directamente una obra ya convertida en carta (imagen + rareza + estadísticas), sin pasar por el período de calificación real;
+- disparar manualmente el ciclo de conversión que normalmente corre por CRON, para no depender del reloj (pensado para demos).
 
 El rol `admin` no se otorga ni se revoca a través de la aplicación — es un rol de confianza asignado fuera de este flujo (p. ej. directamente en base de datos).
 
@@ -190,6 +192,7 @@ El rol `admin` no se otorga ni se revoca a través de la aplicación — es un r
 | RF01 | Registro | Permitir crear una cuenta mediante email, username y contraseña; opcionalmente mediante Google. |
 | RF02 | Verificación de email | Las cuentas creadas mediante credenciales deben validar su email antes de quedar plenamente habilitadas. |
 | RF03 | Login | Permitir autenticación mediante credenciales o Google. |
+| RF03b | Recuperación de contraseña | Un usuario que olvidó su contraseña puede solicitar un enlace de un solo uso por email para establecer una nueva, sin exponer si la cuenta existe o si es una cuenta exclusivamente de Google. |
 | RF04 | Perfil | Consultar y editar información propia y consultar perfiles públicos. |
 | RF05 | Publicación de obra | Crear una obra con título, imagen y datos opcionales como descripción/Lore y tags. |
 | RF06 | Gestión de obras | El autor puede consultar y gestionar sus propias obras según su estado. |
@@ -214,6 +217,8 @@ El rol `admin` no se otorga ni se revoca a través de la aplicación — es un r
 | RF25 | Gestión de moderadores | Un admin puede otorgar o revocar el rol `moderator` a cualquier usuario. |
 | RF26 | Reapertura de reportes | Un admin puede reabrir un reporte ya resuelto con sanción punitiva, revirtiendo la sanción aplicada. |
 | RF27 | Apelaciones | Un usuario cuya obra, comentario o cuenta fue sancionada por un reporte resuelto puede apelar esa sanción una única vez, indicando un motivo predefinido y un texto opcional. Un moderador o admin distinto de quien resolvió el reporte original (salvo que sea el único miembro de moderación) revisa la apelación y la aprueba o rechaza. |
+| RF28 | Carga directa de carta (Admin) | Un admin puede subir una imagen junto con rareza y estadísticas de carta; el sistema crea la obra ya convertida (sin período de calificación) y la carta en un mismo paso. |
+| RF29 | Disparo manual de conversión (Admin) | Un admin puede ejecutar bajo demanda el mismo ciclo que normalmente corre el CRON, para no depender del reloj. Pensado para demos. |
 
 ---
 
@@ -249,6 +254,8 @@ El rol `admin` no se otorga ni se revoca a través de la aplicación — es un r
 4. Una cuenta local debe verificar el email.
 5. Google puede utilizarse como proveedor alternativo de autenticación.
 6. Discord OAuth no forma parte del sistema.
+7. Un usuario con contraseña local puede solicitar recuperarla mediante un enlace de un solo uso enviado por email, válido por 1 hora. Una cuenta creada únicamente vía Google (sin contraseña local) no tiene nada que recuperar por esta vía: la solicitud responde igual que para cualquier otra dirección (mensaje neutro), pero no se envía correo.
+8. Restablecer la contraseña revoca todas las sesiones (`refresh_tokens`) activas del usuario; no inicia sesión automáticamente.
 
 ## 7.2 Obras
 
@@ -281,6 +288,7 @@ El rol `admin` no se otorga ni se revoca a través de la aplicación — es un r
 5. Guarda la carta generada.
 6. Actualiza el estado de conversión de la obra.
 7. El proceso debe ser idempotente.
+8. Un admin puede disparar el mismo ciclo manualmente, fuera del horario del CRON (pensado para demos) — no es un proceso distinto, reutiliza exactamente la misma rutina.
 
 ## 7.5 Cartas y colección
 
@@ -290,6 +298,7 @@ El rol `admin` no se otorga ni se revoca a través de la aplicación — es un r
 4. Al obtener una carta repetida se incrementa el contador.
 5. El detalle de una carta no poseída puede ocultar estadísticas.
 6. La obra original sigue siendo visible en sus colores normales aun cuando las estadísticas de la carta sean desconocidas para el usuario.
+7. Un admin puede crear una obra + carta directamente (sin período de calificación), indicando rareza y, opcionalmente, estadísticas explícitas; las que no se indiquen se completan con el mismo cálculo que usa el catálogo mínimo sembrado, a partir únicamente de la rareza. El admin no pasa a poseer automáticamente esa carta por haberla creado.
 
 ## 7.6 Paquetes
 
@@ -868,6 +877,92 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
+## CU21 — Cargar carta directamente (Admin)
+
+**Actor principal:** Admin  
+**Precondición:** El actor posee el rol `admin`.  
+**Postcondición:** Existe una nueva obra con `conversion_status = converted` y su carta asociada, sin haber pasado por el período de calificación.
+
+### Flujo principal
+
+1. El admin abre la herramienta de carga directa.
+2. Completa título y, opcionalmente, descripción/tags, igual que al subir una obra normal.
+3. Selecciona la imagen.
+4. Indica la rareza de la carta resultante.
+5. Opcionalmente indica estadísticas explícitas (ataque, defensa, vida, velocidad).
+6. El backend sube la imagen, crea la obra ya `converted` y crea la carta en el mismo paso.
+7. Las estadísticas no indicadas se completan según la rareza, con la misma fórmula que usa el sembrado del catálogo mínimo (sección 7.5, regla 7).
+8. Se devuelve la carta creada.
+
+### Alternativo
+
+- **A1:** Archivo inválido o ausente -> mismo tratamiento que CU03 (A1/A2).
+- **A2:** Título vacío o excede longitud -> rechazar.
+- **A3:** Rareza inválida -> 400.
+- **A4:** Estadística negativa o no entera -> 400.
+- **A5:** Actor sin rol `admin` -> 403.
+
+### Observaciones
+
+No genera notificación a seguidores del admin: no es un upload orgánico. El admin no posee automáticamente la carta creada (ver 7.5.7).
+
+---
+
+## CU22 — Disparar el ciclo de conversión manualmente (Admin)
+
+**Actor principal:** Admin  
+**Precondición:** El actor posee el rol `admin`.  
+**Postcondición:** Toda obra elegible cuyo período de calificación ya terminó queda procesada, igual que si hubiera corrido el CRON.
+
+### Flujo principal
+
+1. El admin dispara la ejecución manual (pensado para demos, sin esperar al horario del CRON).
+2. El backend ejecuta exactamente la misma rutina que usa el scheduler (CU06): busca obras elegibles, las convierte y marca las no solicitadas como `skipped`.
+3. Devuelve un resumen: cantidad procesada, convertida, fallida y marcada como `skipped`.
+
+### Alternativo
+
+- **A1:** No hay obras elegibles -> se devuelve el resumen en cero, no es un error.
+- **A2:** Actor sin rol `admin` -> 403.
+
+### Observaciones
+
+No es un proceso alternativo al CRON: es el mismo `runConversionCycle` (CU06), sólo que disparado bajo demanda en lugar de por el reloj.
+
+---
+
+## CU23 — Recuperar contraseña olvidada
+
+**Actor principal:** Invitado (usuario que no puede iniciar sesión)  
+**Precondición:** Existe una cuenta con esa dirección de email; si la cuenta tiene contraseña local configurada, la solicitud desencadena el envío del enlace.  
+**Postcondición:** El usuario cuenta con una nueva contraseña y puede iniciar sesión con ella; cualquier sesión abierta con la contraseña anterior quedó cerrada.
+
+### Flujo principal
+
+1. El usuario abre "¿Olvidaste tu contraseña?" desde la pantalla de login.
+2. Introduce su email.
+3. El backend responde con un mensaje neutro, sin revelar si la cuenta existe.
+4. Si la cuenta existe y tiene contraseña local, se genera un token de un solo uso y se envía por email.
+5. El usuario abre el enlace recibido.
+6. Introduce una nueva contraseña.
+7. El backend valida el token y la actualiza.
+8. Se revocan todas las sesiones (`refresh_tokens`) activas de esa cuenta.
+9. El usuario inicia sesión nuevamente con la contraseña nueva.
+
+### Alternativo
+
+- **A1:** El email no corresponde a ninguna cuenta -> mismo mensaje neutro que en el flujo exitoso (anti-enumeración), no se envía nada.
+- **A2:** La cuenta existe pero es exclusivamente de Google (sin contraseña local) -> mismo mensaje neutro, no se envía nada: no hay contraseña que recuperar.
+- **A3:** Token inválido, inexistente o ya utilizado -> 400.
+- **A4:** Token expirado (más de 1 hora) -> 400, el usuario debe solicitar uno nuevo.
+- **A5:** Nueva contraseña fuera de la política de longitud -> 400.
+
+### Observaciones
+
+No inicia sesión automáticamente al restablecer la contraseña (a diferencia de CU01, que sí lo hace al verificar el email) — es una operación más sensible y se prefiere que el usuario reingrese explícitamente con la contraseña nueva.
+
+---
+
 # 9. Modelo de datos
 
 La definición inicial incluye usuarios, artworks, comentarios, ratings, cartas, inventario, paquetes, reportes, follows, favoritos y tags. Esta versión agrega las estructuras necesarias para soportar notificaciones, moderación y verificación de email. 
@@ -1394,6 +1489,28 @@ rejected
 
 ---
 
+## 9.19 password_reset_tokens
+
+Misma estructura que `email_verification_tokens` (9.16): un token opaco de un solo uso, hasheado antes de persistir, con expiración explícita. Tabla separada en lugar de reutilizar `email_verification_tokens` para no mezclar dos propósitos distintos (activar una cuenta vs. recuperar acceso a una) bajo el mismo modelo.
+
+| Campo | Tipo | Reglas |
+|---|---|---|
+| id | bigint | PK |
+| user_id | bigint | FK users.id |
+| token_hash | varchar | NOT NULL, UNIQUE |
+| expires_at | timestamp | NOT NULL |
+| used_at | timestamp | nullable |
+| created_at | timestamp | NOT NULL |
+
+### Reglas
+
+- No almacenar el token de recuperación en texto plano (mismo hash que el resto de los tokens opacos del sistema).
+- Expiración obligatoria — **1 hora**, más corta que las 24 horas de `email_verification_tokens` por ser un token más sensible.
+- Un token usado no puede reutilizarse.
+- Al emitir un token nuevo para un usuario, cualquier token previo sin usar de ese usuario se invalida (mismo mecanismo que el reenvío de verificación de email).
+
+---
+
 # 10. Relaciones principales
 
 ```text
@@ -1414,6 +1531,7 @@ artworks 1 ─── N artwork_reports
 artwork_comments 1 ─── N comment_reports
 users 1 ─── N reports
 users 1 ─── N email_verification_tokens
+users 1 ─── N password_reset_tokens
 users 1 ─── N oauth_accounts
 users N ─── N roles        (user_roles)
 users 1 ─── N appeals      (appellant_id)
@@ -1438,6 +1556,8 @@ Los endpoints siguientes son una propuesta derivada de los requerimientos y caso
 | GET | `/auth/google/callback` | Callback Google | Público |
 | POST | `/auth/verify-email` | Confirmar email | Público |
 | POST | `/auth/resend-verification` | Reenviar challenge | Público + rate limit |
+| POST | `/auth/forgot-password` | Solicitar enlace de recuperación de contraseña | Público + rate limit |
+| POST | `/auth/reset-password` | Establecer una nueva contraseña con el enlace recibido | Público |
 | POST | `/auth/refresh` | Renovar sesión, si se utiliza refresh token | Auth/refresh |
 | POST | `/auth/logout` | Cerrar sesión | Auth |
 | GET | `/auth/me` | Consultar usuario autenticado | Auth |
@@ -1575,8 +1695,10 @@ La administración de tags puede restringirse a administrador si dejan de ser li
 | GET | `/moderation/appeals` | Listar apelaciones pendientes (excluye las que el revisor no puede resolver) | Moderator/Admin |
 | GET | `/moderation/appeals/:id` | Detalle de una apelación | Moderator/Admin |
 | POST | `/moderation/appeals/:id/resolve` | Aprobar o rechazar una apelación | Moderator/Admin |
+| POST | `/artworks/admin-upload` | Cargar directamente obra + carta ya convertida (CU21) | Admin |
+| POST | `/conversion/run` | Disparar manualmente el ciclo de conversión (CU22), pensado para demos | Admin |
 
-`POST /moderation/reports/:id/reopen` es el único endpoint de `/moderation/*` restringido a `admin` exclusivamente; el resto de `/moderation/*` acepta `moderator` o `admin` por igual.
+`POST /moderation/reports/:id/reopen` es el único endpoint de `/moderation/*` restringido a `admin` exclusivamente; el resto de `/moderation/*` acepta `moderator` o `admin` por igual. `POST /artworks/admin-upload` y `POST /conversion/run` también son exclusivos de `admin`.
 
 ---
 
@@ -1619,6 +1741,8 @@ requieren `moderator` o `admin`. En cambio:
 POST   /roles/moderators/:userId
 DELETE /roles/moderators/:userId
 POST   /moderation/reports/:id/reopen
+POST   /artworks/admin-upload
+POST   /conversion/run
 ```
 
 requieren exclusivamente `admin`.
@@ -1647,17 +1771,15 @@ PUT  /artworks/:id/rating
 POST /artworks/:id/reports
 ```
 
-## 12.5 `RateLimitGuard`
+## 12.5 Rate limiting
 
-Debe proteger, como mínimo:
+Implementado con `@nestjs/throttler` (Fase 9/Hardening), por IP, en memoria del proceso:
 
-- login;
-- registro;
-- reenvío de verificación;
-- endpoints especialmente sensibles a spam;
-- reportes;
-- comentarios;
-- valoraciones.
+- Límite global por defecto (100/min) como red de seguridad general, vía guard global.
+- Override estricto (5/min, `@Throttle` por endpoint) en: login, registro, reenvío de verificación, recuperación de contraseña (`forgot-password`/`reset-password`) y `refresh`.
+- Override moderado (10/min) en endpoints de escritura sensibles a spam: reportes, comentarios, valoraciones.
+
+Detalle completo (valores exactos, comportamiento del error 429) en `docs/shared/api-conventions.md` §4.1.
 
 ## 12.6 `BannedUserGuard`
 
@@ -1680,8 +1802,8 @@ Toda entrada debe:
 2. normalizarse cuando corresponda;
 3. limitar longitud y tamaño;
 4. rechazar tipos inesperados;
-5. sanitizar contenido apropiadamente;
-6. evitar concatenación directa en consultas SQL.
+5. sanitizar contenido apropiadamente — **implementado**: todo campo de texto libre (título/descripción de obra, tags, comentarios, bio, `comment`/`detail` de reportes y apelaciones) remueve marcado HTML antes de persistir, defensa contra XSS almacenado independiente del cliente que lo renderice (detalle en `docs/shared/api-conventions.md` §4.2);
+6. evitar concatenación directa en consultas SQL — ya garantizado en todo el proyecto vía TypeORM (queries parametrizadas / query builder, sin interpolación directa de strings).
 
 ## 13.2 Usuario
 
@@ -1906,6 +2028,10 @@ Debe existir una protección de base de datos mediante `UNIQUE(artwork_id)` en `
 ## 16.5 Frecuencia del Scheduler
 
 El scheduler debe dispararse a las 00:00, diariamente. Como se menciono antes, se debería utilizar el scheduler de Nest.
+
+## 16.6 Disparo manual (Admin, demo)
+
+La rutina de conversión (16.2–16.4) se expone también como método invocable independientemente del disparador de Cron, y un endpoint de administración (`POST /conversion/run`, CU22) la ejecuta bajo demanda. No es una segunda implementación: es la misma lógica, sólo que disparada por una request en lugar de por el reloj — útil para demos donde no tiene sentido esperar a que termine una semana de calificación real.
 
 ---
 
@@ -2201,6 +2327,7 @@ Usuario -> Reporte -> Moderador -> Resolución
 - registro;
 - verificación email;
 - login;
+- recuperación de contraseña;
 - Google OAuth;
 - perfiles;
 - follows.
@@ -2252,8 +2379,8 @@ Usuario -> Reporte -> Moderador -> Resolución
 
 ## Fase 9 — Hardening
 
-- rate limiting;
-- sanitización;
+- rate limiting (**implementado**, ver 12.5 y `docs/shared/api-conventions.md` §4.1);
+- sanitización (**implementado**, ver 13.1 y `docs/shared/api-conventions.md` §4.2);
 - tests;
 - logs;
 - métricas;
@@ -2263,6 +2390,14 @@ Usuario -> Reporte -> Moderador -> Resolución
 ## Extensión — Favoritos, borrado con cascada y rol de admin/apelaciones
 
 Construidos después de la Fase 8, a pedido directo y fuera del orden de fases original: favoritos de obras/cartas, borrado lógico de obras con cascada a comentarios/valoraciones/carta, validación real de contenido de archivo, notificación apilable de votos (RF19–RF21 y RF25–RF27 de la sección 5). El detalle de diseño e implementación de cada uno vive en `docs/mejoras-post-fase-8.md` y `docs/mejoras-admin-apelaciones.md`; este documento incorpora sus decisiones estructurales (actores, reglas de negocio, modelo de datos, endpoints y guards) para que el diseño general se mantenga como referencia única y actualizada.
+
+## Extensión — Herramientas de admin para demo (carga directa de carta y disparo manual de conversión)
+
+También construidas fuera del orden de fases original, a pedido directo: carga directa de obra+carta por un admin sin pasar por el período de calificación (RF28, CU21) y disparo manual del ciclo de conversión que normalmente corre por CRON (RF29, CU22). Ninguna de las dos requirió cambios de modelo de datos — reutilizan las mismas tablas/columnas ya definidas en la sección 9 (`artworks.conversion_status`, `cards`) y, en el caso del disparo manual, exactamente la misma rutina de conversión de la sección 16. El contrato HTTP completo (`POST /artworks/admin-upload`, `POST /conversion/run`) vive en `docs/shared/api-conventions.md` §18.8–18.9.
+
+## Extensión — Recuperación de contraseña
+
+Agregada después de la implementación inicial de la Fase 2, a pedido directo (RF03b, CU23). Reutiliza exactamente el mismo mecanismo que la verificación de email (9.16): token opaco de un solo uso, hasheado con SHA-256 antes de persistir, con expiración explícita — sólo que en tabla propia (`password_reset_tokens`, 9.19) para no mezclar los dos propósitos, y con una vigencia más corta (1 hora en vez de 24) por ser un token más sensible. Sigue el mismo patrón anti-enumeración que el reenvío de verificación (7.2 de `api-conventions.md`): responde con el mismo mensaje neutro exista o no la cuenta, y también para una cuenta creada exclusivamente vía Google (sin contraseña local, nada que recuperar). Efecto adicional al actualizar la contraseña: revoca todas las sesiones (`refresh_tokens`) activas de la cuenta. El contrato HTTP completo (`POST /auth/forgot-password`, `POST /auth/reset-password`) vive en `docs/shared/api-conventions.md` §7.5.
 
 ---
 

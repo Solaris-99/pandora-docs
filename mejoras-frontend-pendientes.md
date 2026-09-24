@@ -2,25 +2,25 @@
 
 > Ítems detectados durante la implementación del frontend que requieren un cambio de contrato o un endpoint nuevo — no son deuda técnica del lado del frontend, sino mejoras a coordinar con el backend. Movidos acá desde `frontend-todo.md` (que sólo debería contener limitaciones/decisiones puramente del cliente).
 
-## Búsqueda de tags
+## ~~Búsqueda de tags~~ — resuelto
 
-`GET /api/v1/tags` (api-conventions.md §10) devuelve el catálogo completo sin paginar ni filtrar. El selector de tags al subir/editar una obra (`TagsInput`, `features/artworks/components/TagsInput.tsx`) ahora es un combobox buscable, pero el filtrado ocurre **en el cliente** sobre la lista completa ya descargada — funciona bien mientras el catálogo de tags sea chico, pero no escala si llega a crecer mucho (miles de tags). Si eso pasa, convendría un `GET /tags?search=<query>` (con paginación estándar) para no tener que traer todo el catálogo a cada carga de la página.
+`GET /api/v1/tags?search=<query>` (api-conventions.md §10) ya filtra server-side (`ILIKE` sobre `name`). Se mantuvo como array plano sin envoltorio de paginación — el catálogo de tags sigue siendo chico, así que no se agregó paginación real todavía; si el catálogo crece mucho eso sí quedaría pendiente.
 
-## Filtro `rarity` en el explorador de obras
+## ~~Filtro `rarity` en el explorador de obras~~ — resuelto
 
-`GET /artworks` (§9.4) no acepta un filtro por `rarity`, a diferencia del explorador de cartas (`GET /cards`, que sí lo tiene). El diseño original (`pandora-diseño-general.md`) lo mencionaba como filtro deseado para obras; sigue pendiente porque la rareza es un atributo de la Carta, no de la Obra, y una obra no siempre tiene carta generada — habría que definir qué hacer con las obras sin `conversionStatus: "converted"` al filtrar por rareza.
+`GET /artworks?rarity=<rareza>` (§9.4) ya filtra por la rareza de la carta ya generada (join contra `cards`). Decisión sobre el caso "obra sin carta convertida": simplemente no matchea el filtro — no hay un valor "sin rareza" explícito.
 
-## Selector de cartas propias sin filtro `owned`
+## ~~Selector de cartas propias sin filtro `owned`~~ — resuelto
 
-Tanto el selector de cartas de batalla (`BattleCardPicker`) como el chequeo de estado de favoritos (`useFavoriteCardIds`) necesitan la lista de cartas que el usuario **posee**, pero `GET /users/me/cards` (§13.4) siempre devuelve el catálogo completo (con `owned: false` para las no poseídas), sin un filtro `owned=true`. Ambos casos hoy piden `limit=100` y filtran en el cliente — un `owned=true` en `GET /users/me/cards` eliminaría la necesidad de ese límite pragmático y sería correcto sin importar cuántas cartas tenga el catálogo.
+`GET /users/me/cards?owned=true` (§13.4) ya filtra a sólo las cartas que el usuario posee (`copies > 0`), tanto en `GET /cards` como en `GET /users/me/cards`. Sin token, `owned=true` devuelve una lista vacía en vez de ignorarse.
 
-## `isFavorited` ausente en el detalle de obra/carta
+## ~~`isFavorited` ausente en el detalle de obra/carta~~ — resuelto
 
-Ni `GET /artworks/:id` (§9.3) ni `GET /cards/:id` (§13.1) exponen si el ítem ya está destacado por el usuario autenticado — a diferencia de `isFollowing` en el perfil de usuario (§8.1). El frontend resuelve esto pidiendo la lista completa de destacados propios (`GET /users/me/favorites/artworks|cards`, `limit=100`) y comprobando membership en el cliente (mismo problema de límite pragmático que el punto anterior). Agregar `isFavorited`/`favorited` a ambos detalles evitaría esto por completo, igual que ya se hizo con `isFollowing`.
+`GET /artworks/:id` (§9.3) y `GET /cards/:id` (§13.1) ya exponen `isFavorited` (mismo patrón que `isFollowing`): sólo presente con un token válido, ausente en petición anónima. No se agregó a los listados (`GET /artworks`, `GET /cards`), sólo al detalle — se consideró fuera de alcance de este pedido.
 
-## Notificaciones sin referencia al recurso afectado
+## ~~Notificaciones sin referencia al recurso afectado~~ — resuelto
 
-Las notificaciones de moderación (`artwork_removed`, `comment_removed`, y ahora también `artwork_restored`/`comment_restored`/`user_unbanned`/`appeal_resolved` de §18.7) sólo traen `title`/`content` como texto libre — no incluyen el `id` del recurso afectado. Esto le impide al frontend armar un link directo de "tu obra fue eliminada" hacia el formulario de apelación (`POST /artworks/:id/appeals`); hoy `MyAppealsPage` le pide el ID al usuario manualmente (visible en el texto de la notificación). Un campo opcional en la notificación (p. ej. `data: { targetType, targetId }`) resolvería esto.
+Las notificaciones de moderación ahora traen un campo opcional `data: { targetType, targetId }` (§16.6) en `artwork_removed`, `comment_removed`, `artwork_restored`, `comment_restored` (`targetType: "artwork"|"comment"`) y `appeal_resolved` (`targetType: "appeal"`). `user_warned`/`user_banned`/`user_unbanned` quedaron fuera a propósito: el flujo de apelación de baneo (`POST /users/me/ban-appeal`) siempre es sobre la propia cuenta, no necesita un id.
 
 ## Cookie `httpOnly` para el `refreshToken` (opcional, hardening)
 
