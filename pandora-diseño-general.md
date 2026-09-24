@@ -878,7 +878,7 @@ La definición inicial incluye usuarios, artworks, comentarios, ratings, cartas,
 |---|---|---|
 | id | bigint/int | PK |
 | username | varchar(30) | NOT NULL, UNIQUE |
-| email | varchar(30) | NOT NULL, UNIQUE |
+| email | varchar(50) | NOT NULL, UNIQUE |
 | password_hash | varchar | NULL para cuentas OAuth |
 | email_verified | boolean | NOT NULL, default false |
 | status | enum | active, suspended, banned, pending_verification |
@@ -891,7 +891,7 @@ La definición inicial incluye usuarios, artworks, comentarios, ratings, cartas,
 - `UNIQUE (username)`
 - `UNIQUE (email)`
 - `CHECK (char_length(username) <= 30)`
-- `CHECK (char_length(email) <= 30)` según el límite funcional adoptado
+- `CHECK (char_length(email) <= 50)` según el límite funcional adoptado
 - `password_hash` puede ser NULL sólo para proveedores de autenticación externa, si se modela de esa forma.
 ---
 
@@ -1687,7 +1687,7 @@ Toda entrada debe:
 
 ```text
 username: 1–30 caracteres, formato permitido, único
-email: formato válido, máximo 30 según RNF adoptado, único
+email: formato válido, máximo 50 según RNF adoptado, único
 password: política de complejidad definida por implementación
 ```
 
