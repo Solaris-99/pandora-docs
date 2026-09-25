@@ -125,6 +125,10 @@ Todo campo de texto libre que algún cliente (web o Android) pudiera renderizar 
 - Los límites de longitud (`MaxLength`) documentados en cada endpoint ya reflejan el conteo sobre el texto sanitizado.
 - No afecta a `username` (que ya tiene su propio charset restringido, ver 4.) ni a campos que no son texto libre (emails, enums, IDs).
 
+### 4.3 Logging (RNF14)
+
+Un log por request, a nivel `log` (2xx/3xx) o `warn` (4xx/5xx), con la forma `MÉTODO ruta status duración - ip`. Implementado como middleware de Express (corre antes que los guards) en vez de interceptor de Nest, justamente para no perder el registro de requests rechazadas por autenticación/roles/rate limiting (401/403/429) — el tráfico más relevante desde el punto de vista de seguridad. No es visible en la respuesta HTTP; vive sólo en los logs del proceso (stdout).
+
 ---
 
 ## 5. Autenticación y Autorización (JWT)
