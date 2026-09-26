@@ -129,7 +129,7 @@ La propuesta original mencionaba web/desktop; esta versión corrige el alcance p
 | RF28 | Carga directa de carta (Admin) | Un admin puede subir una imagen junto con rareza y estadísticas de carta; el sistema crea la obra ya convertida (sin período de calificación) y la carta en un mismo paso. |
 | RF29 | Disparo manual de conversión (Admin) | Un admin puede ejecutar bajo demanda el mismo ciclo que normalmente corre el CRON, para no depender del reloj. Pensado para demos. |
 
-> Trazabilidad RF ↔ caso de uso ↔ componente: ver `pandora-trazabilidad.md`.
+> Trazabilidad RF ↔ caso de uso ↔ componente: ver [documento de trazabilidad](/trazabilidad.md).
 
 ---
 
@@ -153,7 +153,7 @@ La propuesta original mencionaba web/desktop; esta versión corrige el alcance p
 | RNF14 | Observabilidad             | Registrar errores de aplicación, ejecuciones del CRON y fallas de integraciones externas.                                                                                                                                                |
 | RNF15 | Paginación                 | Las consultas de galería, comentarios, notificaciones y reportes deben utilizar paginación.                                                                                                                                              |
 
-> El estado de implementación de cada RNF (qué componente concreto lo satisface) se documenta en `pandora-trazabilidad.md` y en `pandora-diseno-componentes.md`/`pandora-diseno-arquitectura.md`.
+> El estado de implementación de cada RNF (qué componente concreto lo satisface) se documenta en [documento de trazabilidad](/trazabilidad.md) y en [diseño de componentes](/diseno-componentes.md)/[diseño de arquitectura](/diseno-arquitectura.md).
 
 ---
 

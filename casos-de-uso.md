@@ -492,7 +492,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 - resultado de una denuncia;
 - actividad de votos/calificaciones relevante.
 
-> El catálogo completo de tipos de notificación (incluyendo los agregados por moderación y apelaciones) vive en `pandora-clases-dominio.md`, clase `Notification`.
+> El catálogo completo de tipos de notificación (incluyendo los agregados por moderación y apelaciones) vive en las [clases de dominio](/clases-dominio.md), clase `Notification`.
 
 ---
 
@@ -624,7 +624,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 4. Indica la rareza de la carta resultante.
 5. Opcionalmente indica estadísticas explícitas (ataque, defensa, vida, velocidad).
 6. El backend sube la imagen, crea la obra ya `converted` y crea la carta en el mismo paso.
-7. Las estadísticas no indicadas se completan según la rareza, con la misma fórmula que usa el sembrado del catálogo mínimo (`pandora-requerimientos.md` §5.5, regla 7).
+7. Las estadísticas no indicadas se completan según la rareza, con la misma fórmula que usa el sembrado del catálogo mínimo ([requerimientos](/requerimientos.md) §5.5, regla 7).
 8. Se devuelve la carta creada.
 
 ### Alternativo

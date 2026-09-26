@@ -6,7 +6,7 @@ Este documento cubre los componentes de la capa API: endpoints REST propuestos, 
 
 # 1. Endpoints REST propuestos
 
-Los endpoints siguientes son una propuesta derivada de los requerimientos y casos de uso (ver `pandora-requerimientos.md`, `pandora-casos-de-uso.md`). Los nombres pueden adaptarse, pero se recomienda mantener una convención uniforme.
+Los endpoints siguientes son una propuesta derivada de los requerimientos y casos de uso (ver [requerimientos](/requerimientos.md), [casos de uso](/casos-de-uso.md)). Los nombres pueden adaptarse, pero se recomienda mantener una convención uniforme.
 
 ## 1.1 Auth
 
@@ -231,7 +231,7 @@ Implementado con `@nestjs/throttler` (Fase 9/Hardening), por IP, en memoria del 
 - Override estricto (5/min, `@Throttle` por endpoint) en: login, registro, reenvío de verificación, recuperación de contraseña (`forgot-password`/`reset-password`) y `refresh`.
 - Override moderado (10/min) en endpoints de escritura sensibles a spam: reportes, comentarios, valoraciones.
 
-Detalle completo (valores exactos, comportamiento del error 429) en `docs/shared/api-conventions.md` §4.1.
+Detalle completo (valores exactos, comportamiento del error 429) en [convenciones de API](/api-conventions.md) §4.1.
 
 ## 2.6 `BannedUserGuard`
 
@@ -254,7 +254,7 @@ Toda entrada debe:
 2. normalizarse cuando corresponda;
 3. limitar longitud y tamaño;
 4. rechazar tipos inesperados;
-5. **sanitizar contenido apropiadamente** — implementado: todo campo de texto libre (título/descripción de obra, tags, comentarios, bio, `comment`/`detail` de reportes y apelaciones) remueve marcado HTML antes de persistir, defensa contra XSS almacenado independiente del cliente que lo renderice (detalle en `docs/shared/api-conventions.md` §4.2);
+5. **sanitizar contenido apropiadamente** — implementado: todo campo de texto libre (título/descripción de obra, tags, comentarios, bio, `comment`/`detail` de reportes y apelaciones) remueve marcado HTML antes de persistir, defensa contra XSS almacenado independiente del cliente que lo renderice (detalle en [convenciones de API](/api-conventions.md) §4.2);
 6. evitar concatenación directa en consultas SQL — garantizado en todo el proyecto vía TypeORM (queries parametrizadas / query builder, sin interpolación directa de strings).
 
 ## 3.2 Usuario
@@ -332,7 +332,7 @@ No se reutilizan automáticamente entidades TypeORM como DTOs de entrada. Esto a
 
 ## 4.1 Respuestas de éxito
 
-Cada endpoint devuelve directamente el recurso (o una página de recursos) serializado según su DTO de salida — ver el contrato completo en `docs/shared/api-conventions.md`.
+Cada endpoint devuelve directamente el recurso (o una página de recursos) serializado según su DTO de salida — ver el contrato completo en [convenciones de API](/api-conventions.md).
 
 ## 4.2 Errores
 
@@ -347,7 +347,7 @@ Cada endpoint devuelve directamente el recurso (o una página de recursos) seria
 }
 ```
 
-No devolver stack traces ni detalles internos al cliente. Normalizado centralmente por `AllExceptionsFilter` (ver `pandora-clases-diseno.md` §19).
+No devolver stack traces ni detalles internos al cliente. Normalizado centralmente por `AllExceptionsFilter` (ver [clases de diseño](/clases-diseno.md) §19).
 
 ## 4.3 Paginación
 
@@ -370,5 +370,5 @@ Esto permite que el frontend renderice:
 - carta completa si es poseída;
 - imagen/obra visible con estadísticas desconocidas (`stats: null`) si no es poseída.
 
-La ocultación es una regla de presentación que además protege el backend: la API no envía información privada de forma innecesaria cuando el usuario no posee la carta (ver `pandora-clases-dominio.md` §1.7–1.8 para la regla de negocio, y `pandora-clases-diseno.md` §8 para `toCardView`).
+La ocultación es una regla de presentación que además protege el backend: la API no envía información privada de forma innecesaria cuando el usuario no posee la carta (ver [clases de dominio](/clases-dominio.md) §1.7–1.8 para la regla de negocio, y [clases de diseño](/clases-diseno.md) §8 para `toCardView`).
 

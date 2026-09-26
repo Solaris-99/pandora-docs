@@ -45,15 +45,15 @@ Este documento conecta [requerimientos](/requerimientos.md) con los [casos de us
 
 | RNF | Descripción corta | Mecanismo / componente | Estado |
 |---|---|---|---|
-| RNF01 | Peso/formato de obras | `buildImageValidationPipe` (`pandora-clases-diseno.md` §19) | Implementado |
+| RNF01 | Peso/formato de obras | `buildImageValidationPipe` ([clases de diseño](/clases-diseno.md) §19) | Implementado |
 | RNF02 | Hash de contraseñas | `bcrypt` en `AuthService.register`/`resetPassword` | Implementado |
-| RNF03 | Rate limit de login | `AppThrottlerGuard` + `@Throttle` (`pandora-diseno-componentes.md` §2.5) | Implementado (Fase 9) |
+| RNF03 | Rate limit de login | `AppThrottlerGuard` + `@Throttle` ([diseño de componentes](/diseno-componentes.md) §2.5) | Implementado (Fase 9) |
 | RNF04 | Roles | `RolesGuard` | Implementado |
 | RNF05 | Usabilidad | Responsabilidad de los clientes (web/Android), fuera del alcance del backend | N/A backend |
 | RNF06 | Storage de imágenes | `StorageService` (Cloudinary) | Implementado |
 | RNF07 | Verificación de email | `EmailVerificationToken` + `AuthService` | Implementado |
 | RNF08 | Seguridad de endpoints | Combinación `JwtAuthGuard` + `RolesGuard` + `BannedUserGuard` + `VerifiedEmailGuard` + `AppThrottlerGuard` + sanitización + ownership checks en servicio | Implementado |
-| RNF09 | Sanidad de campos | `@SanitizeText()` + límites de longitud en DTOs (`pandora-diseno-componentes.md` §3.1) | Implementado (Fase 9) |
+| RNF09 | Sanidad de campos | `@SanitizeText()` + límites de longitud en DTOs ([diseño de componentes](/diseno-componentes.md) §3.1) | Implementado (Fase 9) |
 | RNF10 | Manejo de errores | `AllExceptionsFilter` | Implementado |
 | RNF11 | Integridad | Transacciones en `ConversionSchedulerService` y `PackagesService` | Implementado |
 | RNF12 | Idempotencia de conversión | `UNIQUE(artwork_id)` en `cards` + claim atómico (`UPDATE ... WHERE conversion_status IN (...)`) | Implementado |
@@ -103,7 +103,7 @@ Reportes de obras, reportes de comentarios, resolución, auditoría, notificacio
 
 - rate limiting (**implementado** — RNF03);
 - sanitización (**implementado** — RNF09);
-- tests (**ampliado**: cobertura agregada sobre `JwtStrategy`, `JwtAuthGuard`, utils puras de mapeo de respuesta — `toArtworkView`/`toCardView`/`toOpponentCardView` —, `buildImageValidationPipe`, `GoogleStrategy` y el middleware de logging; antes sin ningún test propio — ver `pandora-casos-de-prueba.md`);
+- tests (**ampliado**: cobertura agregada sobre `JwtStrategy`, `JwtAuthGuard`, utils puras de mapeo de respuesta — `toArtworkView`/`toCardView`/`toOpponentCardView` —, `buildImageValidationPipe`, `GoogleStrategy` y el middleware de logging; antes sin ningún test propio — ver [casos de prueba](/casos-de-prueba.md));
 - logs (**implementado** — RNF14);
 - métricas (pendiente);
 - revisión de queries e índices (pendiente);
@@ -115,9 +115,9 @@ Construidos después de la Fase 8, a pedido directo y fuera del orden de fases o
 
 ## Extensión — Herramientas de admin para demo (carga directa de carta y disparo manual de conversión)
 
-También construidas fuera del orden de fases original, a pedido directo: carga directa de obra+carta por un admin sin pasar por el período de calificación (RF28, CU21) y disparo manual del ciclo de conversión que normalmente corre por CRON (RF29, CU22). Ninguna de las dos requirió cambios de modelo de datos — reutilizan las mismas tablas/columnas ya definidas (`artworks.conversion_status`, `cards`) y, en el caso del disparo manual, exactamente la misma rutina de conversión de la Fase 5. El contrato HTTP completo vive en `docs/shared/api-conventions.md` §18.8–18.9.
+También construidas fuera del orden de fases original, a pedido directo: carga directa de obra+carta por un admin sin pasar por el período de calificación (RF28, CU21) y disparo manual del ciclo de conversión que normalmente corre por CRON (RF29, CU22). Ninguna de las dos requirió cambios de modelo de datos — reutilizan las mismas tablas/columnas ya definidas (`artworks.conversion_status`, `cards`) y, en el caso del disparo manual, exactamente la misma rutina de conversión de la Fase 5. El contrato HTTP completo vive en [convenciones de API](/api-conventions.md) §18.8–18.9.
 
 ## Extensión — Recuperación de contraseña
 
-Agregada después de la implementación inicial de la Fase 2, a pedido directo (RF03b, CU23). Reutiliza exactamente el mismo mecanismo que la verificación de email: token opaco de un solo uso, hasheado con SHA-256 antes de persistir, con expiración explícita — sólo que en tabla propia (`password_reset_tokens`) para no mezclar los dos propósitos, y con una vigencia más corta (1 hora en vez de 24) por ser un token más sensible. Sigue el mismo patrón anti-enumeración que el reenvío de verificación: responde con el mismo mensaje neutro exista o no la cuenta, y también para una cuenta creada exclusivamente vía Google (sin contraseña local, nada que recuperar). Efecto adicional al actualizar la contraseña: revoca todas las sesiones (`refresh_tokens`) activas de la cuenta. El contrato HTTP completo vive en `docs/shared/api-conventions.md` §7.5.
+Agregada después de la implementación inicial de la Fase 2, a pedido directo (RF03b, CU23). Reutiliza exactamente el mismo mecanismo que la verificación de email: token opaco de un solo uso, hasheado con SHA-256 antes de persistir, con expiración explícita — sólo que en tabla propia (`password_reset_tokens`) para no mezclar los dos propósitos, y con una vigencia más corta (1 hora en vez de 24) por ser un token más sensible. Sigue el mismo patrón anti-enumeración que el reenvío de verificación: responde con el mismo mensaje neutro exista o no la cuenta, y también para una cuenta creada exclusivamente vía Google (sin contraseña local, nada que recuperar). Efecto adicional al actualizar la contraseña: revoca todas las sesiones (`refresh_tokens`) activas de la cuenta. El contrato HTTP completo vive en [convenciones de API](/api-conventions.md) §7.5.
 

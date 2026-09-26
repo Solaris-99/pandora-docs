@@ -80,7 +80,7 @@ Repository / ORM
 PostgreSQL
 ```
 
-El detalle de qué controladores, servicios y entidades componen cada módulo vive en `pandora-clases-diseno.md` (clases de diseño) y `pandora-diseno-componentes.md` (endpoints y guards).
+El detalle de qué controladores, servicios y entidades componen cada módulo vive en [clases de diseño](/clases-diseno.md) y [diseño de componentes](/diseno-componentes.md) (endpoints y guards).
 
 ---
 

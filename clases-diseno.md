@@ -10,7 +10,7 @@ Cada módulo de NestJS agrupa tres tipos de clase de diseño:
 - **Servicio** (`*.service.ts`): clase inyectable que concentra la lógica de dominio y orquesta repositorios; es la única capa que accede a los repositorios directamente. Expone las operaciones que el/los controlador(es) del módulo invocan.
 - **DTO** (`dto/*.dto.ts`): clases de contrato — de entrada (validadas con `class-validator`) o de salida (serializadas con `class-transformer`/`@Expose()`). Nunca se reutiliza una entidad como DTO de entrada.
 
-Controladores y guards concretos (qué expone cada endpoint) viven en `pandora-diseno-componentes.md`; acá el foco es la clase y sus operaciones.
+Controladores y guards concretos (qué expone cada endpoint) viven en [diseño de componentes](/diseno-componentes.md); acá el foco es la clase y sus operaciones.
 
 ---
 
@@ -70,7 +70,7 @@ Métodos privados clave: `hashToken()` (SHA-256, para tokens opacos), `issueRefr
 | `updateProfile(userId, dto)` | Edita username/bio/avatar propios, valida unicidad de username. |
 | `followUser` / `unfollowUser` | Alta/baja idempotente de `Follow`, dispara notificación `user_follow`. |
 | `getFollowers` / `getFollowing` | Listados paginados. |
-| `count()` | Total de usuarios registrados — usado como divisor en la fórmula de rareza (ver `pandora-requerimientos.md` §5.7). |
+| `count()` | Total de usuarios registrados — usado como divisor en la fórmula de rareza (ver [requerimientos](/requerimientos.md) §5.7). |
 
 ## DTOs
 
@@ -176,7 +176,7 @@ Lee metadata `@Roles(...)` (por método o por clase, con `getAllAndOverride`) y 
 
 ## Servicio: `PackagesService`
 
-`getInventory(userId)` (aplica el cálculo de regeneración de `pandora-diseno-arquitectura.md` §6.2 antes de responder), `openPackage(userId)` (consumo atómico + sorteo de 5 cartas por rareza ponderada + alta/incremento en `UserCard`).
+`getInventory(userId)` (aplica el cálculo de regeneración de [diseño de arquitectura](/diseno-arquitectura.md) §6.2 antes de responder), `openPackage(userId)` (consumo atómico + sorteo de 5 cartas por rareza ponderada + alta/incremento en `UserCard`).
 
 Utilidades puras: `rarity-roll.util` (sorteo ponderado 64/20/10/5/1), `packages-regen.util` (cálculo de minutos/paquetes regenerados).
 
@@ -186,7 +186,7 @@ Utilidades puras: `rarity-roll.util` (sorteo ponderado 64/20/10/5/1), `packages-
 
 ## Servicio: `BattleService`
 
-`getOpponent(ownedCardId)`: valida ownership de la carta propia, selecciona una carta rival válida al azar entre todas las cartas existentes, devuelve ambas con estadísticas completas (sin ocultamiento — regla de negocio 5.8/1.7 de `pandora-clases-dominio.md`).
+`getOpponent(ownedCardId)`: valida ownership de la carta propia, selecciona una carta rival válida al azar entre todas las cartas existentes, devuelve ambas con estadísticas completas (sin ocultamiento — regla de negocio 5.8/1.7 de [clases de dominio](/clases-dominio.md)).
 
 Utilidad pura: `toOpponentCardView` (mapeo de `Card` a la forma de respuesta del rival, siempre con `stats` visible).
 
@@ -279,7 +279,7 @@ Usada tanto por la conversión real como por el sembrado de catálogo (rareza si
 
 ## Servicio: `ConversionSchedulerService`
 
-`handleCron()` (`@Cron`, dispara diariamente), `runConversionCycle()` (la rutina real, invocable independientemente del reloj — ver `pandora-diseno-arquitectura.md` §5.6).
+`handleCron()` (`@Cron`, dispara diariamente), `runConversionCycle()` (la rutina real, invocable independientemente del reloj — ver [diseño de arquitectura](/diseno-arquitectura.md) §5.6).
 
 ## Controlador de soporte: `ConversionSchedulerController`
 
@@ -290,7 +290,7 @@ Expone `POST /conversion/run` delegando directamente en `runConversionCycle()`.
 # 19. Módulo `common` (transversal)
 
 - **Guards:** `AppThrottlerGuard` (extiende `ThrottlerGuard`, castellaniza el mensaje 429), `BannedUserGuard`, `VerifiedEmailGuard`.
-- **Middleware:** `loggingMiddleware` (ver `pandora-diseno-arquitectura.md` §3).
+- **Middleware:** `loggingMiddleware` (ver [diseño de arquitectura](/diseno-arquitectura.md) §3).
 - **Filtro global:** `AllExceptionsFilter` (normaliza toda excepción a `{statusCode, code, message, errors?, timestamp, path}`).
 - **Pipe:** `buildImageValidationPipe(fileIsRequired)` (tipo real de archivo + tamaño máximo).
 - **Decoradores:** `@SanitizeText()` (remueve HTML de campos de texto libre), `@ExposeId()` (normaliza bigint→number en respuestas), `@Public()`, `@CurrentUser()`, `@Roles(...)`.

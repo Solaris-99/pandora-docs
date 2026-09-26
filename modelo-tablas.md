@@ -421,7 +421,7 @@ El conjunto no es exhaustivo y puede ampliarse.
 - FK de `user_id` a `users`.
 - `title` y `content` no pueden estar vacíos.
 - Índice sobre `(user_id, is_read, created_at)` para consultas eficientes.
-- `reference_id`/`metadata` son de propósito general (apilado de votos, referencia a recurso de moderación) — ver `pandora-clases-diseno.md` §12.
+- `reference_id`/`metadata` son de propósito general (apilado de votos, referencia a recurso de moderación) — ver [clases de diseño](/clases-diseno.md) §12.
 
 ---
 
