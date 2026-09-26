@@ -1,8 +1,6 @@
 # Pandora — Casos de Uso
 
-> Documento derivado de `pandora-diseño-general.md` (que se mantiene como referencia consolidada). Cubre actores, permisos y el catálogo completo de casos de uso, con sus flujos principales, alternativos y observaciones. Los requerimientos que cada caso de uso realiza viven en `pandora-requerimientos.md`; la matriz de trazabilidad completa en `pandora-trazabilidad.md`.
-
----
+ Este documento cubre actores, permisos y el catálogo completo de casos de uso, con sus flujos principales, alternativos y observaciones.
 
 # 1. Actores y permisos
 
@@ -698,7 +696,10 @@ No inicia sesión automáticamente al restablecer la contraseña (a diferencia d
 
 ---
 
-# 3. Flujo consolidado de moderación (CU12–CU14, CU17–CU20)
+# 3. Diagrama
+[![Diagrama](./imgs/diag-casos-uso.jpg)](https://drive.google.com/file/d/1IKb8TWgXZewPg7JQTgwWP-iWlpQOBo1r/view?usp=sharing)
+
+# 4. Flujo consolidado de moderación (CU12–CU14, CU17–CU20)
 
 Los casos de uso de denuncias, moderación, reapertura y apelaciones no son independientes entre sí: comparten un único flujo de negocio con dos posibles caminos de reversión (reapertura directa por admin, o apelación revisada por otro moderador/admin).
 
@@ -749,12 +750,3 @@ Sí:
                         + notificar al apelante
 ```
 
----
-
-## Documentos relacionados
-
-- `pandora-requerimientos.md` — requerimientos funcionales/no funcionales y reglas de negocio que estos casos de uso realizan.
-- `pandora-diseno-componentes.md` — endpoints REST y guards que implementan cada caso de uso.
-- `pandora-clases-dominio.md` — entidades de dominio involucradas.
-- `pandora-trazabilidad.md` — matriz RF ↔ CU ↔ componente.
-- `pandora-casos-de-prueba.md` — casos de prueba derivados de estos flujos.

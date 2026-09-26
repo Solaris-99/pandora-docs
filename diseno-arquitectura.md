@@ -1,6 +1,6 @@
 # Pandora — Diseño de Arquitectura
 
-> Documento derivado de `pandora-diseño-general.md` (que se mantiene como referencia consolidada). Cubre la vista general del sistema, la organización por módulos, las capas, el almacenamiento de imágenes, los procesos periódicos (conversión, paquetes, batalla), la observabilidad y las recomendaciones de diseño. El detalle de endpoints/guards/DTOs concretos vive en `pandora-diseno-componentes.md`; las clases de diseño en `pandora-clases-diseno.md`.
+Este documento cubre la vista general del sistema, la organización por módulos, las capas, el almacenamiento de imágenes, los procesos periódicos (conversión, paquetes, batalla), la observabilidad y las recomendaciones de diseño.
 
 ---
 
@@ -291,11 +291,3 @@ Colección del usuario
 Autobattler local
 ```
 
----
-
-## Documentos relacionados
-
-- `pandora-diseno-componentes.md` — endpoints REST, guards, validaciones y convenciones de API concretas.
-- `pandora-clases-diseno.md` — servicios, entidades y DTOs que implementan esta arquitectura.
-- `pandora-modelo-tablas.md` — esquema físico de base de datos.
-- `pandora-trazabilidad.md` — orden histórico de implementación por fases.

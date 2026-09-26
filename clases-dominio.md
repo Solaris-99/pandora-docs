@@ -1,10 +1,6 @@
 # Pandora — Clases de Dominio y Diagrama
 
-> Documento derivado de `pandora-diseño-general.md` (que se mantiene como referencia consolidada). Presenta el **modelo conceptual de dominio**: las clases del negocio, su responsabilidad y sus relaciones, independientemente de cómo se implementan o persisten. La realización concreta (tipos de dato, entidades TypeORM, DTOs, servicios) vive en `pandora-clases-diseno.md`; el esquema físico de base de datos en `pandora-modelo-tablas.md`.
->
-> No se incluye diagrama gráfico en esta versión — el catálogo de clases y la lista de relaciones al final del documento son su equivalente textual.
-
----
+Este documento presenta el **modelo conceptual de dominio**: las clases del negocio, su responsabilidad y sus relaciones, independientemente de cómo se implementan o persisten.
 
 # 1. Catálogo de clases de dominio
 
@@ -179,11 +175,6 @@ Usuario      1 ─── N Apelación             (como revisor, opcional)
 Reporte      1 ─── 0..1 Apelación
 ```
 
----
+# 3. Diagrama
 
-## Documentos relacionados
-
-- `pandora-requerimientos.md` — reglas de negocio que definen el comportamiento de estas clases.
-- `pandora-clases-diseno.md` — realización de estas clases en entidades, servicios y DTOs concretos.
-- `pandora-modelo-tablas.md` — esquema físico de base de datos que persiste estas clases.
-- `pandora-casos-de-uso.md` — casos de uso donde estas clases participan.
+[![Diagrama](/imgs/diag-clases-dominio.png)](https://mermaid.live/edit#pako:eNqVVs1u2zgQfhWBpxZrG5ZjxYkOCxROgd3DpkWa9rDwZUJOHKIUqaVIr7dBnqqPsC-2Q1mipVi2s754SM33zf-Az4wbgSxnXEFV3UhYWyhWeqWTpL5JvlYerDTJc7hKkl98hVZDgc0RC5CqkUvS_9tY8RtUT-3nyoEwS4_aQXP1IE0jwQYc2K9Wdbm-oZWPkhMqyZMHYxRC7c1L16k7o6JD2hQPFg9UPj1YiDpOOq9aswIrbmXJpdHNjSxgjfqTlWupofWmMkpy6WBp9AZtRdp9h_bRRYWWThPQLEHVgXTsoJIFWRBwIrR7WJ8LbWmKkM9uVRxunXll5VQCv4EytnYtUlAwFhV9JVg6mWSxKKaNoO8EWLdPMBXyL48xwY-oq7beGymiiIrIBIjmbMHiDzig_p3yuYvvBj8HXodVtMRBu0DxgTsPinydTibptG1O5aiWd0jVRAuDft9haazDyFcYJzdt6njMbK_CrbtIPeE79aQLj8qZj4dmPpSo-vntGRLoQCkctrKRFfXIAOktUbQt1ent0gy1OTfaoZaRV6E82XhLiwI1l6DusaAcgeqZuDffMfbxtpS229j-iMO7wf-4dWFnRLrSmg2iMLadF_G5vdmpmgOiL1j1evW1A5Q0w4cHKwjtEktWLF2xZDz-laRbkuotEX95At7t3DqK6AzfGxGdWasRWEhXVz4aP27jpNqe-KhaGI5AWA9rEyNv9tW_P1_n5rbvxR5U45aUV84DLHnHTSmhen807iANjfFJg_FDY_ALrj2tMiIxJ3Gvi3gT5ok3E_Xm8HqoTjL7KFrPJ4vdHdEe0VABm10U9HptdUKvl6MjenU4NMs-TLP-n7jdkqOeTt6F5nl_Fny4N85DumvhrPZu9gfU-pWhN8FZqv1WpsEN8luy0wXVy7mXm33uhkcvosMmYiO2tlKw3FmPI1agpScPHVm92FbMPSG9rFhOImXVb8cC7PcxNzTnK7bSL4QvQf9pTNFSWOPXTyx_BFXRyZcCHDavuKiCWqBdGq8dy9O0pmD5M9uyfDydZPN5epnNL2bz7CLNsmzE_iGtxeR6sUins9ni-vLyYnp1-TJiP2qz6WS6uEpn1-nVYp5dzbPZfMRQSGqYP5qHZPh7-Q8NfC00)

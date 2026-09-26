@@ -1,10 +1,6 @@
 # Pandora — Clases de Diseño y Diagrama
 
-> Documento derivado de `pandora-diseño-general.md` (que se mantiene como referencia consolidada). A diferencia de `pandora-clases-dominio.md` (modelo conceptual, sin tecnología), este documento describe las clases **tal como se realizan en el backend NestJS**: entidades TypeORM (atributos con tipo y relaciones de persistencia), servicios de dominio (con sus operaciones principales) y DTOs de entrada/salida, organizados por módulo. El esquema físico puro (columnas, constraints, índices) vive en `pandora-modelo-tablas.md`.
->
-> No se incluye diagrama gráfico en esta versión — el catálogo por módulo es su equivalente textual.
-
----
+Este documento describe las clases **tal como se realizan en el backend NestJS**: entidades TypeORM (atributos con tipo y relaciones de persistencia), servicios de dominio (con sus operaciones principales) y DTOs de entrada/salida, organizados por módulo.
 
 # 1. Convención general
 
@@ -299,11 +295,3 @@ Expone `POST /conversion/run` delegando directamente en `runConversionCycle()`.
 - **Pipe:** `buildImageValidationPipe(fileIsRequired)` (tipo real de archivo + tamaño máximo).
 - **Decoradores:** `@SanitizeText()` (remueve HTML de campos de texto libre), `@ExposeId()` (normaliza bigint→number en respuestas), `@Public()`, `@CurrentUser()`, `@Roles(...)`.
 
----
-
-## Documentos relacionados
-
-- `pandora-clases-dominio.md` — modelo conceptual del que derivan estas clases.
-- `pandora-modelo-tablas.md` — esquema físico (columnas, constraints, índices) de cada entidad aquí listada.
-- `pandora-diseno-componentes.md` — controladores, endpoints y guards concretos que exponen estos servicios.
-- `pandora-diseno-arquitectura.md` — cómo se organizan estos módulos en capas y procesos.

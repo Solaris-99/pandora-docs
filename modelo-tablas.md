@@ -1,12 +1,6 @@
 # Pandora — Tablas y Diagrama de Tablas
 
-> Documento derivado de `pandora-diseño-general.md` (que se mantiene como referencia consolidada). Cubre el esquema físico de base de datos: tablas, columnas, tipos, constraints, enums e índices recomendados. El modelo conceptual (sin tipos de dato) vive en `pandora-clases-dominio.md`; la realización en entidades TypeORM (con operaciones) en `pandora-clases-diseno.md`.
->
-> No se incluye diagrama gráfico en esta versión — la lista de relaciones (sección 3) es su equivalente textual (notación entidad–relación en texto).
-
-La definición inicial incluye usuarios, artworks, comentarios, ratings, cartas, inventario, paquetes, reportes, follows, favoritos y tags. Se agregan además las estructuras necesarias para notificaciones, moderación, verificación de email y recuperación de contraseña.
-
-[Diagrama](https://dbdiagram.io/d/Pandora-6a9ee57bff72c756bcfca7b5)
+Este documento cubre el esquema físico de base de datos: tablas, columnas, tipos, constraints, enums e índices recomendados.
 
 ---
 
@@ -607,12 +601,7 @@ password_reset_tokens(token_hash)       -- ya cubierto por el UNIQUE
 refresh_tokens(token_hash)              -- ya cubierto por el UNIQUE
 ```
 
-Los índices exactos deben revisarse mediante consultas reales y `EXPLAIN ANALYZE` cuando el volumen de datos sea representativo. Esta revisión es un ítem pendiente de la Fase 9/Hardening (ver `pandora-trazabilidad.md`).
+# 4. Diagrama
 
----
+[![Diagrama](/imgs/diag-tablas.png)](https://dbdiagram.io/d/Pandora-6a9ee57bff72c756bcfca7b5)
 
-## Documentos relacionados
-
-- `pandora-clases-dominio.md` — modelo conceptual del que deriva este esquema.
-- `pandora-clases-diseno.md` — entidades TypeORM (con operaciones) que mapean estas tablas.
-- `pandora-requerimientos.md` — reglas de negocio que motivan cada constraint.

@@ -1,6 +1,6 @@
 # Pandora — Diseño de Componentes
 
-> Documento derivado de `pandora-diseño-general.md` (que se mantiene como referencia consolidada). Cubre los componentes de la capa API: endpoints REST propuestos, guards de autorización, validaciones, convenciones de respuesta y el contrato de estado de una carta. El contrato HTTP exacto (payloads, respuestas de ejemplo, códigos de error) vive en `docs/shared/api-conventions.md`; este documento es su resumen a nivel de diseño.
+Este documento cubre los componentes de la capa API: endpoints REST propuestos, guards de autorización, validaciones, convenciones de respuesta y el contrato de estado de una carta. El contrato HTTP exacto (payloads, respuestas de ejemplo, códigos de error) vive en [convenciones de API](/api-conventions.md); este documento es su resumen a nivel de diseño.
 
 ---
 
@@ -372,11 +372,3 @@ Esto permite que el frontend renderice:
 
 La ocultación es una regla de presentación que además protege el backend: la API no envía información privada de forma innecesaria cuando el usuario no posee la carta (ver `pandora-clases-dominio.md` §1.7–1.8 para la regla de negocio, y `pandora-clases-diseno.md` §8 para `toCardView`).
 
----
-
-## Documentos relacionados
-
-- `docs/shared/api-conventions.md` — contrato HTTP completo (payloads, ejemplos, catálogo de códigos de error).
-- `pandora-clases-diseno.md` — servicios y DTOs concretos detrás de cada endpoint.
-- `pandora-diseno-arquitectura.md` — capas y procesos que sostienen estos componentes.
-- `pandora-trazabilidad.md` — qué requerimiento/caso de uso realiza cada endpoint.

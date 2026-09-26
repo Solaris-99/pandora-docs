@@ -1,6 +1,6 @@
 # Pandora — Requerimientos
 
-> Documento derivado de `pandora-diseño-general.md` (que se mantiene como referencia consolidada). Este documento cubre exclusivamente: descripción del proyecto, alcance, requerimientos funcionales, requerimientos no funcionales y reglas de negocio. Actores y casos de uso viven en `pandora-casos-de-uso.md`; el modelo de datos en `pandora-modelo-tablas.md`.
+Este documento cubre exclusivamente: descripción del proyecto, alcance, requerimientos funcionales, requerimientos no funcionales y reglas de negocio.
 
 **Versión:** 1.0
 **Proyecto:** Pandora
@@ -283,11 +283,3 @@ Efecto de las rarezas (valor r):
 
 ---
 
-## Documentos relacionados
-
-- `pandora-casos-de-uso.md` — actores y casos de uso detallados que realizan estos requerimientos.
-- `pandora-clases-dominio.md` — modelo conceptual derivado de estas reglas de negocio.
-- `pandora-modelo-tablas.md` — esquema físico de base de datos.
-- `pandora-diseno-arquitectura.md` / `pandora-diseno-componentes.md` — cómo se implementan estos requerimientos.
-- `pandora-trazabilidad.md` — matriz de trazabilidad RF/RNF ↔ CU ↔ componentes.
-- `pandora-casos-de-prueba.md` — casos de prueba derivados de estos requerimientos y de los casos de uso.

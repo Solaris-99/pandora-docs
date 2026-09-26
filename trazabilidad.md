@@ -1,6 +1,6 @@
 # Pandora — Documento de Trazabilidad
 
-> Documento derivado de `pandora-diseño-general.md` (que se mantiene como referencia consolidada). Conecta requerimientos (`pandora-requerimientos.md`) con los casos de uso que los realizan (`pandora-casos-de-uso.md`) y los componentes concretos que los implementan (`pandora-diseno-componentes.md`), y agrega una traza temporal de cuándo se construyó cada capacidad.
+Este documento conecta [requerimientos](/requerimientos.md) con los [casos de uso](/casos-de-uso.md) que los realizan y los [componentes](/diseno-componentes.md) concretos que los implementan, y agrega una traza temporal de cuándo se construyó cada capacidad.
 
 ---
 
@@ -121,11 +121,3 @@ También construidas fuera del orden de fases original, a pedido directo: carga 
 
 Agregada después de la implementación inicial de la Fase 2, a pedido directo (RF03b, CU23). Reutiliza exactamente el mismo mecanismo que la verificación de email: token opaco de un solo uso, hasheado con SHA-256 antes de persistir, con expiración explícita — sólo que en tabla propia (`password_reset_tokens`) para no mezclar los dos propósitos, y con una vigencia más corta (1 hora en vez de 24) por ser un token más sensible. Sigue el mismo patrón anti-enumeración que el reenvío de verificación: responde con el mismo mensaje neutro exista o no la cuenta, y también para una cuenta creada exclusivamente vía Google (sin contraseña local, nada que recuperar). Efecto adicional al actualizar la contraseña: revoca todas las sesiones (`refresh_tokens`) activas de la cuenta. El contrato HTTP completo vive en `docs/shared/api-conventions.md` §7.5.
 
----
-
-## Documentos relacionados
-
-- `pandora-requerimientos.md` — texto completo de cada RF/RNF.
-- `pandora-casos-de-uso.md` — texto completo de cada caso de uso.
-- `pandora-diseno-componentes.md` — contrato de cada endpoint.
-- `pandora-casos-de-prueba.md` — casos de prueba derivados de esta misma trazabilidad.
