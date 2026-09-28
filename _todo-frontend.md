@@ -22,9 +22,9 @@
 
 Las notificaciones de moderación ahora traen un campo opcional `data: { targetType, targetId }` (§16.6) en `artwork_removed`, `comment_removed`, `artwork_restored`, `comment_restored` (`targetType: "artwork"|"comment"`) y `appeal_resolved` (`targetType: "appeal"`). `user_warned`/`user_banned`/`user_unbanned` quedaron fuera a propósito: el flujo de apelación de baneo (`POST /users/me/ban-appeal`) siempre es sobre la propia cuenta, no necesita un id.
 
-## `GET /artworks/qualification` rechaza los filtros que documenta §9.5
+## ~~`GET /artworks/qualification` rechaza los filtros que documenta §9.5~~ — resuelto
 
-El contrato dice que es "atajo equivalente a `GET /artworks?qualificationOnly=true`, con los mismos query params de paginación/orden/filtro". En la práctica, el DTO de esa ruta sólo acepta `page`/`limit` — mandar `sort`, `search`, `tag`, etc. devuelve `400 VALIDATION_ERROR` ("property X should not exist"), confirmado contra el backend de desarrollo el 2026-09-28. El equivalente `GET /artworks?qualificationOnly=true` sí acepta el set completo de filtros correctamente. El frontend (`ExplorePage`, preview de obras recientes en Home) ya usa esta segunda forma en vez del atajo dedicado, así que no está bloqueado — pero el atajo en sí está roto respecto de lo que documenta, y vale la pena o arreglar su DTO para que acepte los mismos params que `/artworks`, o corregir la documentación para que diga que sólo acepta paginación.
+El atajo dedicado `GET /artworks/qualification` fue eliminado (tanto de la API como de la documentación) en vez de arreglado: sólo aceptaba `page`/`limit` mientras el contrato prometía el set completo de filtros de `/artworks`, y el frontend (`ExplorePage`, preview de obras recientes en Home) ya usaba `GET /artworks?qualificationOnly=true` en su lugar. Ese filtro sobre el explorador general sigue siendo la única vía — ya aceptaba correctamente el set completo de filtros y sigue documentado en §9.4.
 
 ## Cookie `httpOnly` para el `refreshToken` (opcional, hardening)
 

@@ -516,7 +516,7 @@ A partir de la Fase 2, los endpoints con listados paginados aceptan `page` y `li
   "isFavorited": true
 }
 ```
-- `conversionStatus` es uno de: `pending`, `processing`, `converted`, `skipped`, `failed` (la conversión a carta en sí llega en la Fase 5; por ahora toda obra nueva queda en `pending`).
+- `conversionStatus` es uno de: `pending`, `processing`, `converted`, `skipped`, `failed` (la conversión a carta en sí llega en la Fase 5). Al crear la obra queda en `pending` si `conversionRequest` es `true` (o se omite), o directamente en `skipped` si el autor opta afuera desde la creación — en ese caso no hay período de calificación que dar, así que la obra nunca pasa por `pending`.
 - `qualification.active` indica si la obra todavía admite valoraciones Q2Q (el sistema de ratings llega en la Fase 4; por ahora es informativo).
 - `isFavorited`: sólo presente con un token válido — indica si el usuario autenticado ya destacó esta obra (mismo patrón que `isFollowing` en 8.1). Ausente para peticiones anónimas.
 - **Errores:** `NOT_FOUND` (404, obra inexistente o eliminada).
@@ -539,15 +539,11 @@ A partir de la Fase 2, los endpoints con listados paginados aceptan `page` y `li
 
 - **Respuesta:** envoltorio de paginación estándar (8.5) con `items` en el mismo formato que 9.3.
 
-### 9.5 Obras en Período de Calificación
-- **Ruta:** `GET /api/v1/artworks/qualification` — **Acceso:** Público.
-- Atajo equivalente a `GET /artworks?qualificationOnly=true`, con los mismos query params de paginación/orden/filtro (excepto `qualificationOnly`, que queda fijo en `true`).
-
-### 9.6 Obras Propias
+### 9.5 Obras Propias
 - **Ruta:** `GET /api/v1/users/me/artworks` — **Acceso:** Protegido.
 - Lista paginada (formato 8.5) de las obras del usuario autenticado, mismo formato de item que 9.3.
 
-### 9.7 Requisito de Email Verificado
+### 9.6 Requisito de Email Verificado
 A partir de esta fase, **crear una obra** y **comentar una obra** (ver 9.9) requieren, además del JWT, que la cuenta tenga el email verificado. Si no lo está, la API responde:
 ```json
 {
@@ -602,7 +598,7 @@ Los comentarios están anidados bajo la obra a la que pertenecen; no existe un `
 ```
 
 ### 11.2 Comentar una Obra
-- **Ruta:** `POST /api/v1/artworks/:id/comments` — **Acceso:** Protegido + email verificado (ver 9.7).
+- **Ruta:** `POST /api/v1/artworks/:id/comments` — **Acceso:** Protegido + email verificado (ver 9.6).
 - **Cuerpo de la petición:**
 ```json
 { "comment": "¡Qué obra tan increíble!" }
@@ -621,7 +617,7 @@ Los comentarios están anidados bajo la obra a la que pertenecen; no existe un `
 Igual que los comentarios, las calificaciones están anidadas bajo la obra; no existe un `/ratings` de nivel superior.
 
 ### 12.1 Calificar (crear o actualizar)
-- **Ruta:** `PUT /api/v1/artworks/:id/rating` — **Acceso:** Protegido + **cuenta con email verificado** (ver 9.7).
+- **Ruta:** `PUT /api/v1/artworks/:id/rating` — **Acceso:** Protegido + **cuenta con email verificado** (ver 9.6).
 - **Cuerpo de la petición:**
 ```json
 { "stars": 5, "emotion": "joy" }

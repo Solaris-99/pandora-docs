@@ -178,9 +178,11 @@ Notificación
 ## 5.3 Estados
 
 ```text
+(creación) -> pending    [conversionRequest = true, u omitido]
+(creación) -> skipped    [conversionRequest = false desde la creación: no hay período que dar]
 pending -> processing -> converted
                   \-> failed
-pending -> skipped
+pending -> skipped        [conversionRequest pasó a false por una edición, antes del corte semanal]
 ```
 
 ## 5.4 Idempotencia

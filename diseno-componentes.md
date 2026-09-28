@@ -45,7 +45,6 @@ Los endpoints siguientes son una propuesta derivada de los requerimientos y caso
 | PATCH | `/artworks/:id` | Editar obra propia |
 | DELETE | `/artworks/:id` | Eliminación lógica |
 | GET | `/users/me/artworks` | Obras propias |
-| GET | `/artworks/qualification` | Obras en período Q2Q |
 | GET | `/artworks/:id/comments` | Comentarios |
 | POST | `/artworks/:id/comments` | Crear comentario |
 

@@ -1583,7 +1583,6 @@ Los endpoints siguientes son una propuesta derivada de los requerimientos y caso
 | PATCH | `/artworks/:id` | Editar obra propia |
 | DELETE | `/artworks/:id` | Eliminación lógica |
 | GET | `/users/me/artworks` | Obras propias |
-| GET | `/artworks/qualification` | Obras en período Q2Q |
 | GET | `/artworks/:id/comments` | Comentarios |
 | POST | `/artworks/:id/comments` | Crear comentario |
 
@@ -2023,9 +2022,11 @@ Notificación
 ## 16.3 Estados
 
 ```text
+(creación) -> pending    [conversionRequest = true, u omitido]
+(creación) -> skipped    [conversionRequest = false desde la creación: no hay período que dar]
 pending -> processing -> converted
                   \-> failed
-pending -> skipped
+pending -> skipped        [conversionRequest pasó a false por una edición, antes del corte semanal]
 ```
 
 ## 16.4 Idempotencia
