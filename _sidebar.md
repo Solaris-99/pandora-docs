@@ -7,4 +7,5 @@
 - [Clases de Diseño](/clases-diseno.md)
 - [Diseño de Componentes](/diseno-componentes.md)
 - [Diseño de Arquitectura](/diseno-arquitectura.md)
+- [Interfaces entre Sistemas](/interfaces-entre-sistemas.md)
 - [Casos de Prueba](/casos-de-prueba.md)
