@@ -6,32 +6,35 @@ Este documento cubre la vista general del sistema, la organización por módulos
 
 # 1. Vista general del sistema
 
-```text
-+----------------------+       +----------------------+
-|     Portal Web       |       |    Android App       |
-| React + TypeScript   |       | Java                 |
-+----------+-----------+       +-----------+----------+
-           |                               |
-           +---------------+---------------+
-                           |
-                           v
-                  +-------------------+
-                  |    REST API       |
-                  | NestJS + TypeScript|
-                  +---------+---------+
-                            |
-             +--------------+--------------+
-             |                             |
-             v                             v
-      +-------------+               +-------------+
-      | PostgreSQL  |               |  Cloudinary |
-      +-------------+               +-------------+
+```mermaid
+flowchart TB
+    Web["Portal Web<br/>React + TypeScript"]
+    App["App Android<br/>Java"]
 
-                    +-------------------+
-                    | Scheduler / CRON  |
-                    | Conversion Worker |
-                    +-------------------+
+    subgraph Backend["Backend — NestJS"]
+        direction TB
+        Guards["Guards / Middleware<br/>(auth, roles, rate limit)"]
+        Controllers["Controllers"]
+        Services["Services de dominio"]
+        Repos["Repository / ORM"]
+        Scheduler["Scheduler / CRON"]
+
+        Guards --> Controllers --> Services --> Repos
+        Scheduler --> Services
+    end
+
+    DB[("PostgreSQL")]
+    Cloudinary[("Cloudinary")]
+    Mail[("Resend / Mail")]
+
+    Web --> Guards
+    App --> Guards
+    Repos --> DB
+    Services --> Cloudinary
+    Services --> Mail
 ```
+
+Elementos genéricos a propósito: qué controller/service/guard concreto compone cada módulo vive en [clases de diseño](/clases-diseno.md) §20 y [diseño de componentes](/diseno-componentes.md); el detalle interno de Portal Web y App Android tendrá su propio diagrama aparte.
 
 El backend es la única fuente de autoridad para reglas de negocio: el frontend (web o Android) no debe reimplementar validaciones críticas, ya que ambos clientes comparten exactamente el mismo backend y contrato de API.
 
