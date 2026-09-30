@@ -295,3 +295,823 @@ Expone `POST /conversion/run` delegando directamente en `runConversionCycle()`.
 - **Pipe:** `buildImageValidationPipe(fileIsRequired)` (tipo real de archivo + tamaño máximo).
 - **Decoradores:** `@SanitizeText()` (remueve HTML de campos de texto libre), `@ExposeId()` (normaliza bigint→number en respuestas), `@Public()`, `@CurrentUser()`, `@Roles(...)`.
 
+---
+
+# 20. Diagramas de Clases de Diseño
+
+Un único diagrama con las ~50 clases de todos los módulos resultaba demasiado denso para leerse. Se divide en tres recortes por dominio; algunas clases se repiten entre recortes (marcadas `<<Externo>>` cuando no son el foco de ese recorte — sólo se incluyen las más significativas para dar contexto, no la lista completa de dependencias externas de cada módulo).
+
+## 20.1 Obras y Cartas
+
+```mermaid
+%% Pandora — Clases de diseño: Artworks & Cards (detalle medio)
+%% Capas: Controller -> Service -> Entity (Repository TypeORM), DTOs en el borde.
+%% Externos: sólo los que explican cómo nace una carta y qué usa el detalle.
+%% Métodos de controller y campos de DTO inferidos de los casos de uso
+%% (clases-diseno.md remite a diseno-componentes.md para ese detalle).
+
+classDiagram
+  direction TB
+
+  %% ================= ARTWORKS =================
+  namespace Artworks {
+    class ArtworksController {
+      <<Controller>>
+      +create(dto, file)
+      +createByAdmin(dto, file)
+      +findAll(query)
+      +findMine(pagination)
+      +findOne(id)
+      +update(id, dto)
+      +remove(id)
+    }
+
+    class ArtworksService {
+      <<Service>>
+      +create(authorId, dto, file) ArtworkResponseDto
+      +createByAdmin(adminId, dto, file) CardResponseDto
+      +findAll(query) Page~ArtworkResponseDto~
+      +findOne(id, currentUserId?) ArtworkResponseDto
+      +update(id, authorId, dto)
+      +remove(id, userId)
+      +moderationRemove(id)
+      +restore(id)
+    }
+
+    class Artwork {
+      <<Entity>>
+      +id: bigint
+      +title: string
+      +description: string | null
+      +author: User
+      +image_original_url: string
+      +image_medium_url: string
+      +image_thumbnail_url: string
+      +image_public_id: string
+      +conversion_request: boolean
+      +conversion_status: ConversionStatus
+      +qualification_started_at: Date
+      +deleted: boolean
+      +tags: Tag[]
+    }
+
+    class ConversionStatus {
+      <<enumeration>>
+      pending
+      processing
+      converted
+      skipped
+      failed
+    }
+
+    class CreateArtworkDto {
+      <<DTO in>>
+      +title: string
+      +description?: string
+      +tags?: string[]
+      +conversion_request: boolean
+    }
+
+    class AdminUploadCardDto {
+      <<DTO in>>
+      +title: string
+      +description?: string
+      +tags?: string[]
+      +rarity: Rarity
+      +attack?, defense?, hp?, speed?: number
+    }
+
+    class QueryArtworksDto {
+      <<DTO in>>
+      +search?, author?, tag?
+      +rarity?, rating?
+      +from?, to?: Date
+      +cursor?, limit?
+    }
+
+    class ArtworkResponseDto {
+      <<DTO out>>
+      +id: number
+      +title: string
+      +description: string
+      +author: summary
+      +image: ArtworkImageDto
+      +qualification: QualificationDto
+      +tags: string[]
+      +isFavorited: boolean
+    }
+
+    class ArtworkImageDto {
+      <<DTO out>>
+      +original: string
+      +medium: string
+      +thumbnail: string
+    }
+
+    class QualificationDto {
+      <<DTO out>>
+      +startedAt: Date
+      +endsAt: Date
+      +isOpen: boolean
+    }
+  }
+
+  %% ================= CARDS =================
+  namespace Cards {
+    class CardsController {
+      <<Controller>>
+      +findAll(query)
+      +findOne(id)
+    }
+
+    class CardsService {
+      <<Service>>
+      +findAll(query, currentUserId?) Page~CardResponseDto~
+      +findOne(id, currentUserId?) CardResponseDto
+      +createForArtwork(artworkId, rarity, statsOverride?) Card
+      +ensureRarityCatalogForAuthor(authorId)
+      +removeByArtwork(artworkId)
+    }
+
+    class CardCatalogSeederService {
+      <<Service>>
+      +onApplicationBootstrap()
+    }
+
+    class Card {
+      <<Entity>>
+      +id: bigint
+      +artwork: Artwork
+      +attack: number
+      +defense: number
+      +hp: number
+      +speed: number
+      +rarity: Rarity
+      +deleted: boolean
+    }
+
+    class UserCard {
+      <<Entity>>
+      +id: bigint
+      +user: User
+      +card: Card
+      +copies: number
+    }
+
+    class Rarity {
+      <<enumeration>>
+      common
+      uncommon
+      rare
+      epic
+      legendary
+    }
+
+    class QueryCardsDto {
+      <<DTO in>>
+      +rarity?: Rarity
+      +owned?: boolean
+      +search?
+      +cursor?, limit?
+    }
+
+    class CardResponseDto {
+      <<DTO out>>
+      +id: number
+      +rarity: Rarity
+      +artwork: CardArtworkSummaryDto
+      +stats: CardStatsDto | null
+      +copies: number
+      +isFavorited: boolean
+    }
+
+    class CardArtworkSummaryDto {
+      <<DTO out>>
+      +id: number
+      +title: string
+      +thumbnail: string
+    }
+
+    class CardStatsDto {
+      <<DTO out>>
+      +attack: number
+      +defense: number
+      +hp: number
+      +speed: number
+    }
+  }
+
+  %% ================= EXTERNOS RELEVANTES =================
+  namespace Externos {
+    class ConversionSchedulerService {
+      <<Service · scheduler>>
+      +handleCron()
+      +runConversionCycle()
+    }
+    class ConversionService {
+      <<Service · conversion>>
+      +determineRarity(totalVotes, totalUsers) Rarity
+      +convert(input) stats + rarity
+      +computeStatsForRarity(rarity, avgStars?)$
+    }
+    class StorageService {
+      <<Service · storage>>
+      +uploadArtworkImage(file) urls + publicId
+      +deleteArtworkImage(publicId)
+    }
+    class FavoritesService {
+      <<Service · favorites>>
+      +isArtworkFavorited(userId, artworkId)
+      +isCardFavorited(userId, cardId)
+    }
+  }
+
+  %% ----- Capas Artworks -----
+  ArtworksController --> ArtworksService : delega
+  ArtworksController ..> CreateArtworkDto : recibe
+  ArtworksController ..> AdminUploadCardDto : recibe (admin)
+  ArtworksController ..> QueryArtworksDto : recibe
+  ArtworksService ..> ArtworkResponseDto : devuelve
+  ArtworkResponseDto *-- ArtworkImageDto
+  ArtworkResponseDto *-- QualificationDto
+  ArtworksService --> Artwork : Repository
+  Artwork --> ConversionStatus
+
+  %% ----- Capas Cards -----
+  CardsController --> CardsService : delega
+  CardsController ..> QueryCardsDto : recibe
+  CardsService ..> CardResponseDto : devuelve
+  CardResponseDto *-- CardArtworkSummaryDto
+  CardResponseDto *-- CardStatsDto
+  CardsService --> Card : Repository
+  CardsService --> UserCard : Repository
+  CardCatalogSeederService --> CardsService : siembra catálogo
+  Card --> Rarity
+
+  %% ----- Persistencia -----
+  Artwork "1" -- "0..1" Card : se convierte en
+  Card "1" <-- "N" UserCard : copias
+
+  %% ----- Colaboraciones -----
+  ArtworksService --> CardsService : createByAdmin / cascada
+  ArtworksService --> StorageService : sube imagen
+  ArtworksService --> FavoritesService : isFavorited
+  CardsService --> FavoritesService : isFavorited
+  CardsService ..> ConversionService : computeStatsForRarity
+  ConversionSchedulerService --> ArtworksService : obras elegibles
+  ConversionSchedulerService --> ConversionService : calcula stats y rareza
+  ConversionSchedulerService --> CardsService : crea carta
+
+  note for CardResponseDto "stats = null si el usuario no posee<br>la carta (copies = 0) o no hay sesión."
+  note for Artwork "Calificable 1 semana desde<br>qualification_started_at.<br>Eliminación lógica (deleted)."
+```
+
+## 20.2 Usuarios y Auth
+
+```mermaid
+%% Pandora — Clases de diseño: Users & Auth (detalle medio)
+%% Capas: Controller -> Service -> Entity (Repository TypeORM), DTOs en el borde,
+%% más las piezas de Passport (strategies + guards) que protegen los endpoints.
+%% Métodos de controller y campos de DTO inferidos de los casos de uso
+%% (CU01, CU02, CU10, CU16, CU17, CU23). DTOs de un solo campo
+%% (VerifyEmail, ResendVerification, ForgotPassword, RefreshToken) omitidos.
+
+classDiagram
+  direction TB
+
+  %% ================= AUTH =================
+  namespace Auth {
+    class AuthController {
+      <<Controller>>
+      +register(dto)
+      +login(dto)
+      +verifyEmail(dto)
+      +resendVerification(dto)
+      +forgotPassword(dto)
+      +resetPassword(dto)
+      +refresh(dto)
+      +logout(dto)
+      +googleLogin(dto)
+      +googleCallback()
+      +me()
+    }
+
+    class AuthService {
+      <<Service>>
+      +register(dto) TokenPairResponseDto
+      +login(dto) TokenPairResponseDto
+      +verifyEmail(token) TokenPairResponseDto
+      +resendVerification(email)
+      +forgotPassword(email)
+      +resetPassword(token, newPassword)
+      +handleGoogleAuth(googleUser) TokenPairResponseDto
+      +loginWithGoogleIdToken(idToken) TokenPairResponseDto
+      +refreshTokens(rawToken) TokenPairResponseDto
+      +logout(rawToken)
+      +getProfile(userId) MeResponseDto
+      -hashToken(raw) string
+      -issueRefreshToken(user) string
+    }
+
+    class JwtStrategy {
+      <<Strategy>>
+      +validate(payload) User
+    }
+
+    class GoogleStrategy {
+      <<Strategy>>
+      +validate(accessToken, refreshToken, profile)
+    }
+
+    class JwtAuthGuard {
+      <<Guard>>
+      +canActivate(ctx) boolean
+    }
+
+    class RefreshToken {
+      <<Entity>>
+      +id: bigint
+      +user: User
+      +token_hash: string
+      +expires_at: Date
+      +revoked_at: Date | null
+    }
+
+    class EmailVerificationToken {
+      <<Entity>>
+      +id: bigint
+      +user: User
+      +token_hash: string
+      +expires_at: Date · vence en 24 h
+      +used_at: Date | null
+    }
+
+    class PasswordResetToken {
+      <<Entity>>
+      +id: bigint
+      +user: User
+      +token_hash: string
+      +expires_at: Date · vence en 1 h
+      +used_at: Date | null
+    }
+
+    class OAuthAccount {
+      <<Entity>>
+      +id: bigint
+      +user: User
+      +provider: string
+      +provider_user_id: string
+    }
+
+    class RegisterDto {
+      <<DTO in>>
+      +email: string
+      +username: string
+      +password: string
+    }
+
+    class LoginDto {
+      <<DTO in>>
+      +email: string
+      +password: string
+    }
+
+    class ResetPasswordDto {
+      <<DTO in>>
+      +token: string
+      +newPassword: string
+    }
+
+    class TokenPairResponseDto {
+      <<DTO out>>
+      +accessToken: string
+      +refreshToken: string
+    }
+
+    class MeResponseDto {
+      <<DTO out>>
+      +id: number
+      +username: string
+      +email: string
+      +status: UserStatus
+      +emailVerified: boolean
+      +roles: RoleName[]
+    }
+  }
+
+  %% ================= USERS =================
+  namespace Users {
+    class UsersController {
+      <<Controller>>
+      +getPublicProfile(id)
+      +updateProfile(dto)
+      +follow(id)
+      +unfollow(id)
+      +getFollowers(id, pagination)
+      +getFollowing(id, pagination)
+    }
+
+    class UsersService {
+      <<Service>>
+      +findByEmail(email) User
+      +findByUsername(username) User
+      +findById(id) User
+      +create(data) User
+      +updateStatus(id, status)
+      +getPublicProfile(targetId, currentId?) PublicProfileResponseDto
+      +updateProfile(userId, dto)
+      +followUser(followerId, targetId)
+      +unfollowUser(followerId, targetId)
+      +count() number
+    }
+
+    class User {
+      <<Entity>>
+      +id: bigint
+      +username: string
+      +email: string
+      +password_hash: string | null
+      +email_verified: boolean
+      +status: UserStatus
+      +bio: string | null
+      +avatar_url: string | null
+      +roles: Role[]
+    }
+
+    class Follow {
+      <<Entity>>
+      +follower: User
+      +followed: User
+      +created_at: Date
+    }
+
+    class UserStatus {
+      <<enumeration>>
+      active
+      suspended
+      banned
+      pending_verification
+    }
+
+    class UpdateProfileDto {
+      <<DTO in>>
+      +username?: string
+      +bio?: string
+      +avatar_url?: string
+    }
+
+    class PublicProfileResponseDto {
+      <<DTO out>>
+      +id: number
+      +username: string
+      +bio: string
+      +avatarUrl: string
+      +followersCount: number
+      +followingCount: number
+      +isFollowing: boolean
+    }
+  }
+
+  %% ================= ROLES =================
+  namespace Roles {
+    class RolesService {
+      <<Service>>
+      +findByName(name) Role
+      +ensureDefaultRoles()
+      +grantModerator(userId)
+      +revokeModerator(userId)
+    }
+
+    class RolesGuard {
+      <<Guard>>
+      +canActivate(ctx) boolean
+    }
+
+    class Role {
+      <<Entity>>
+      +id: bigint
+      +name: RoleName
+      +description: string | null
+    }
+
+    class RoleName {
+      <<enumeration>>
+      user
+      moderator
+      admin
+    }
+  }
+
+  %% ================= EXTERNOS RELEVANTES =================
+  namespace Externos {
+    class NotificationsService {
+      <<Service · notifications>>
+      +create(userId, type, title, content, data?)
+    }
+  }
+
+  %% ----- Capas Auth -----
+  AuthController --> AuthService : delega
+  AuthController ..> RegisterDto : recibe
+  AuthController ..> LoginDto : recibe
+  AuthController ..> ResetPasswordDto : recibe
+  AuthService ..> TokenPairResponseDto : devuelve
+  AuthService ..> MeResponseDto : devuelve
+  AuthService --> RefreshToken : Repository
+  AuthService --> EmailVerificationToken : Repository
+  AuthService --> PasswordResetToken : Repository
+  AuthService --> OAuthAccount : Repository
+  AuthService --> UsersService : busca / crea usuario
+  GoogleStrategy ..> AuthService : perfil → handleGoogleAuth
+  JwtAuthGuard ..> JwtStrategy : Passport
+  JwtStrategy --> UsersService : resuelve usuario del JWT
+
+  %% ----- Capas Users -----
+  UsersController --> UsersService : delega
+  UsersController ..> UpdateProfileDto : recibe
+  UsersService ..> PublicProfileResponseDto : devuelve
+  UsersService --> User : Repository
+  UsersService --> Follow : Repository
+  UsersService --> NotificationsService : notifica user_follow
+  User --> UserStatus
+
+  %% ----- Roles -----
+  RolesService --> Role : Repository
+  RolesGuard ..> User : lee request.user.roles
+  Role --> RoleName
+
+  %% ----- Persistencia -----
+  User "N" -- "N" Role : user_roles
+  User "1" <-- "N" Follow : follower / followed
+  User "1" <-- "N" RefreshToken
+  User "1" <-- "N" EmailVerificationToken
+  User "1" <-- "N" PasswordResetToken
+  User "1" <-- "N" OAuthAccount
+
+  note for JwtStrategy "Bloquea cuentas suspended.<br>Permite banned: necesitan<br>autenticarse para apelar."
+  note for AuthService "Tokens opacos guardados como SHA-256.<br>resetPassword revoca todos los<br>RefreshToken del usuario."
+```
+
+## 20.3 Moderación
+
+```mermaid
+%% Pandora — Clases de diseño: Moderation (reportes, sanciones y apelaciones)
+%% Capas: Controller -> Service -> Entity (Repository TypeORM), DTOs en el borde,
+%% más los guards que restringen quién puede moderar o apelar.
+%% Métodos de controller y campos de DTO inferidos de los casos de uso
+%% (CU12, CU13, CU14, CU18, CU19, CU20). La apelación de baneo se expone
+%% desde users (POST /users/me/ban-appeal) pero la resuelve AppealsService.
+
+classDiagram
+  direction TB
+
+  %% ================= REPORTS =================
+  namespace Reports {
+    class ReportsController {
+      <<Controller>>
+      +reportArtwork(artworkId, dto)
+      +reportComment(commentId, dto)
+    }
+
+    class ReportsService {
+      <<Service>>
+      +reportArtwork(reporterId, artworkId, dto)
+      +reportComment(reporterId, commentId, dto)
+    }
+
+    class ArtworkReport {
+      <<Entity>>
+      +id: bigint
+      +artwork: Artwork
+      +reporter: User
+      +reason: ReportReason
+      +comment: string | null
+      +status: ReportStatus
+      +resolved_by: User | null
+      +resolution: ReportResolution | null
+      +resolved_at: Date | null
+    }
+
+    class CommentReport {
+      <<Entity>>
+      +id: bigint
+      +comment: Comment
+      +reporter: User
+      +reason: ReportReason
+      +status: ReportStatus
+      +resolved_by: User | null
+      +resolution: ReportResolution | null
+      +resolved_at: Date | null
+    }
+
+    class ReportReason {
+      <<enumeration>>
+      content_inappropriate
+      content_violent
+      content_sexual
+      illicit
+      copyright
+      plagiarism
+      spam
+      harassment
+      other
+    }
+
+    class ReportStatus {
+      <<enumeration>>
+      pending
+      in_review
+      resolved
+      rejected
+      overturned
+    }
+
+    class ReportResolution {
+      <<enumeration>>
+      dismissed
+      warning
+      content_removed
+      comment_removed
+      user_banned
+    }
+
+    class CreateReportDto {
+      <<DTO in>>
+      +reason: ReportReason
+      +comment?: string
+    }
+  }
+
+  %% ================= MODERATION =================
+  namespace Moderation {
+    class ModerationController {
+      <<Controller>>
+      +listReports(query)
+      +getReportDetail(targetType, id)
+      +resolveReport(targetType, id, dto)
+      +reopenReport(targetType, id)
+      +listAppeals(query)
+      +getAppealDetail(id)
+      +resolveAppeal(id, dto)
+    }
+
+    class ModerationService {
+      <<Service>>
+      +listReports(query) Page~ReportResponseDto~
+      +getReportDetail(targetType, id) ReportResponseDto
+      +resolveReport(moderatorId, targetType, id, action)
+      +reopenReport(targetType, id)
+      +listAppeals(query) Page~AppealResponseDto~
+      +getAppealDetail(id) AppealResponseDto
+      +resolveAppeal(reviewerId, id, action)
+      -notify(userId, type, targetType, targetId)
+    }
+
+    class AppealsController {
+      <<Controller>>
+      +appealArtworkRemoval(artworkId, dto)
+      +appealCommentRemoval(commentId, dto)
+    }
+
+    class AppealsService {
+      <<Service>>
+      +appealArtworkRemoval(userId, artworkId, dto)
+      +appealCommentRemoval(userId, commentId, dto)
+      +appealBan(userId, dto)
+    }
+
+    class Appeal {
+      <<Entity>>
+      +id: bigint
+      +report_target_type: artwork | comment
+      +report_id: bigint
+      +appellant: User
+      +reason: AppealReason
+      +detail: string | null
+      +status: AppealStatus
+      +reviewed_by: User | null
+      +reviewed_at: Date | null
+    }
+
+    class AppealReason {
+      <<enumeration>>
+      excessive_punishment
+      mistaken_identity
+      missing_context
+      false_report
+      other
+    }
+
+    class AppealStatus {
+      <<enumeration>>
+      pending
+      approved
+      rejected
+    }
+
+    class ResolveReportDto {
+      <<DTO in>>
+      +action: dismiss | warn | remove | ban
+    }
+
+    class CreateAppealDto {
+      <<DTO in>>
+      +reason: AppealReason
+      +detail?: string
+    }
+
+    class ResolveAppealDto {
+      <<DTO in>>
+      +action: approve | reject
+    }
+
+    class ReportResponseDto {
+      <<DTO out>>
+      +id: number
+      +targetType: artwork | comment
+      +target: resumen del contenido
+      +reporter: resumen
+      +reason: ReportReason
+      +status: ReportStatus
+      +resolution: ReportResolution
+    }
+
+    class AppealResponseDto {
+      <<DTO out>>
+      +id: number
+      +reason: AppealReason
+      +detail: string
+      +status: AppealStatus
+      +report: ReportResponseDto
+    }
+  }
+
+  %% ================= GUARDS Y EXTERNOS RELEVANTES =================
+  namespace Externos {
+    class RolesGuard {
+      <<Guard · roles>>
+      +canActivate(ctx) boolean
+    }
+    class BannedUserGuard {
+      <<Guard · common>>
+      +canActivate(ctx) boolean
+    }
+    class ArtworksService {
+      <<Service · artworks>>
+      +moderationRemove(id)
+      +restore(id)
+    }
+    class UsersService {
+      <<Service · users>>
+      +updateStatus(id, status)
+    }
+    class NotificationsService {
+      <<Service · notifications>>
+      +create(userId, type, title, content, data?)
+    }
+  }
+
+  %% ----- Denuncias -----
+  ReportsController --> ReportsService : delega
+  ReportsController ..> CreateReportDto : recibe
+  ReportsService --> ArtworkReport : Repository
+  ReportsService --> CommentReport : Repository
+
+  %% ----- Resolución y reapertura -----
+  ModerationController --> ModerationService : delega
+  ModerationController ..> ResolveReportDto : recibe
+  ModerationController ..> ResolveAppealDto : recibe
+  ModerationService ..> ReportResponseDto : devuelve
+  ModerationService ..> AppealResponseDto : devuelve
+  AppealResponseDto *-- ReportResponseDto
+  ModerationService --> ArtworkReport : Repository
+  ModerationService --> CommentReport : Repository
+  ModerationService --> Appeal : Repository
+
+  %% ----- Apelaciones -----
+  AppealsController --> AppealsService : delega
+  AppealsController ..> CreateAppealDto : recibe
+  AppealsService --> Appeal : Repository
+
+  %% ----- Enums -----
+  ArtworkReport --> ReportStatus
+  ArtworkReport --> ReportResolution
+  ArtworkReport --> ReportReason
+  Appeal --> AppealStatus
+  Appeal --> AppealReason
+
+  %% ----- Relación lógica reporte ↔ apelación -----
+  ArtworkReport "1" <.. "0..1" Appeal : report_id (target = artwork)
+  CommentReport "1" <.. "0..1" Appeal : report_id (target = comment)
+
+  %% ----- Sanciones y avisos -----
+  ModerationService --> ArtworksService : elimina / restaura obra
+  ModerationService --> UsersService : banea / desbanea
+  ModerationService --> NotificationsService : avisa al afectado
+  RolesGuard ..> ModerationController : @Roles(moderator, admin)
+  BannedUserGuard ..> AppealsController : baneado sólo puede apelar
+
+  note for Appeal "Único por reporte. El revisor no puede ser<br>quien resolvió el reporte, salvo que sea<br>el único moderador/admin."
+  note for ModerationService "reopenReport (CU18) y resolveAppeal aprobada<br>revierten la sanción igual: restaurar contenido<br>o desbanear, y el reporte pasa a overturned."
+```
+

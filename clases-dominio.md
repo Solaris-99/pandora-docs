@@ -177,4 +177,124 @@ Reporte      1 ─── 0..1 Apelación
 
 # 3. Diagrama
 
-[![Diagrama](/imgs/diag-clases-dominio.png)](https://mermaid.live/edit#pako:eNqVVs1u2zgQfhWBpxZrG5ZjxYkOCxROgd3DpkWa9rDwZUJOHKIUqaVIr7dBnqqPsC-2Q1mipVi2s754SM33zf-Az4wbgSxnXEFV3UhYWyhWeqWTpL5JvlYerDTJc7hKkl98hVZDgc0RC5CqkUvS_9tY8RtUT-3nyoEwS4_aQXP1IE0jwQYc2K9Wdbm-oZWPkhMqyZMHYxRC7c1L16k7o6JD2hQPFg9UPj1YiDpOOq9aswIrbmXJpdHNjSxgjfqTlWupofWmMkpy6WBp9AZtRdp9h_bRRYWWThPQLEHVgXTsoJIFWRBwIrR7WJ8LbWmKkM9uVRxunXll5VQCv4EytnYtUlAwFhV9JVg6mWSxKKaNoO8EWLdPMBXyL48xwY-oq7beGymiiIrIBIjmbMHiDzig_p3yuYvvBj8HXodVtMRBu0DxgTsPinydTibptG1O5aiWd0jVRAuDft9haazDyFcYJzdt6njMbK_CrbtIPeE79aQLj8qZj4dmPpSo-vntGRLoQCkctrKRFfXIAOktUbQt1ent0gy1OTfaoZaRV6E82XhLiwI1l6DusaAcgeqZuDffMfbxtpS229j-iMO7wf-4dWFnRLrSmg2iMLadF_G5vdmpmgOiL1j1evW1A5Q0w4cHKwjtEktWLF2xZDz-laRbkuotEX95At7t3DqK6AzfGxGdWasRWEhXVz4aP27jpNqe-KhaGI5AWA9rEyNv9tW_P1_n5rbvxR5U45aUV84DLHnHTSmhen807iANjfFJg_FDY_ALrj2tMiIxJ3Gvi3gT5ok3E_Xm8HqoTjL7KFrPJ4vdHdEe0VABm10U9HptdUKvl6MjenU4NMs-TLP-n7jdkqOeTt6F5nl_Fny4N85DumvhrPZu9gfU-pWhN8FZqv1WpsEN8luy0wXVy7mXm33uhkcvosMmYiO2tlKw3FmPI1agpScPHVm92FbMPSG9rFhOImXVb8cC7PcxNzTnK7bSL4QvQf9pTNFSWOPXTyx_BFXRyZcCHDavuKiCWqBdGq8dy9O0pmD5M9uyfDydZPN5epnNL2bz7CLNsmzE_iGtxeR6sUins9ni-vLyYnp1-TJiP2qz6WS6uEpn1-nVYp5dzbPZfMRQSGqYP5qHZPh7-Q8NfC00)
+[Diagrama en Mermaid Live](https://mermaid.live/edit#pako:eNqVVs1u2zgQfhWBpxZrG5Ycu7YOCxROgfbQtEjSHha-TMiJQ5QiVYp03QZ5qj5CX6wjWaKlWLazvnhIzffN_4CPjBuBLGVcQVFcSlhbyFZ6paOouom-FB6sNNFjeRVF__gCrYYM6yNmIFUt56T_w1jxHoqH5nPhQJilR-2gvrqTppZgAw7sF6vaXF_RynvJCRWl0Z0xCqHy5qnt1LVRwSFtsjuLByqf7iwEHSedV41ZgQW3MufS6PpGZrBG_cnKtdTQeFMYJbl0sDR6g7Yg7a5D--iCQkOnCWiWoKpAWnZQyYwsCDgR2i2sz4W2NFmZz3ZVHG6deWblVAK_gjK2ci1QUDAWFX0lWDwaTUNRTBNB1wmwbp9gKuR3jyHB96iLpt4bKYKIisgEiPpsweIvOKD-QPncxXeJn0teh0WwxEG7kuItdx4U-ToejeJx05zKUS2vkaqJFnr9vsbcWIeBLzNObprU8ZDZToUbd5F6wrfqSRcelTPvDs28zVF189sxJNCBUthvZSML6pEe0iuiaFqq1du56WtzbrRDLQOvQnmy8ZYWBWouQd1iRjkC1TFxa75h6ONtLm27sf0Rh3eD_27ryp0R6HJrNojC2GZexOfmZqdqDohusOj06nMHKGmG9w9WKTRLLFqxeMWi4fBfkq5IqrZE-KUReLdz6yiiNXwvRLRmrUJgJl1V-WD8uI2Tanvio2rlcJSE1bDWMfJ6X_35_Tw3V10v9qAKt6S8cl7Colfc5BKK10fjLqW-MT5pMHyoDd7g2tMqIxJzEve8iJflPPF6ol4cXgfVSmYXRev5ZLHbI9oh6itgvYtKvU5bndDr5OiIXhUOzbIvp1n_T9xuyVFPR6_K5nl9Fny4N85D2mvhrPZu9nvUupWhN8FZqv1WpsEt5Zdkpw2qlnMnN_vc9Y9eQK80G7C1lYKlznocsAwtPXjoyKq1tmLuAeldxVISKad-OxRgvw25oSlfsZV-InwO-j9jsobCGr9-YOk9qIJOPhfgsH7DBRXUAu3SeO1YmswqCpY-si1LJ_FodjFOLuJZkiySi_l4OmA_WTqcJ4tR_GaWzBbTSZxMnwbsV2UzHs0n03gxn84vkvFiNpkMGApJrfKxfkKWf09_AegKK50)
+
+``` mermaid
+classDiagram
+
+  class Usuario {
+    +username
+    +email
+    +passwordHash
+    +estadoCuenta
+    +bio
+    +avatarUrl
+    +emailVerificado : boolean
+  }
+
+  class Rol {
+    +nombre
+  }
+
+  class Obra {
+    +titulo
+    +descripcion
+    +imagenOriginal
+    +solicitaConversion : boolean
+    +estadoConversion
+    +inicioCalificacion
+    +eliminada : boolean
+  }
+
+  class Tag {
+    +nombre
+  }
+
+  class Comentario {
+    +texto
+    +eliminado : boolean
+  }
+
+  class Valoracion {
+    +estrellas : 1..5
+    +emocion
+  }
+
+  class Carta {
+    +ataque
+    +defensa
+    +vida
+    +velocidad
+    +rareza
+  }
+
+  class InventarioDePaquetes {
+    +cantidadActual : 0..10
+    +ultimaRegeneracion
+  }
+
+  class Reporte {
+    +motivo
+    +comentario
+    +estado
+    +resolucion
+    +resueltoEn
+  }
+
+  class Apelacion {
+    +motivo
+    +detalle
+    +estado
+    +revisadaEn
+  }
+
+  class Notificacion {
+    +tipo
+    +titulo
+    +contenido
+    +leida : boolean
+  }
+
+  class CredencialTemporal {
+    +tipoToken
+    +expiracion
+    +usadaEn
+  }
+
+  class CuentaExterna {
+    +proveedor
+    +idProveedorExterno
+  }
+
+  class Sesion {
+    +expiracion
+    +revocada : boolean
+  }
+
+
+  Usuario  "1" --> "N" Obra          : autor
+  Usuario  "1" --> "N" Comentario    : autor
+  Usuario  "1" --> "N" Valoracion    : emite
+  Obra     "1" --> "N" Comentario
+  Obra     "1" --> "N" Valoracion
+  Obra     "1" --> "0..1" Carta      : conversión
+  Usuario  "N" --> "N" Carta         : Colección (copias)
+  Usuario  "1" --> "1" InventarioDePaquetes
+  Usuario  "N" --> "N" Usuario       : Seguimiento
+  Usuario  "N" --> "N" Obra          : Destacado
+  Usuario  "N" --> "N" Carta         : Destacado
+  Obra     "N" --> "N" Tag
+  Usuario  "1" --> "N" Notificacion
+  Obra         "1" --> "N" Reporte
+  Comentario   "1" --> "N" Reporte
+  Usuario      "1" --> "N" Reporte   : denunciante
+  Usuario      "1" --> "N" Reporte   : resolutor (0..1)
+  Usuario      "1" --> "N" CredencialTemporal
+  Usuario      "1" --> "N" CuentaExterna
+  Usuario      "1" --> "N" Sesion
+  Usuario      "N" --> "N" Rol
+  Usuario      "1" --> "N" Apelacion : apelante
+  Usuario      "1" --> "N" Apelacion : revisor (0..1)
+  Reporte      "1" --> "0..1" Apelacion
+
+```
