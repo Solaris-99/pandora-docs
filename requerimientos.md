@@ -59,6 +59,8 @@ La batalla se considera una funcionalidad local del cliente: el backend sólo in
 
 Debe cubrir las funcionalidades de usuario previstas para móvil, compartiendo el mismo backend y reglas de negocio.
 
+Quedan **fuera** de la app Android el panel de moderación, la gestión de apelaciones por parte del personal y las herramientas de administración (CU14, CU17–CU22); esas funciones se ofrecen únicamente en el portal web. La app sí incluye reportar contenido (CU12/CU13) y apelar sanciones propias (CU19).
+
 ### Backend
 
 - API REST.

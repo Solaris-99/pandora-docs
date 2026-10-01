@@ -29,3 +29,15 @@ El atajo dedicado `GET /artworks/qualification` fue eliminado (tanto de la API c
 ## Cookie `httpOnly` para el `refreshToken` (opcional, hardening)
 
 `api-conventions.md` §5.4 recomienda evitar `localStorage` para el `refreshToken` por exposición a XSS, y sugiere `httpOnly` cookie o almacenamiento cifrado. El frontend no puede lograr `httpOnly` unilateralmente — requiere que el backend setee la cookie vía `Set-Cookie` en `/auth/login`, `/auth/register` y `/auth/refresh`. Si se prioriza este hardening para el cliente web, sería un modo opcional (la app Android seguiría necesitando el token en el body JSON).
+
+## Subida de avatar (detectado desde mobile)
+
+`PATCH /users/me` (§8.2) sólo acepta `avatar_url` como string y no existe un endpoint de subida de avatar. La app Android no puede mostrar un selector de imagen de perfil hasta que haya uno. Propuesta: `POST /users/me/avatar` (`multipart/form-data`, campo `image`, mismas reglas que §9.1: PNG/JPG/JPEG/WEBP, máx. 25 MB) que suba a Cloudinary y devuelva el perfil actualizado, reutilizando `StorageService`. Si no se prioriza, mobile queda con edición de `username`/`bio` y avatar sólo de Google.
+
+## Verificación de email y reset de contraseña desde la app (detectado desde mobile)
+
+Los correos de verificación y recuperación (`interfaces-entre-sistemas.md` §5.1) enlazan a `{FRONTEND_URL}/verify-email?token=...` y `{FRONTEND_URL}/reset-password?token=...`. Mobile los abre en el navegador (el portal web hace el `POST` correspondiente), sin cambios de contrato. Si se quisiera abrirlos directo en la app habría que, del lado web/backend: publicar `/.well-known/assetlinks.json` en el dominio del frontend (con el SHA-256 de la firma de la app) y confirmar que las rutas `/verify-email` y `/reset-password` se mantengan estables. Opcional; no bloquea nada.
+
+## Reglas de la batalla local (a alinear entre web y mobile)
+
+`requerimientos.md` §5.8 y CU09 definen que la simulación es local al cliente pero **no fijan la fórmula** (orden de turnos, daño, condición de fin). Si web y Android implementan reglas distintas, la misma carta rinde distinto según la plataforma. Pendiente: acordar la fórmula (usando `attack`, `defense`, `hp`, `speed`), documentarla en §5.8 y que ambos clientes la sigan. Hasta entonces, mobile usa la propuesta de `_todo_mobile.md`.
