@@ -19,15 +19,21 @@ Trabajo en mobile:
 
 ## 2. Reglas de la batalla local
 
-Sin fórmula documentada (ver pedido en `_todo-frontend.md`). Mientras tanto, mobile implementa un `BattleEngine` puro en Kotlin, determinista con semilla inyectada, aislado para poder reemplazar las reglas sin tocar la UI:
+**Resuelto (2026-10-07):** la fórmula ya está acordada y documentada en [`battle-formula.md`](/battle-formula.md) — orden de turnos por velocidad, esquive (tope 75%), golpe crítico (sin tope, ignora esquive) y reducción de daño (tope 90%), con cada decisión de implementación (empate de velocidad, redondeo, piso de daño, tope de rondas) marcada explícitamente para que `BattleEngine` la replique igual. Implementación de referencia en el frontend web: `src/features/battle/simulate.ts` (incluye tests unitarios de cada fórmula por separado).
+
+**Pendiente en mobile:** la propuesta provisoria de abajo (`daño = max(1, attack − defense/2)`, sin esquive ni crítico) queda obsoleta — hay que migrar `BattleEngine` a la fórmula de `battle-formula.md`. Se mantiene aislado en su propia clase (determinista con semilla inyectada) para que este cambio no toque la UI:
+
+- Emite una lista de eventos (turno, atacante, daño, `isCrit`, `dodged`, HP restante) que la UI anima — la UI web ya distingue los tres casos en el log (golpe normal / crítico / esquive), mobile debería hacer lo mismo. No persiste nada ni llama al backend salvo `GET /battle/opponent`.
+- Tests unitarios: cada fórmula (esquive, reducción de daño, crítico) por separado además del flujo completo — mismo criterio que `simulate.test.ts` en el frontend web.
+
+<details>
+<summary>Propuesta original (obsoleta, dejada de referencia)</summary>
 
 - Orden de turnos por `speed` (mayor primero; empate: la carta del jugador).
 - Turnos alternados; `daño = max(1, attack − defense / 2)`.
 - Termina cuando `hp ≤ 0`; tope de 50 turnos, gana quien tenga mayor porcentaje de HP restante (empate = empate).
-- Emite una lista de eventos (turno, atacante, daño, HP restante) que la UI anima. No persiste nada ni llama al backend salvo `GET /battle/opponent`.
-- Tests unitarios: orden por velocidad, empate, tope de turnos, daño mínimo, determinismo con semilla.
 
-Si el resultado de la alineación con web difiere, sólo cambia `BattleEngine`.
+</details>
 
 ## 3. Avatar de perfil
 

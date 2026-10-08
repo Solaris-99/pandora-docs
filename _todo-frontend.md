@@ -38,6 +38,6 @@ El atajo dedicado `GET /artworks/qualification` fue eliminado (tanto de la API c
 
 Los correos de verificación y recuperación (`interfaces-entre-sistemas.md` §5.1) enlazan a `{FRONTEND_URL}/verify-email?token=...` y `{FRONTEND_URL}/reset-password?token=...`. Mobile los abre en el navegador (el portal web hace el `POST` correspondiente), sin cambios de contrato. Si se quisiera abrirlos directo en la app habría que, del lado web/backend: publicar `/.well-known/assetlinks.json` en el dominio del frontend (con el SHA-256 de la firma de la app) y confirmar que las rutas `/verify-email` y `/reset-password` se mantengan estables. Opcional; no bloquea nada.
 
-## Reglas de la batalla local (a alinear entre web y mobile)
+## ~~Reglas de la batalla local (a alinear entre web y mobile)~~ — resuelto
 
-`requerimientos.md` §5.8 y CU09 definen que la simulación es local al cliente pero **no fijan la fórmula** (orden de turnos, daño, condición de fin). Si web y Android implementan reglas distintas, la misma carta rinde distinto según la plataforma. Pendiente: acordar la fórmula (usando `attack`, `defense`, `hp`, `speed`), documentarla en §5.8 y que ambos clientes la sigan. Hasta entonces, mobile usa la propuesta de `_todo_mobile.md`.
+Acordada y documentada en [`battle-formula.md`](/battle-formula.md) (2026-10-07): orden de turnos por velocidad, esquive, golpe crítico y reducción de daño, usando `attack`/`defense`/`hp`/`speed`. `requerimientos.md` §5.8 ya la referencia. Implementación de referencia en el frontend web: `src/features/battle/simulate.ts`. Mobile todavía tiene que migrar su `BattleEngine` (propuesta provisoria en `_todo_mobile.md` §2) a esta fórmula.

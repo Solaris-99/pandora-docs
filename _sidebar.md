@@ -9,3 +9,5 @@
 - [Diseño de Arquitectura](/diseno-arquitectura.md)
 - [Interfaces entre Sistemas](/interfaces-entre-sistemas.md)
 - [Casos de Prueba](/casos-de-prueba.md)
+- [Sistema de Diseño](/DESIGN.md)
+- [Fórmula de Batalla](/battle-formula.md)

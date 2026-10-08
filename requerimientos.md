@@ -240,6 +240,7 @@ La propuesta original mencionaba web/desktop; esta versión corrige el alcance p
 5. No se guardan victorias ni derrotas.
 6. El resultado no cambia inventario ni estadísticas persistentes.
 7. Manipular el cliente no afecta datos relevantes del servidor dentro de este alcance.
+8. La fórmula de combate (orden de turnos, esquive, crítico, reducción de daño) es la misma en todos los clientes — ver [`battle-formula.md`](/battle-formula.md), acordada el 2026-10-07.
 
 ## 5.9 Generales
 

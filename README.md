@@ -18,6 +18,8 @@ Pandora es una plataforma para compartir arte y darle visibilidad a las obras de
 - [Diseño de Arquitectura](/diseno-arquitectura.md)
 - [Interfaces entre Sistemas](/interfaces-entre-sistemas.md)
 - [Casos de Prueba](/casos-de-prueba.md)
+- [Diseño (estilos)](/DESIGN.md)
+- [Fórmula de Batalla](/battle-formula.md)
 
 ### Contenido Adicional
 
