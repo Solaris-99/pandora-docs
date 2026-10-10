@@ -3,6 +3,7 @@
 **Actor principal:** Admin
 **Precondición:** El actor posee el rol `admin`.
 **Postcondición:** Toda obra elegible cuyo período de calificación ya terminó queda procesada, igual que si hubiera corrido el CRON.
+**Caso de prueba:** [CP22 — Disparar el ciclo de conversión manualmente (Admin)](/casos-de-prueba/cp22-disparar-el-ciclo-de-conversion-manualmente.md)
 
 ## Flujo principal
 

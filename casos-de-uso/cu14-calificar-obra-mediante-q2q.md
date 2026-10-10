@@ -2,6 +2,7 @@
 
 **Actor principal:** Usuario autenticado
 **Precondición:** La obra está dentro de su semana de calificación.
+**Caso de prueba:** [CP05 — Calificar obra mediante Q2Q](/casos-de-prueba/cp05-calificar-obra-mediante-q2q.md)
 
 ## Flujo principal
 

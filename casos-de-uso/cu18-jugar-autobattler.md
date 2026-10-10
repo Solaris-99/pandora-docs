@@ -1,6 +1,7 @@
 # CU18 — Jugar autobattler
 
 **Actor principal:** Usuario autenticado.
+**Caso de prueba:** [CP09 — Jugar autobattler](/casos-de-prueba/cp09-jugar-autobattler.md)
 
 ## Flujo principal
 

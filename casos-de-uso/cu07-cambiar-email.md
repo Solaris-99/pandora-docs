@@ -3,6 +3,7 @@
 **Actor principal:** Usuario autenticado, con email verificado.
 **Precondición:** El usuario tiene sesión autenticada.
 **Postcondición:** El email de la cuenta queda actualizado al nuevo valor, una vez verificado.
+**Caso de prueba:** todavía sin caso de prueba dedicado.
 
 ## Flujo principal
 

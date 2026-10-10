@@ -3,6 +3,7 @@
 **Actor principal:** Usuario autenticado
 **Precondición:** La obra existe y no fue eliminada.
 **Postcondición:** El comentario queda registrado y visible en la obra.
+**Caso de prueba:** todavía sin caso de prueba dedicado.
 
 ## Flujo principal
 

@@ -3,6 +3,7 @@
 **Actor principal:** Usuario autenticado
 **Precondición:** Usuario autenticado y autorizado.
 **Postcondición:** Obra almacenada y disponible en el ciclo de calificación si corresponde.
+**Caso de prueba:** [CP03 — Subir obra](/casos-de-prueba/cp03-subir-obra.md)
 
 ## Flujo principal
 

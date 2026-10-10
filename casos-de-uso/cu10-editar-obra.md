@@ -3,6 +3,7 @@
 **Actor principal:** Usuario autenticado
 **Precondición:** El usuario es autor de la obra; la obra está dentro de su período de calificación (todavía no fue convertida en carta).
 **Postcondición:** La obra queda actualizada con los nuevos datos.
+**Caso de prueba:** todavía sin caso de prueba dedicado.
 
 ## Flujo principal
 

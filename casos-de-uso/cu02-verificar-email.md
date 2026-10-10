@@ -3,6 +3,7 @@
 **Actor principal:** Invitado (titular de una cuenta recién creada o de una cuenta pendiente que solicita un nuevo envío)
 **Precondición:** Existe una cuenta en estado pendiente de verificación.
 **Postcondición:** La cuenta queda verificada (`email_verified = true`) y activa.
+**Caso de prueba:** todavía sin caso de prueba dedicado.
 
 ## Flujo principal
 

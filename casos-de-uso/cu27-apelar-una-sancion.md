@@ -3,6 +3,7 @@
 **Actor principal:** Usuario autenticado afectado (autor de la obra/comentario eliminado, o usuario baneado apelando su propia cuenta)
 **Precondición:** Existe un reporte resuelto con sanción punitiva sobre su obra, comentario o cuenta, y esa sanción todavía no fue apelada.
 **Postcondición:** Se registra una apelación en estado `pending`, visible para el personal de moderación.
+**Caso de prueba:** [CP19 — Apelar una sanción](/casos-de-prueba/cp19-apelar-una-sancion.md)
 
 ## Flujo principal
 

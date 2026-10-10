@@ -1,0 +1,27 @@
+- [← Volver al inicio](/README.md)
+- [Clases de diseño](/clases-diseno/README.md)
+  - [Convención general](/clases-diseno/convencion-general.md)
+  - [Documento completo](/clases-diseno/completo.md)
+- Usuarios y auth
+  - [Módulo `auth`](/clases-diseno/auth.md)
+  - [Módulo `users`](/clases-diseno/users.md)
+  - [Módulo `roles`](/clases-diseno/roles.md)
+- Obras y cartas
+  - [Módulo `artworks`](/clases-diseno/artworks.md)
+  - [Módulo `ratings`](/clases-diseno/ratings.md)
+  - [Módulo `comments`](/clases-diseno/comments.md)
+  - [Módulo `tags`](/clases-diseno/tags.md)
+  - [Módulo `storage`](/clases-diseno/storage.md)
+  - [Módulo `cards` (+ `collections`)](/clases-diseno/cards-collections.md)
+  - [Módulo `packages`](/clases-diseno/packages.md)
+  - [Módulo `battle`](/clases-diseno/battle.md)
+  - [Módulo `conversion`](/clases-diseno/conversion.md)
+  - [Módulo `scheduler`](/clases-diseno/scheduler.md)
+- Social y notificaciones
+  - [Módulo `follows` / `favorites`](/clases-diseno/follows-favorites.md)
+  - [Módulo `notifications`](/clases-diseno/notifications.md)
+- Moderación
+  - [Módulo `reports`](/clases-diseno/reports.md)
+  - [Módulo `moderation`](/clases-diseno/moderation.md)
+- Transversal
+  - [Módulo `common` (transversal)](/clases-diseno/common.md)

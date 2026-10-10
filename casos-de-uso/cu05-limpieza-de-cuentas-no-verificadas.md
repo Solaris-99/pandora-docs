@@ -3,6 +3,7 @@
 **Actor técnico:** CRON / sistema
 **Precondición:** Existen cuentas en estado pendiente de verificación (`email_verified = false`) con más de 72 horas desde su creación.
 **Postcondición:** Esas cuentas quedan eliminadas.
+**Caso de prueba:** todavía sin caso de prueba dedicado.
 
 ## Flujo principal
 

@@ -1,6 +1,6 @@
 # Pendientes de la app móvil
 
-> Decisiones abiertas y valores que la app Android necesita. Todo lo que implique un cambio en frontend o backend está en [`_todo-frontend.md`](/_todo-frontend.md) y en el documento correspondiente (`requerimientos.md`, `api-conventions.md`); acá sólo queda lo propio del cliente móvil. Fuera de alcance en mobile: moderación, gestión de apelaciones por el personal y herramientas de administración (ver `requerimientos.md` §2.1).
+> Decisiones abiertas y valores que la app Android necesita. Todo lo que implique un cambio en frontend o backend está en [`_todo-frontend.md`](/_todo-frontend.md) y en el documento correspondiente ([requerimientos](/requerimientos/README.md), `api-conventions.md`); acá sólo queda lo propio del cliente móvil. Fuera de alcance en mobile: moderación, gestión de apelaciones por el personal y herramientas de administración (ver [requerimientos §2.1](/requerimientos/alcance.md)).
 
 ## 1. Configuración por entorno (`local.properties`)
 
@@ -9,7 +9,7 @@ Valores que no se versionan y que se proveerán en `local.properties` (ya ignora
 | Clave | Uso |
 |---|---|
 | `API_BASE_URL` | URL base del backend, hasta `/api/v1/` inclusive (con `/` final). En emulador, el host local es `10.0.2.2`. |
-| `GOOGLE_CLIENT_ID` | Client ID **web** de Google, usado como `serverClientId` en Credential Manager (`GetGoogleIdOption`). Debe coincidir con `GOOGLE_CLIENT_ID` del backend, que es la `audience` que verifica `POST /auth/google` (`interfaces-entre-sistemas.md` §4.2). |
+| `GOOGLE_CLIENT_ID` | Client ID **web** de Google, usado como `serverClientId` en Credential Manager (`GetGoogleIdOption`). Debe coincidir con `GOOGLE_CLIENT_ID` del backend, que es la `audience` que verifica `POST /auth/google` ([interfaces entre sistemas, flujo Android](/interfaces-entre-sistemas/google.md#flujo-android-verificación-de-id-token)). |
 
 Trabajo en mobile:
 - Leer ambas claves en `app/build.gradle.kts` y exponerlas como `BuildConfig` (hecho en la Fase 1).

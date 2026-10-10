@@ -3,6 +3,7 @@
 **Actor principal:** Invitado (usuario que no puede iniciar sesión)
 **Precondición:** Existe una cuenta con esa dirección de email; si la cuenta tiene contraseña local configurada, la solicitud desencadena el envío del enlace.
 **Postcondición:** El usuario cuenta con una nueva contraseña y puede iniciar sesión con ella; cualquier sesión abierta con la contraseña anterior quedó cerrada.
+**Caso de prueba:** [CP23 — Recuperar contraseña olvidada](/casos-de-prueba/cp23-recuperar-contrasena-olvidada.md)
 
 ## Flujo principal
 

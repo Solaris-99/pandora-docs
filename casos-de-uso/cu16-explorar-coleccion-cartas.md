@@ -1,6 +1,7 @@
 # CU16 — Explorar colección/cartas
 
 **Actor principal:** Invitado o usuario autenticado.
+**Caso de prueba:** [CP07 — Explorar colección/cartas](/casos-de-prueba/cp07-explorar-coleccion-cartas.md)
 
 ## Flujo principal
 

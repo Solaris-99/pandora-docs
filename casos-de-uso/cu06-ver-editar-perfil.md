@@ -1,6 +1,7 @@
 # CU06 — Ver/editar perfil
 
 **Actor principal:** Usuario autenticado (consulta pública disponible para cualquier actor).
+**Caso de prueba:** [CP16 — Ver/editar perfil](/casos-de-prueba/cp16-ver-editar-perfil.md)
 
 ## Flujo principal
 

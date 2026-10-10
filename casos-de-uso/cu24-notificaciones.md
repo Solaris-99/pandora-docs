@@ -1,6 +1,7 @@
 # CU24 — Notificaciones
 
 **Actor principal:** Usuario autenticado.
+**Caso de prueba:** [CP15 — Notificaciones](/casos-de-prueba/cp15-notificaciones.md)
 
 ## Flujo principal
 
@@ -20,4 +21,4 @@
 - resultado de una denuncia;
 - actividad de votos/calificaciones relevante.
 
-> El catálogo completo de tipos de notificación (incluyendo los agregados por moderación y apelaciones) vive en las [clases de dominio](/clases-dominio.md), clase `Notification`.
+> El catálogo completo de tipos de notificación (incluyendo los agregados por moderación y apelaciones) vive en las [clases de dominio](/clases-dominio/notificacion.md), clase `Notification`.

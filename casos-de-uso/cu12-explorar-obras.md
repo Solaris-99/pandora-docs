@@ -2,6 +2,7 @@
 
 **Actor principal:** Invitado o usuario
 **Precondición:** Ninguna.
+**Caso de prueba:** [CP04 — Explorar obras](/casos-de-prueba/cp04-explorar-obras.md)
 
 ## Flujo principal
 

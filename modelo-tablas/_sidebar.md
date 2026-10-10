@@ -1,0 +1,29 @@
+- [← Volver al inicio](/README.md)
+- [Modelo de tablas](/modelo-tablas/README.md)
+  - [Índices recomendados](/modelo-tablas/indices-recomendados.md)
+  - [Documento completo](/modelo-tablas/completo.md)
+- Usuarios y acceso
+  - [users](/modelo-tablas/users.md)
+  - [roles / user_roles](/modelo-tablas/roles.md)
+  - [email_verification_tokens](/modelo-tablas/email-verification-tokens.md)
+  - [password_reset_tokens](/modelo-tablas/password-reset-tokens.md)
+  - [refresh_tokens](/modelo-tablas/refresh-tokens.md)
+  - [oauth_accounts](/modelo-tablas/oauth-accounts.md)
+- Obras
+  - [artworks](/modelo-tablas/artworks.md)
+  - [artwork_comments](/modelo-tablas/artwork-comments.md)
+  - [artwork_ratings](/modelo-tablas/artwork-ratings.md)
+  - [tags](/modelo-tablas/tags.md)
+  - [artwork_tags](/modelo-tablas/artwork-tags.md)
+- Cartas
+  - [cards](/modelo-tablas/cards.md)
+  - [user_cards](/modelo-tablas/user-cards.md)
+  - [card_packs](/modelo-tablas/card-packs.md)
+- Social y notificaciones
+  - [follows](/modelo-tablas/follows.md)
+  - [favorite_cards](/modelo-tablas/favorite-cards.md)
+  - [favorite_artworks](/modelo-tablas/favorite-artworks.md)
+  - [notifications](/modelo-tablas/notifications.md)
+- Moderación
+  - [reports (artwork_reports / comment_reports)](/modelo-tablas/reports.md)
+  - [appeals](/modelo-tablas/appeals.md)

@@ -1,6 +1,7 @@
 # CU23 — Administrar denuncias
 
 **Actor principal:** Moderador.
+**Caso de prueba:** [CP14 — Administrar denuncias](/casos-de-prueba/cp14-administrar-denuncias.md)
 
 ## Flujo principal
 

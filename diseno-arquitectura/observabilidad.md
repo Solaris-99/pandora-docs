@@ -1,0 +1,6 @@
+# Observabilidad / logging (RNF14)
+
+- **Log de acceso HTTP** (`src/common/middleware/logging.middleware.ts`): un log por request (`método ruta status duración - ip`), a nivel `log` para 2xx/3xx y `warn` para 4xx/5xx. Deliberadamente implementado como **middleware de Express** (`app.use(...)` en `main.ts`), no como interceptor de Nest: los guards (`JwtAuthGuard`, `RolesGuard`, `AppThrottlerGuard`, etc.) corren *antes* que los interceptors en el pipeline de Nest, así que un interceptor nunca vería una request rechazada por un guard (401/403/429) — justo el tráfico más interesante de registrar para seguridad. El middleware corre primero de todos modos y se engancha a `res.on('finish')`, que se dispara sin importar en qué capa terminó resolviéndose la respuesta. Verificado en vivo: una request no autenticada (401) y una bloqueada por rate limiting (429) quedan registradas igual que una exitosa.
+- **Errores no manejados:** `AllExceptionsFilter` registra cualquier excepción no capturada, con stack trace.
+- **Ejecuciones del CRON:** `ConversionSchedulerService` registra un resumen por ciclo (procesadas/convertidas/fallidas/skipped).
+- **Fallas de integraciones externas:** `MailService` (Resend) y `StorageService` (Cloudinary) registran sus fallos sin abortar el flujo que los llamó (best-effort — ver [almacenamiento de imágenes](almacenamiento-imagenes.md)).

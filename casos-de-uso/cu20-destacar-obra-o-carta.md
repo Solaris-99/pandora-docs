@@ -1,6 +1,7 @@
 # CU20 — Destacar obra o carta
 
 **Actor principal:** Usuario autenticado.
+**Caso de prueba:** [CP11 — Destacar obra o carta](/casos-de-prueba/cp11-destacar-obra-o-carta.md)
 
 ## Flujo principal
 

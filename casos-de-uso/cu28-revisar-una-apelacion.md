@@ -3,6 +3,7 @@
 **Actor principal:** Moderador o Admin
 **Precondición:** Existe una apelación en estado `pending`; el revisor no resolvió el reporte original que la apelación referencia, salvo que sea el único miembro de moderación (`moderator` + `admin`) en el sistema.
 **Postcondición:** La apelación queda `approved` o `rejected`; si fue aprobada, la sanción original queda revertida igual que en [CU26](cu26-reabrir-un-reporte-resuelto.md).
+**Caso de prueba:** [CP20 — Revisar una apelación](/casos-de-prueba/cp20-revisar-una-apelacion.md)
 
 ## Flujo principal
 

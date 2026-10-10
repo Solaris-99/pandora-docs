@@ -3,6 +3,7 @@
 **Actor principal:** Admin
 **Precondición:** Existe un reporte con `status = resolved` y una `resolution` punitiva (`content_removed`, `comment_removed` o `user_banned`).
 **Postcondición:** La sanción original queda revertida (contenido restaurado o usuario desbaneado) y el reporte pasa a `status = overturned`.
+**Caso de prueba:** [CP18 — Reabrir un reporte resuelto](/casos-de-prueba/cp18-reabrir-un-reporte-resuelto.md)
 
 ## Flujo principal
 

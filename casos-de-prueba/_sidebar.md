@@ -1,0 +1,33 @@
+- [← Volver al inicio](/README.md)
+- [Casos de prueba](/casos-de-prueba/README.md)
+  - [Estrategia de pruebas](/casos-de-prueba/estrategia.md)
+  - [Documento completo](/casos-de-prueba/completo.md)
+- Cuenta
+  - [CP01 — Registro exitoso](/casos-de-prueba/cp01-registro-exitoso.md)
+  - [CP02 — Login](/casos-de-prueba/cp02-login.md)
+  - [CP16 — Ver/editar perfil](/casos-de-prueba/cp16-ver-editar-perfil.md)
+  - [CP23 — Recuperar contraseña olvidada](/casos-de-prueba/cp23-recuperar-contrasena-olvidada.md)
+- Obras
+  - [CP03 — Subir obra](/casos-de-prueba/cp03-subir-obra.md)
+  - [CP04 — Explorar obras](/casos-de-prueba/cp04-explorar-obras.md)
+  - [CP05 — Calificar obra mediante Q2Q](/casos-de-prueba/cp05-calificar-obra-mediante-q2q.md)
+- Cartas y juego
+  - [CP06 — Conversión de obra a carta](/casos-de-prueba/cp06-conversion-de-obra-a-carta.md)
+  - [CP07 — Explorar colección/cartas](/casos-de-prueba/cp07-explorar-coleccion-cartas.md)
+  - [CP08 — Abrir paquete](/casos-de-prueba/cp08-abrir-paquete.md)
+  - [CP09 — Jugar autobattler](/casos-de-prueba/cp09-jugar-autobattler.md)
+- Social y notificaciones
+  - [CP10 — Seguir usuario](/casos-de-prueba/cp10-seguir-usuario.md)
+  - [CP11 — Destacar obra o carta](/casos-de-prueba/cp11-destacar-obra-o-carta.md)
+  - [CP15 — Notificaciones](/casos-de-prueba/cp15-notificaciones.md)
+- Moderación
+  - [CP12 — Denunciar obra](/casos-de-prueba/cp12-denunciar-obra.md)
+  - [CP13 — Denunciar comentario](/casos-de-prueba/cp13-denunciar-comentario.md)
+  - [CP14 — Administrar denuncias](/casos-de-prueba/cp14-administrar-denuncias.md)
+  - [CP18 — Reabrir un reporte resuelto](/casos-de-prueba/cp18-reabrir-un-reporte-resuelto.md)
+  - [CP19 — Apelar una sanción](/casos-de-prueba/cp19-apelar-una-sancion.md)
+  - [CP20 — Revisar una apelación](/casos-de-prueba/cp20-revisar-una-apelacion.md)
+- Administración
+  - [CP17 — Gestionar rol de moderador](/casos-de-prueba/cp17-gestionar-rol-de-moderador.md)
+  - [CP21 — Cargar carta directamente (Admin)](/casos-de-prueba/cp21-cargar-carta-directamente.md)
+  - [CP22 — Disparar el ciclo de conversión manualmente (Admin)](/casos-de-prueba/cp22-disparar-el-ciclo-de-conversion-manualmente.md)

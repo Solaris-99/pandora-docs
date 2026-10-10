@@ -1,6 +1,7 @@
 # CU21 — Denunciar obra
 
 **Actor principal:** Usuario autenticado.
+**Caso de prueba:** [CP12 — Denunciar obra](/casos-de-prueba/cp12-denunciar-obra.md)
 
 ## Flujo principal
 

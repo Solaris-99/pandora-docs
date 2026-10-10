@@ -1,0 +1,26 @@
+- [← Volver al inicio](/README.md)
+- [Clases de dominio](/clases-dominio/README.md)
+  - [Documento completo](/clases-dominio/completo.md)
+- Usuarios y acceso
+  - [Usuario](/clases-dominio/usuario.md)
+  - [Rol](/clases-dominio/rol.md)
+  - [Credencial temporal (Token de verificación / recuperación)](/clases-dominio/credencial-temporal.md)
+  - [Cuenta externa (OAuthAccount)](/clases-dominio/cuenta-externa.md)
+  - [Sesión (Refresh Token)](/clases-dominio/sesion.md)
+- Obras
+  - [Obra (Artwork)](/clases-dominio/obra.md)
+  - [Tag](/clases-dominio/tag.md)
+  - [Comentario](/clases-dominio/comentario.md)
+  - [Valoración (Rating / Q2Q)](/clases-dominio/valoracion.md)
+- Cartas y juego
+  - [Carta (Card)](/clases-dominio/carta.md)
+  - [Colección (relación Usuario–Carta)](/clases-dominio/coleccion.md)
+  - [Inventario de Paquetes](/clases-dominio/inventario-de-paquetes.md)
+  - [Batalla (concepto no persistido)](/clases-dominio/batalla.md)
+- Social y notificaciones
+  - [Seguimiento (Follow)](/clases-dominio/seguimiento.md)
+  - [Destacado (Favorite)](/clases-dominio/destacado.md)
+  - [Notificación (Notification)](/clases-dominio/notificacion.md)
+- Moderación
+  - [Reporte (Report)](/clases-dominio/reporte.md)
+  - [Apelación (Appeal)](/clases-dominio/apelacion.md)

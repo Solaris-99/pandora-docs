@@ -3,6 +3,7 @@
 **Actor principal:** Invitado
 **Precondición:** No existe una sesión autenticada.
 **Postcondición:** Cuenta creada en estado pendiente de verificación (ver [CU02](cu02-verificar-email.md)).
+**Caso de prueba:** [CP01 — Registro exitoso](/casos-de-prueba/cp01-registro-exitoso.md)
 
 ## Flujo principal
 

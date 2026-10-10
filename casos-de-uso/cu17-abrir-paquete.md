@@ -2,6 +2,7 @@
 
 **Actor principal:** Usuario autenticado
 **Precondición:** El usuario tiene al menos un paquete disponible.
+**Caso de prueba:** [CP08 — Abrir paquete](/casos-de-prueba/cp08-abrir-paquete.md)
 
 ## Flujo principal
 

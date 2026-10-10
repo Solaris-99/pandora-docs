@@ -3,6 +3,7 @@
 **Actor principal:** Admin
 **Precondición:** El actor posee el rol `admin`.
 **Postcondición:** El usuario objetivo gana o pierde el rol `moderator`.
+**Caso de prueba:** [CP17 — Gestionar rol de moderador](/casos-de-prueba/cp17-gestionar-rol-de-moderador.md)
 
 ## Flujo principal
 

@@ -727,7 +727,7 @@ Tanto el explorador público como la colección propia devuelven cartas con esta
 }
 ```
 - `rarity` es uno de: `common`, `uncommon`, `rare`, `epic`, `legendary`.
-- **`stats` es `null` cuando `owned` es `false`** (RG 7.5.5: el detalle de una carta no poseída oculta sus estadísticas). `owned`/`copies` reflejan siempre al usuario que hace la petición: `copies: 0` cuando no se posee, y ambos campos son "neutros" (`owned: false, copies: 0`) en una petición anónima.
+- **`stats` es `null` cuando `owned` es `false`** ([requerimientos §5.5](/requerimientos/reglas-05-cartas-y-coleccion.md), regla 5: el detalle de una carta no poseída oculta sus estadísticas). `owned`/`copies` reflejan siempre al usuario que hace la petición: `copies: 0` cuando no se posee, y ambos campos son "neutros" (`owned: false, copies: 0`) en una petición anónima.
 - `isFavorited`: sólo presente con un token válido (mismo patrón que en 9.3) — ausente en una petición anónima. Sólo aparece en el detalle (13.3/13.5), no en los listados (13.2/13.4).
 
 ### 13.2 Explorador de Cartas
@@ -775,7 +775,7 @@ Cada usuario tiene un inventario de paquetes (0 a 10) que se regenera solo, a ra
 
 ### 14.2 Abrir un Paquete
 - **Ruta:** `POST /api/v1/users/me/packages/open` — **Acceso:** Protegido.
-- Operación atómica (RG 7.6, CU17): consume exactamente un paquete y otorga 5 cartas en una única transacción — si algo falla, ni el paquete se descuenta ni se otorga ninguna carta.
+- Operación atómica ([requerimientos §5.6](/requerimientos/reglas-06-paquetes.md), CU17): consume exactamente un paquete y otorga 5 cartas en una única transacción — si algo falla, ni el paquete se descuenta ni se otorga ninguna carta.
 - Protegida contra doble consumo concurrente (CU17-A2): ante dos peticiones simultáneas del mismo usuario, sólo prosperan tantas como paquetes disponibles haya.
 - **Respuesta de éxito (200 OK):**
 ```json
@@ -794,7 +794,7 @@ Cada usuario tiene un inventario de paquetes (0 a 10) que se regenera solo, a ra
 
 ## 15. Contrato de Endpoints de Batalla (Fase 7)
 
-RG 7.8 / CU18: la batalla es enteramente local en el cliente. El backend sólo resuelve la selección del rival; no existen endpoints para iniciar partidas, guardar resultados o consultar historial.
+[Requerimientos §5.8](/requerimientos/reglas-08-batallas.md) / CU18: la batalla es enteramente local en el cliente. El backend sólo resuelve la selección del rival; no existen endpoints para iniciar partidas, guardar resultados o consultar historial.
 
 ### 15.1 Obtener Rival
 - **Ruta:** `GET /api/v1/battle/opponent?cardId=<id>` — **Acceso:** Protegido.
@@ -991,6 +991,6 @@ Un admin **no** puede otorgar/revocar el rol `admin` mismo por esta vía — só
 
 ### 18.9 Disparo manual del ciclo de conversión (Admin)
 - **Ruta:** `POST /api/v1/conversion/run` — **Acceso:** Protegido, rol **`admin`**.
-- Ejecuta inmediatamente el mismo ciclo que corre el cron diario (RG 16.5): convierte en carta toda obra cuyo período de calificación ya terminó. Pensado para demos, para no tener que esperar al reloj real.
+- Ejecuta inmediatamente el mismo ciclo que corre el cron diario ([diseño de arquitectura, frecuencia del scheduler](/diseno-arquitectura/conversion.md#frecuencia-del-scheduler)): convierte en carta toda obra cuyo período de calificación ya terminó. Pensado para demos, para no tener que esperar al reloj real.
 - **Respuesta de éxito (200):** `{ "processed": number, "converted": number, "failed": number, "skipped": number }`.
 - **Errores:** `FORBIDDEN` (403, no es admin).

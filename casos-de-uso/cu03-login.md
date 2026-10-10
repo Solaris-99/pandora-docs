@@ -3,6 +3,7 @@
 **Actor principal:** Invitado
 **Precondición:** Cuenta registrada.
 **Postcondición:** Sesión autenticada.
+**Caso de prueba:** [CP02 — Login](/casos-de-prueba/cp02-login.md)
 
 ## Flujo principal
 

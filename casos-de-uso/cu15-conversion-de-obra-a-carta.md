@@ -2,6 +2,7 @@
 
 **Actor técnico:** CRON / sistema
 **Precondición:** Obra elegible, periodo de una semana terminado y `conversion_request` habilitado.
+**Caso de prueba:** [CP06 — Conversión de obra a carta](/casos-de-prueba/cp06-conversion-de-obra-a-carta.md)
 
 ## Flujo principal
 

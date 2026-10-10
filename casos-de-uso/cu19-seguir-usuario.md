@@ -1,6 +1,7 @@
 # CU19 — Seguir usuario
 
 **Actor principal:** Usuario autenticado.
+**Caso de prueba:** [CP10 — Seguir usuario](/casos-de-prueba/cp10-seguir-usuario.md)
 
 ## Flujo principal
 

@@ -1,6 +1,7 @@
 # CU22 — Denunciar comentario
 
 **Actor principal:** Usuario autenticado.
+**Caso de prueba:** [CP13 — Denunciar comentario](/casos-de-prueba/cp13-denunciar-comentario.md)
 
 ## Flujo principal
 

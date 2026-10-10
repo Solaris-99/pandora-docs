@@ -3,6 +3,7 @@
 **Actor principal:** Usuario autenticado, con contraseña local configurada.
 **Precondición:** El usuario tiene sesión autenticada.
 **Postcondición:** La contraseña de la cuenta queda actualizada.
+**Caso de prueba:** todavía sin caso de prueba dedicado.
 
 ## Flujo principal
 

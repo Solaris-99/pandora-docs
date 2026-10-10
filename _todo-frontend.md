@@ -36,8 +36,8 @@ El atajo dedicado `GET /artworks/qualification` fue eliminado (tanto de la API c
 
 ## Verificación de email y reset de contraseña desde la app (detectado desde mobile)
 
-Los correos de verificación y recuperación (`interfaces-entre-sistemas.md` §5.1) enlazan a `{FRONTEND_URL}/verify-email?token=...` y `{FRONTEND_URL}/reset-password?token=...`. Mobile los abre en el navegador (el portal web hace el `POST` correspondiente), sin cambios de contrato. Si se quisiera abrirlos directo en la app habría que, del lado web/backend: publicar `/.well-known/assetlinks.json` en el dominio del frontend (con el SHA-256 de la firma de la app) y confirmar que las rutas `/verify-email` y `/reset-password` se mantengan estables. Opcional; no bloquea nada.
+Los correos de verificación y recuperación ([interfaces entre sistemas, correos enviados](/interfaces-entre-sistemas/resend.md#correos-enviados)) enlazan a `{FRONTEND_URL}/verify-email?token=...` y `{FRONTEND_URL}/reset-password?token=...`. Mobile los abre en el navegador (el portal web hace el `POST` correspondiente), sin cambios de contrato. Si se quisiera abrirlos directo en la app habría que, del lado web/backend: publicar `/.well-known/assetlinks.json` en el dominio del frontend (con el SHA-256 de la firma de la app) y confirmar que las rutas `/verify-email` y `/reset-password` se mantengan estables. Opcional; no bloquea nada.
 
 ## ~~Reglas de la batalla local (a alinear entre web y mobile)~~ — resuelto
 
-La fórmula quedó acordada y documentada en `battle-formula.md` (2026-10-07); `requerimientos.md` §5.8 sigue definiendo que la simulación es local al cliente. Ambos clientes la implementan tal cual.
+La fórmula quedó acordada y documentada en `battle-formula.md` (2026-10-07); [requerimientos §5.8](/requerimientos/reglas-08-batallas.md) sigue definiendo que la simulación es local al cliente. Ambos clientes la implementan tal cual.
