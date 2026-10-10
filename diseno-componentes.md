@@ -44,7 +44,7 @@ Este documento cubre los componentes de la capa API: endpoints REST propuestos, 
 
 # 1. Endpoints REST propuestos
 
-Los endpoints siguientes son una propuesta derivada de los requerimientos y casos de uso (ver [requerimientos](/requerimientos.md), [casos de uso](/casos-de-uso.md)). Los nombres pueden adaptarse, pero se recomienda mantener una convención uniforme.
+Los endpoints siguientes son una propuesta derivada de los requerimientos y casos de uso (ver [requerimientos](/requerimientos.md), [casos de uso](/casos-de-uso/README.md)). Los nombres pueden adaptarse, pero se recomienda mantener una convención uniforme.
 
 ## 1.1 Auth
 

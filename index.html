@@ -43,16 +43,67 @@
 
     <!-- Configuration -->
     <script>
-      window.$docsify = {
+      // Merge instead of reassigning, so plugins registered above (mermaid zoom) are kept.
+      window.$docsify = Object.assign(window.$docsify || {}, {
         loadSidebar: true,
         subMaxLevel: 2,
         relativePath: true,
         auto2top: true,
         autoHeader: true,
         search: {
-          placeholder: "Buscar..."
+          placeholder: "Buscar...",
+          // Explicit list: with nested _sidebar.md files, "auto" only indexes the sidebar currently loaded.
+          paths: [
+            "/",
+            "/requerimientos",
+            "/trazabilidad",
+            "/clases-dominio",
+            "/modelo-tablas",
+            "/clases-diseno",
+            "/diseno-componentes",
+            "/diseno-arquitectura",
+            "/interfaces-entre-sistemas",
+            "/casos-de-prueba",
+            "/DESIGN",
+            "/battle-formula",
+            "/casos-de-uso/",
+            "/casos-de-uso/actores",
+            "/casos-de-uso/flujo-moderacion",
+            ...[
+              "cu01-registrarse",
+              "cu02-verificar-email",
+              "cu03-login",
+              "cu04-recuperar-contrasena-olvidada",
+              "cu05-limpieza-de-cuentas-no-verificadas",
+              "cu06-ver-editar-perfil",
+              "cu07-cambiar-email",
+              "cu08-cambiar-contrasena",
+              "cu09-subir-obra",
+              "cu10-editar-obra",
+              "cu11-eliminar-obra",
+              "cu12-explorar-obras",
+              "cu13-comentar-obra",
+              "cu14-calificar-obra-mediante-q2q",
+              "cu15-conversion-de-obra-a-carta",
+              "cu16-explorar-coleccion-cartas",
+              "cu17-abrir-paquete",
+              "cu18-jugar-autobattler",
+              "cu19-seguir-usuario",
+              "cu20-destacar-obra-o-carta",
+              "cu21-denunciar-obra",
+              "cu22-denunciar-comentario",
+              "cu23-administrar-denuncias",
+              "cu24-notificaciones",
+              "cu25-gestionar-rol-de-moderador",
+              "cu26-reabrir-un-reporte-resuelto",
+              "cu27-apelar-una-sancion",
+              "cu28-revisar-una-apelacion",
+              "cu29-cargar-carta-directamente",
+              "cu30-disparar-el-ciclo-de-conversion-manualmente"
+            ].map((p) => "/casos-de-uso/" + p)
+          ]
         }
-      };
+      });
     </script>
 
     <!-- Docsify.js -->

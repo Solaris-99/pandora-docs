@@ -1,6 +1,6 @@
 # Pandora — Documento de Trazabilidad
 
-Este documento conecta [requerimientos](/requerimientos.md) con los [casos de uso](/casos-de-uso.md) que los realizan y los [componentes](/diseno-componentes.md) concretos que los implementan, y agrega una traza temporal de cuándo se construyó cada capacidad.
+Este documento conecta [requerimientos](/requerimientos.md) con los [casos de uso](/casos-de-uso/README.md) que los realizan y los [componentes](/diseno-componentes.md) concretos que los implementan, y agrega una traza temporal de cuándo se construyó cada capacidad.
 
 ---
 

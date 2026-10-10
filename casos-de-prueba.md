@@ -1,8 +1,8 @@
 # Pandora — Casos de Prueba
 
-Este documento cubre la estrategia de pruebas y un caso de prueba por [caso de uso](/casos-de-uso.md), derivado de su flujo principal, su postcondición y sus flujos alternativos. La cobertura automatizada real (Jest) vive en el código fuente, bajo `src/**/*.spec.ts`, a la fecha de este documento, 50 suites con más de 330 pruebas unitarias.
+Este documento cubre la estrategia de pruebas y un caso de prueba por [caso de uso](/casos-de-uso/README.md), derivado de su flujo principal, su postcondición y sus flujos alternativos. La cobertura automatizada real (Jest) vive en el código fuente, bajo `src/**/*.spec.ts`, a la fecha de este documento, 50 suites con más de 330 pruebas unitarias.
 
-> CP01–CP23 cubren los casos de uso originales (ahora renumerados, ver [casos de uso](/casos-de-uso.md)). Los casos de uso agregados después de esa primera versión (CU02, CU05, CU07, CU08, CU10, CU11, CU13) todavía no tienen un caso de prueba dedicado en este documento.
+> CP01–CP23 cubren los casos de uso originales (ahora renumerados, ver [casos de uso](/casos-de-uso/README.md)). Los casos de uso agregados después de esa primera versión (CU02, CU05, CU07, CU08, CU10, CU11, CU13) todavía no tienen un caso de prueba dedicado en este documento.
 
 ---
 

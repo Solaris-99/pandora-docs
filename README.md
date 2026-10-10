@@ -9,7 +9,7 @@ Pandora es una plataforma para compartir arte y darle visibilidad a las obras de
 ### Documentación
 
 - [Requerimientos](/requerimientos.md)
-- [Casos de uso](/casos-de-uso.md)
+- [Casos de uso](/casos-de-uso/README.md)
 - [Documento de Trazabilidad](/trazabilidad.md)
 - [Clases de Dominio](/clases-dominio.md)
 - [Modelo de Tablas](/modelo-tablas.md)
