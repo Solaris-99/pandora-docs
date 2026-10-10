@@ -13,7 +13,8 @@ Puede:
 - consultar detalles públicos de obras;
 - explorar cartas y perfiles públicos, según la información disponible;
 - registrarse;
-- iniciar sesión.
+- iniciar sesión;
+- recuperar una contraseña olvidada.
 
 No puede:
 
@@ -32,8 +33,8 @@ Un mismo usuario puede comportarse funcionalmente como artista y coleccionista; 
 
 Puede:
 
-- administrar su perfil;
-- publicar obras;
+- administrar su perfil, incluyendo cambiar su email o su contraseña;
+- publicar, editar o eliminar sus propias obras mientras estén en período de calificación;
 - comentar;
 - calificar obras en período activo;
 - denunciar obras o comentarios;
@@ -72,33 +73,40 @@ El rol `admin` no se otorga ni se revoca a través de la aplicación — es un r
 
 # 2. Catálogo de casos de uso
 
-Los casos de uso cubren subir obra, calificar, explorar, colección, moderación, seguimiento, batalla, paquetes, destacados, reportes, notificaciones, registro, login, recuperación de contraseña y las herramientas de administración/apelaciones.
+Los casos de uso cubren registro, verificación y recuperación de cuenta, perfil, obras (subir/editar/eliminar/comentar/calificar), conversión a carta, colección, moderación, seguimiento, batalla, paquetes, destacados, reportes, notificaciones y las herramientas de administración/apelaciones.
 
 | ID | Nombre | Actor principal |
 |---|---|---|
 | CU01 | Registrarse | Invitado |
-| CU02 | Login | Invitado |
-| CU03 | Subir obra | Usuario autenticado |
-| CU04 | Explorar obras | Invitado o usuario |
-| CU05 | Calificar obra mediante Q2Q | Usuario autenticado |
-| CU06 | Conversión de obra a carta | CRON / sistema |
-| CU07 | Explorar colección/cartas | Invitado o usuario autenticado |
-| CU08 | Abrir paquete | Usuario autenticado |
-| CU09 | Jugar autobattler | Usuario autenticado |
-| CU10 | Seguir usuario | Usuario autenticado |
-| CU11 | Destacar obra o carta | Usuario autenticado |
-| CU12 | Denunciar obra | Usuario autenticado |
-| CU13 | Denunciar comentario | Usuario autenticado |
-| CU14 | Administrar denuncias | Moderador |
-| CU15 | Notificaciones | Usuario autenticado |
-| CU16 | Ver/editar perfil | Usuario autenticado |
-| CU17 | Gestionar rol de moderador | Admin |
-| CU18 | Reabrir un reporte resuelto | Admin |
-| CU19 | Apelar una sanción | Usuario autenticado afectado |
-| CU20 | Revisar una apelación | Moderador o Admin |
-| CU21 | Cargar carta directamente (Admin) | Admin |
-| CU22 | Disparar el ciclo de conversión manualmente (Admin) | Admin |
-| CU23 | Recuperar contraseña olvidada | Invitado |
+| CU02 | Verificar email | Invitado / cuenta pendiente de verificación |
+| CU03 | Login | Invitado |
+| CU04 | Recuperar contraseña olvidada | Invitado |
+| CU05 | Limpieza de cuentas no verificadas | CRON / sistema |
+| CU06 | Ver/editar perfil | Usuario autenticado |
+| CU07 | Cambiar email | Usuario autenticado |
+| CU08 | Cambiar contraseña | Usuario autenticado |
+| CU09 | Subir obra | Usuario autenticado |
+| CU10 | Editar obra | Usuario autenticado |
+| CU11 | Eliminar obra | Usuario autenticado |
+| CU12 | Explorar obras | Invitado o usuario |
+| CU13 | Comentar obra | Usuario autenticado |
+| CU14 | Calificar obra mediante Q2Q | Usuario autenticado |
+| CU15 | Conversión de obra a carta | CRON / sistema |
+| CU16 | Explorar colección/cartas | Invitado o usuario autenticado |
+| CU17 | Abrir paquete | Usuario autenticado |
+| CU18 | Jugar autobattler | Usuario autenticado |
+| CU19 | Seguir usuario | Usuario autenticado |
+| CU20 | Destacar obra o carta | Usuario autenticado |
+| CU21 | Denunciar obra | Usuario autenticado |
+| CU22 | Denunciar comentario | Usuario autenticado |
+| CU23 | Administrar denuncias | Moderador |
+| CU24 | Notificaciones | Usuario autenticado |
+| CU25 | Gestionar rol de moderador | Admin |
+| CU26 | Reabrir un reporte resuelto | Admin |
+| CU27 | Apelar una sanción | Usuario autenticado afectado |
+| CU28 | Revisar una apelación | Moderador o Admin |
+| CU29 | Cargar carta directamente (Admin) | Admin |
+| CU30 | Disparar el ciclo de conversión manualmente (Admin) | Admin |
 
 ---
 
@@ -106,7 +114,7 @@ Los casos de uso cubren subir obra, calificar, explorar, colección, moderación
 
 **Actor principal:** Invitado
 **Precondición:** No existe una sesión autenticada.
-**Postcondición:** Cuenta creada. Si es registro local, queda pendiente de verificación o en estado restringido hasta confirmar email.
+**Postcondición:** Cuenta creada en estado pendiente de verificación (ver CU02).
 
 ### Flujo principal
 
@@ -114,13 +122,7 @@ Los casos de uso cubren subir obra, calificar, explorar, colección, moderación
 2. Introduce email, username y contraseña.
 3. El backend valida formato, longitud y unicidad.
 4. Se hashea la contraseña.
-5. Se crea la cuenta.
-6. Se genera un token/challenge de verificación.
-7. Se envía el correo de verificación.
-8. El usuario abre el enlace o introduce el código recibido.
-9. El backend valida el challenge.
-10. La cuenta queda verificada.
-11. Se informa que el registro fue exitoso.
+5. Se crea la cuenta en estado pendiente de verificación.
 
 ### Flujos alternativos / excepciones
 
@@ -128,17 +130,42 @@ Los casos de uso cubren subir obra, calificar, explorar, colección, moderación
 - **A2:** El username ya existe. Se rechaza el registro.
 - **A3:** Email inválido. Se devuelve error de validación.
 - **A4:** Contraseña no válida. Se devuelve error de validación.
-- **A5:** El envío del correo falla. La cuenta queda pendiente y se permite reintentar el envío.
-- **A6:** Challenge expirado. Se solicita uno nuevo.
-- **A7:** Challenge inválido. Se rechaza la confirmación.
 
 ### Notas de implementación
 
-Los tokens de verificación deben expirar y ser de un solo uso.
+Crear la cuenta dispara inmediatamente el flujo de verificación de email (CU02). Una cuenta que nunca se verifica es eliminada automáticamente a las 72 horas (CU05).
 
 ---
 
-## CU02 — Login
+## CU02 — Verificar email
+
+**Actor principal:** Invitado (titular de una cuenta recién creada o de una cuenta pendiente que solicita un nuevo envío)
+**Precondición:** Existe una cuenta en estado pendiente de verificación.
+**Postcondición:** La cuenta queda verificada (`email_verified = true`) y activa.
+
+### Flujo principal
+
+1. Se genera un token/challenge de verificación (al registrarse en CU01, o al solicitar un reenvío).
+2. Se envía el correo de verificación.
+3. El usuario abre el enlace o introduce el código recibido.
+4. El backend valida el challenge.
+5. La cuenta queda verificada y activa.
+6. Se informa que la verificación fue exitosa.
+
+### Flujos alternativos / excepciones
+
+- **A1:** El envío del correo falla. La cuenta queda pendiente y se permite reintentar el envío.
+- **A2:** Challenge expirado. Se solicita uno nuevo.
+- **A3:** Challenge inválido. Se rechaza la confirmación.
+- **A4:** La cuenta ya estaba verificada. Operación idempotente, se informa que no había nada pendiente.
+
+### Notas de implementación
+
+Los tokens de verificación deben expirar y ser de un solo uso. Ver CU05 para la limpieza automática de las cuentas que nunca completan este paso.
+
+---
+
+## CU03 — Login
 
 **Actor principal:** Invitado
 **Precondición:** Cuenta registrada.
@@ -165,7 +192,145 @@ Los tokens de verificación deben expirar y ser de un solo uso.
 
 ---
 
-## CU03 — Subir obra
+## CU04 — Recuperar contraseña olvidada
+
+**Actor principal:** Invitado (usuario que no puede iniciar sesión)
+**Precondición:** Existe una cuenta con esa dirección de email; si la cuenta tiene contraseña local configurada, la solicitud desencadena el envío del enlace.
+**Postcondición:** El usuario cuenta con una nueva contraseña y puede iniciar sesión con ella; cualquier sesión abierta con la contraseña anterior quedó cerrada.
+
+### Flujo principal
+
+1. El usuario abre "¿Olvidaste tu contraseña?" desde la pantalla de login.
+2. Introduce su email.
+3. El backend responde con un mensaje neutro, sin revelar si la cuenta existe.
+4. Si la cuenta existe y tiene contraseña local, se genera un token de un solo uso y se envía por email.
+5. El usuario abre el enlace recibido.
+6. Introduce una nueva contraseña.
+7. El backend valida el token y la actualiza.
+8. Se revocan todas las sesiones (`refresh_tokens`) activas de esa cuenta.
+9. El usuario inicia sesión nuevamente con la contraseña nueva.
+
+### Alternativo
+
+- **A1:** El email no corresponde a ninguna cuenta -> mismo mensaje neutro que en el flujo exitoso (anti-enumeración), no se envía nada.
+- **A2:** La cuenta existe pero es exclusivamente de Google (sin contraseña local) -> mismo mensaje neutro, no se envía nada: no hay contraseña que recuperar.
+- **A3:** Token inválido, inexistente o ya utilizado -> 400.
+- **A4:** Token expirado (más de 1 hora) -> 400, el usuario debe solicitar uno nuevo.
+- **A5:** Nueva contraseña fuera de la política de longitud -> 400.
+
+### Observaciones
+
+No inicia sesión automáticamente al restablecer la contraseña (a diferencia de CU02, que sí deja la cuenta verificada y lista para loguearse apenas se confirma el challenge) — es una operación más sensible y se prefiere que el usuario reingrese explícitamente con la contraseña nueva.
+
+---
+
+## CU05 — Limpieza de cuentas no verificadas
+
+**Actor técnico:** CRON / sistema
+**Precondición:** Existen cuentas en estado pendiente de verificación (`email_verified = false`) con más de 72 horas desde su creación.
+**Postcondición:** Esas cuentas quedan eliminadas.
+
+### Flujo principal
+
+1. Un job corre periódicamente, todos los días a las 00:00.
+2. Busca cuentas con `email_verified = false` y `created_at` anterior a `now() - 72h`.
+3. Elimina cada cuenta encontrada.
+4. Registra el resultado del ciclo (cantidad eliminada).
+
+### Alternativo
+
+- **A1:** No hay cuentas elegibles -> no se elimina nada, no es un error.
+- **A2:** Falla la eliminación de una cuenta puntual -> se registra el error y se continúa con el resto, sin abortar el ciclo completo.
+
+### Observaciones
+
+Esta no es una eliminación lógica: la cuenta y sus datos asociados se eliminan físicamente. No tiene sentido conservar un registro de una cuenta que nunca llegó a confirmarse. Relacionado con CU01 (Registrarse) y CU02 (Verificar email).
+
+---
+
+## CU06 — Ver/editar perfil
+
+**Actor principal:** Usuario autenticado (consulta pública disponible para cualquier actor).
+
+### Flujo principal
+
+1. El usuario abre un perfil.
+2. El sistema devuelve información pública.
+3. Si el perfil es propio, se habilita edición.
+4. Se guardan los cambios válidos.
+
+### Alternativo
+
+- **A1:** Username elegido por otro usuario -> conflicto de unicidad.
+- **A2:** Datos fuera de rango -> 400.
+- **A3:** Usuario no autenticado intentando editar -> 401.
+
+### Observaciones
+
+El cambio de email y el cambio de contraseña tienen flujos propios (CU07 y CU08, respectivamente) por los pasos de confirmación adicionales que requieren.
+
+---
+
+## CU07 — Cambiar email
+
+**Actor principal:** Usuario autenticado, con email verificado.
+**Precondición:** El usuario tiene sesión autenticada.
+**Postcondición:** El email de la cuenta queda actualizado al nuevo valor, una vez verificado.
+
+### Flujo principal
+
+1. El usuario entra a la configuración de su perfil.
+2. Elige "Cambiar email".
+3. Introduce un nuevo email válido.
+4. El sistema muestra un popup de confirmación.
+5. El usuario confirma.
+6. Se envía un correo de verificación a la nueva dirección (mismo mecanismo que CU02).
+7. El email de la cuenta se actualiza una vez que la nueva dirección es verificada.
+
+### Alternativo
+
+- **A1:** El nuevo email coincide con el actual -> rechazar o no-op.
+- **A2:** El nuevo email ya está en uso por otra cuenta -> rechazar (unicidad).
+- **A3:** Email inválido -> 400.
+- **A4:** El usuario cancela el popup de confirmación -> no se envía nada, no hay cambios.
+- **A5:** El usuario no verifica la nueva dirección -> el email de la cuenta permanece siendo el anterior hasta que se verifique o se solicite un nuevo envío.
+
+### Observaciones
+
+Mientras la verificación esté pendiente, el email anterior sigue siendo el activo (login, notificaciones): el cambio sólo se aplica al confirmar, igual que en CU02.
+
+---
+
+## CU08 — Cambiar contraseña
+
+**Actor principal:** Usuario autenticado, con contraseña local configurada.
+**Precondición:** El usuario tiene sesión autenticada.
+**Postcondición:** La contraseña de la cuenta queda actualizada.
+
+### Flujo principal
+
+1. El usuario entra a la configuración de su perfil.
+2. Elige "Cambiar contraseña".
+3. Introduce su contraseña actual.
+4. Introduce la nueva contraseña en dos campos: "nueva contraseña" y "repetir nueva contraseña".
+5. El backend verifica que la contraseña actual sea correcta.
+6. Valida que los dos campos de la contraseña nueva coincidan y cumplan la política de contraseñas.
+7. Hashea y almacena la nueva contraseña.
+
+### Alternativo
+
+- **A1:** La contraseña actual es incorrecta -> rechazar.
+- **A2:** La nueva contraseña y su repetición no coinciden -> 400.
+- **A3:** La nueva contraseña está fuera de la política de longitud -> 400.
+- **A4:** La cuenta no tiene contraseña local (sólo Google) -> este caso de uso no aplica.
+
+### Observaciones
+
+Por consistencia con CU04 (recuperación de contraseña), se recomienda revocar las demás sesiones (`refresh_tokens`) activas al confirmar el cambio.
+
+---
+
+## CU09 — Subir obra
 
 **Actor principal:** Usuario autenticado
 **Precondición:** Usuario autenticado y autorizado.
@@ -197,7 +362,62 @@ Los tokens de verificación deben expirar y ser de un solo uso.
 
 ---
 
-## CU04 — Explorar obras
+## CU10 — Editar obra
+
+**Actor principal:** Usuario autenticado
+**Precondición:** El usuario es autor de la obra; la obra está dentro de su período de calificación (todavía no fue convertida en carta).
+**Postcondición:** La obra queda actualizada con los nuevos datos.
+
+### Flujo principal
+
+1. El usuario entra a una obra propia.
+2. Pulsa "Editar".
+3. Se muestra el formulario de edición, precargado con los datos actuales.
+4. Completa los campos (los mismos que al subir obra: título, imagen, lore/descripción, tags, permiso de conversión).
+5. Confirma los cambios.
+6. El backend valida campos y archivo, igual que en CU09.
+7. Se actualiza la obra.
+
+### Alternativo
+
+- **A1:** La obra ya fue convertida (su período de calificación terminó) -> rechazar, no se puede editar una obra que ya es carta.
+- **A2:** El usuario no es el autor -> 403.
+- **A3:** Archivo o campos inválidos -> mismo tratamiento que CU09 (A1/A2/A3).
+- **A4:** Obra inexistente o eliminada -> 404.
+
+### Observaciones
+
+Comparte las reglas de validación de campos y archivo con CU09.
+
+---
+
+## CU11 — Eliminar obra
+
+**Actor principal:** Usuario autenticado
+**Precondición:** El usuario es autor de la obra; la obra está dentro de su período de calificación (todavía no fue convertida en carta).
+**Postcondición:** La obra queda eliminada (eliminación lógica).
+
+### Flujo principal
+
+1. El usuario entra a una obra propia.
+2. Pulsa "Eliminar".
+3. Confirma la acción.
+4. El backend verifica que sea el autor y que la obra todavía esté en período de calificación.
+5. Se marca la obra como eliminada (eliminación lógica).
+
+### Alternativo
+
+- **A1:** La obra ya fue convertida -> rechazar, no se puede eliminar una obra que ya es carta.
+- **A2:** El usuario no es el autor -> 403.
+- **A3:** La obra ya estaba eliminada -> idempotente o 404, según política.
+
+### Observaciones
+
+Distinto de la eliminación por moderación (CU23): esta la ejecuta el propio autor y sólo está disponible durante el período de calificación; la de moderación la ejecuta un moderador y puede aplicarse en cualquier momento.
+
+---
+
+## CU12 — Explorar obras
 
 **Actor principal:** Invitado o usuario
 **Precondición:** Ninguna.
@@ -219,7 +439,34 @@ Los tokens de verificación deben expirar y ser de un solo uso.
 
 ---
 
-## CU05 — Calificar obra mediante Q2Q
+## CU13 — Comentar obra
+
+**Actor principal:** Usuario autenticado
+**Precondición:** La obra existe y no fue eliminada.
+**Postcondición:** El comentario queda registrado y visible en la obra.
+
+### Flujo principal
+
+1. El usuario abre el detalle de una obra.
+2. Escribe un comentario.
+3. Lo envía.
+4. El backend valida y sanitiza el contenido.
+5. Se registra el comentario.
+6. Se genera una notificación al autor de la obra, si corresponde.
+
+### Alternativo
+
+- **A1:** Comentario vacío (después de trim) o excede longitud -> 400.
+- **A2:** Obra inexistente o eliminada -> 404.
+- **A3:** Usuario baneado -> 403.
+
+### Observaciones
+
+Disponible independientemente de si el período de calificación de la obra (CU14) sigue activo o ya terminó.
+
+---
+
+## CU14 — Calificar obra mediante Q2Q
 
 **Actor principal:** Usuario autenticado
 **Precondición:** La obra está dentro de su semana de calificación.
@@ -230,22 +477,25 @@ Los tokens de verificación deben expirar y ser de un solo uso.
 2. El backend informa si la calificación sigue habilitada.
 3. El usuario selecciona entre 1 y 5 estrellas.
 4. Selecciona una emoción permitida.
-5. Opcionalmente publica un comentario.
-6. Se registra o actualiza la valoración.
-7. Se confirma la acción.
+5. Se registra o actualiza la valoración.
+6. Se confirma la acción.
 
 ### Alternativo
 
-- **A1:** Período expirado -> no se acepta valoración; comentarios siguen disponibles.
+- **A1:** Período expirado -> no se acepta valoración; comentarios (CU13) siguen disponibles.
 - **A2:** Usuario no autenticado -> se requiere login.
 - **A3:** Emoción inválida -> 400.
 - **A4:** Estrellas fuera de rango -> 400.
 - **A5:** Usuario intenta duplicar valoración -> actualizar existente o rechazar según la política elegida. Se recomienda actualización.
 - **A6:** Obra eliminada/bloqueada -> no permitir valoración.
 
+### Observaciones
+
+Publicar un comentario sobre la obra es un caso de uso independiente (CU13); ya no es un paso opcional de este flujo.
+
 ---
 
-## CU06 — Conversión de obra a carta
+## CU15 — Conversión de obra a carta
 
 **Actor técnico:** CRON / sistema
 **Precondición:** Obra elegible, periodo de una semana terminado y `conversion_request` habilitado.
@@ -272,11 +522,11 @@ Los tokens de verificación deben expirar y ser de un solo uso.
 
 ### Observación
 
-NestJS cuenta con un Scheduler, utilizar esto antes que el propio cron o scheduler. Ver también CU22, que dispara esta misma rutina bajo demanda.
+NestJS cuenta con un Scheduler, utilizar esto antes que el propio cron o scheduler. Ver también CU30, que dispara esta misma rutina bajo demanda.
 
 ---
 
-## CU07 — Explorar colección/cartas
+## CU16 — Explorar colección/cartas
 
 **Actor principal:** Invitado o usuario autenticado.
 
@@ -298,7 +548,7 @@ NestJS cuenta con un Scheduler, utilizar esto antes que el propio cron o schedul
 
 ---
 
-## CU08 — Abrir paquete
+## CU17 — Abrir paquete
 
 **Actor principal:** Usuario autenticado
 **Precondición:** El usuario tiene al menos un paquete disponible.
@@ -328,7 +578,7 @@ La regeneración de paquetes debe calcularse a partir de `last_used` y el tiempo
 
 ---
 
-## CU09 — Jugar autobattler
+## CU18 — Jugar autobattler
 
 **Actor principal:** Usuario autenticado.
 
@@ -338,7 +588,7 @@ La regeneración de paquetes debe calcularse a partir de `last_used` y el tiempo
 2. Selecciona una carta que posee.
 3. El cliente solicita una carta rival.
 4. El backend selecciona una carta rival válida de forma aleatoria.
-5. Devuelve los datos necesarios para la simulación.
+5. Devuelve ambas cartas, propia y rival, con estadísticas completas para la simulación.
 6. El cliente ejecuta la batalla.
 7. El cliente muestra turnos, daño, vida restante y resultado.
 8. La sesión termina.
@@ -355,7 +605,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
-## CU10 — Seguir usuario
+## CU19 — Seguir usuario
 
 **Actor principal:** Usuario autenticado.
 
@@ -374,7 +624,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
-## CU11 — Destacar obra o carta
+## CU20 — Destacar obra o carta
 
 **Actor principal:** Usuario autenticado.
 
@@ -394,7 +644,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
-## CU12 — Denunciar obra
+## CU21 — Denunciar obra
 
 **Actor principal:** Usuario autenticado.
 
@@ -416,7 +666,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
-## CU13 — Denunciar comentario
+## CU22 — Denunciar comentario
 
 **Actor principal:** Usuario autenticado.
 
@@ -437,7 +687,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
-## CU14 — Administrar denuncias
+## CU23 — Administrar denuncias
 
 **Actor principal:** Moderador.
 
@@ -468,9 +718,13 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 - **A3:** Moderador sin permisos -> 403.
 - **A4:** Dos moderadores resuelven simultáneamente -> utilizar control de concurrencia/estado para evitar doble aplicación.
 
+### Observaciones
+
+La eliminación de obra aquí es una acción de moderación, distinta de la que ejecuta el propio autor en CU11: puede aplicarse en cualquier momento, no sólo durante el período de calificación.
+
 ---
 
-## CU15 — Notificaciones
+## CU24 — Notificaciones
 
 **Actor principal:** Usuario autenticado.
 
@@ -496,26 +750,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
-## CU16 — Ver/editar perfil
-
-**Actor principal:** Usuario autenticado (consulta pública disponible para cualquier actor).
-
-### Flujo principal
-
-1. El usuario abre un perfil.
-2. El sistema devuelve información pública.
-3. Si el perfil es propio, se habilita edición.
-4. Se guardan los cambios válidos.
-
-### Alternativo
-
-- **A1:** Username elegido por otro usuario -> conflicto de unicidad.
-- **A2:** Datos fuera de rango -> 400.
-- **A3:** Usuario no autenticado intentando editar -> 401.
-
----
-
-## CU17 — Gestionar rol de moderador
+## CU25 — Gestionar rol de moderador
 
 **Actor principal:** Admin
 **Precondición:** El actor posee el rol `admin`.
@@ -538,7 +773,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
-## CU18 — Reabrir un reporte resuelto
+## CU26 — Reabrir un reporte resuelto
 
 **Actor principal:** Admin
 **Precondición:** Existe un reporte con `status = resolved` y una `resolution` punitiva (`content_removed`, `comment_removed` o `user_banned`).
@@ -562,7 +797,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
-## CU19 — Apelar una sanción
+## CU27 — Apelar una sanción
 
 **Actor principal:** Usuario autenticado afectado (autor de la obra/comentario eliminado, o usuario baneado apelando su propia cuenta)
 **Precondición:** Existe un reporte resuelto con sanción punitiva sobre su obra, comentario o cuenta, y esa sanción todavía no fue apelada.
@@ -586,18 +821,18 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ---
 
-## CU20 — Revisar una apelación
+## CU28 — Revisar una apelación
 
 **Actor principal:** Moderador o Admin
 **Precondición:** Existe una apelación en estado `pending`; el revisor no resolvió el reporte original que la apelación referencia, salvo que sea el único miembro de moderación (`moderator` + `admin`) en el sistema.
-**Postcondición:** La apelación queda `approved` o `rejected`; si fue aprobada, la sanción original queda revertida igual que en CU18.
+**Postcondición:** La apelación queda `approved` o `rejected`; si fue aprobada, la sanción original queda revertida igual que en CU26.
 
 ### Flujo principal
 
 1. El moderador abre el listado de apelaciones pendientes (el sistema excluye las que él mismo originó al resolver el reporte, salvo la excepción de moderador único).
 2. Abre el detalle de una apelación: motivo, texto opcional, y el reporte/sanción que referencia.
 3. Decide aprobar o rechazar.
-4. Si aprueba: el sistema revierte la sanción original (mismo mecanismo que CU18) y notifica al afectado.
+4. Si aprueba: el sistema revierte la sanción original (mismo mecanismo que CU26) y notifica al afectado.
 5. Si rechaza: no se modifica el contenido ni el reporte.
 6. En ambos casos se notifica el resultado al apelante.
 
@@ -605,12 +840,12 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 - **A1:** El revisor resolvió el reporte original y hay más de un miembro de personal de moderación -> 403, debe revisarla otro moderador/admin.
 - **A2:** La apelación ya fue resuelta por otro moderador -> 409.
-- **A3:** La aprobación compite con una reapertura directa (CU18) del mismo reporte -> no es un error para la apelación: se considera igualmente aprobada, ya que el resultado deseado ya ocurrió.
+- **A3:** La aprobación compite con una reapertura directa (CU26) del mismo reporte -> no es un error para la apelación: se considera igualmente aprobada, ya que el resultado deseado ya ocurrió.
 - **A4:** Actor sin rol `moderator`/`admin` -> 403.
 
 ---
 
-## CU21 — Cargar carta directamente (Admin)
+## CU29 — Cargar carta directamente (Admin)
 
 **Actor principal:** Admin
 **Precondición:** El actor posee el rol `admin`.
@@ -629,7 +864,7 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ### Alternativo
 
-- **A1:** Archivo inválido o ausente -> mismo tratamiento que CU03 (A1/A2).
+- **A1:** Archivo inválido o ausente -> mismo tratamiento que CU09 (A1/A2).
 - **A2:** Título vacío o excede longitud -> rechazar.
 - **A3:** Rareza inválida -> 400.
 - **A4:** Estadística negativa o no entera -> 400.
@@ -641,7 +876,7 @@ No genera notificación a seguidores del admin: no es un upload orgánico. El ad
 
 ---
 
-## CU22 — Disparar el ciclo de conversión manualmente (Admin)
+## CU30 — Disparar el ciclo de conversión manualmente (Admin)
 
 **Actor principal:** Admin
 **Precondición:** El actor posee el rol `admin`.
@@ -650,7 +885,7 @@ No genera notificación a seguidores del admin: no es un upload orgánico. El ad
 ### Flujo principal
 
 1. El admin dispara la ejecución manual (pensado para demos, sin esperar al horario del CRON).
-2. El backend ejecuta exactamente la misma rutina que usa el scheduler (CU06): busca obras elegibles, las convierte y marca las no solicitadas como `skipped`.
+2. El backend ejecuta exactamente la misma rutina que usa el scheduler (CU15): busca obras elegibles, las convierte y marca las no solicitadas como `skipped`.
 3. Devuelve un resumen: cantidad procesada, convertida, fallida y marcada como `skipped`.
 
 ### Alternativo
@@ -660,57 +895,27 @@ No genera notificación a seguidores del admin: no es un upload orgánico. El ad
 
 ### Observaciones
 
-No es un proceso alternativo al CRON: es el mismo `runConversionCycle` (CU06), sólo que disparado bajo demanda en lugar de por el reloj.
-
----
-
-## CU23 — Recuperar contraseña olvidada
-
-**Actor principal:** Invitado (usuario que no puede iniciar sesión)
-**Precondición:** Existe una cuenta con esa dirección de email; si la cuenta tiene contraseña local configurada, la solicitud desencadena el envío del enlace.
-**Postcondición:** El usuario cuenta con una nueva contraseña y puede iniciar sesión con ella; cualquier sesión abierta con la contraseña anterior quedó cerrada.
-
-### Flujo principal
-
-1. El usuario abre "¿Olvidaste tu contraseña?" desde la pantalla de login.
-2. Introduce su email.
-3. El backend responde con un mensaje neutro, sin revelar si la cuenta existe.
-4. Si la cuenta existe y tiene contraseña local, se genera un token de un solo uso y se envía por email.
-5. El usuario abre el enlace recibido.
-6. Introduce una nueva contraseña.
-7. El backend valida el token y la actualiza.
-8. Se revocan todas las sesiones (`refresh_tokens`) activas de esa cuenta.
-9. El usuario inicia sesión nuevamente con la contraseña nueva.
-
-### Alternativo
-
-- **A1:** El email no corresponde a ninguna cuenta -> mismo mensaje neutro que en el flujo exitoso (anti-enumeración), no se envía nada.
-- **A2:** La cuenta existe pero es exclusivamente de Google (sin contraseña local) -> mismo mensaje neutro, no se envía nada: no hay contraseña que recuperar.
-- **A3:** Token inválido, inexistente o ya utilizado -> 400.
-- **A4:** Token expirado (más de 1 hora) -> 400, el usuario debe solicitar uno nuevo.
-- **A5:** Nueva contraseña fuera de la política de longitud -> 400.
-
-### Observaciones
-
-No inicia sesión automáticamente al restablecer la contraseña (a diferencia de CU01, que sí lo hace al verificar el email) — es una operación más sensible y se prefiere que el usuario reingrese explícitamente con la contraseña nueva.
+No es un proceso alternativo al CRON: es el mismo `runConversionCycle` (CU15), sólo que disparado bajo demanda en lugar de por el reloj.
 
 ---
 
 # 3. Diagrama
 [![Diagrama](./imgs/diag-casos-uso.jpg)](https://drive.google.com/file/d/1IKb8TWgXZewPg7JQTgwWP-iWlpQOBo1r/view?usp=sharing)
 
-# 4. Flujo consolidado de moderación (CU12–CU14, CU17–CU20)
+> El diagrama todavía refleja la numeración original de los casos de uso (CU01–CU23); la tabla del punto 2 de este documento es la referencia vigente tras la reorganización.
+
+# 4. Flujo consolidado de moderación (CU21–CU23, CU26–CU28)
 
 Los casos de uso de denuncias, moderación, reapertura y apelaciones no son independientes entre sí: comparten un único flujo de negocio con dos posibles caminos de reversión (reapertura directa por admin, o apelación revisada por otro moderador/admin).
 
 ```text
-Usuario denuncia (CU12/CU13)
+Usuario denuncia (CU21/CU22)
       |
       v
 Reporte pendiente
       |
       v
-Moderador revisa (CU14)
+Moderador revisa (CU23)
       |
       +---- descartar
       +---- advertir
@@ -730,12 +935,12 @@ Auditoría + notificación
       |
       v
 Sí:
-      +---- Admin reabre directamente (CU18) ──────┐
+      +---- Admin reabre directamente (CU26) ──────┐
       |                                             v
-      +---- Afectado apela (CU19) ──► Apelación pending
+      +---- Afectado apela (CU27) ──► Apelación pending
                     │                                │
                     v                                │
-          Otro moderador/admin revisa (CU20)         │
+          Otro moderador/admin revisa (CU28)         │
           (no quien resolvió, salvo único)            │
                     │                                │
           +---------+---------+                       │
@@ -749,4 +954,3 @@ Sí:
                         + notificar al afectado
                         + notificar al apelante
 ```
-

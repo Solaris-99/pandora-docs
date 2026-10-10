@@ -9,35 +9,35 @@ Este documento conecta [requerimientos](/requerimientos.md) con los [casos de us
 | RF | Descripción corta | Caso(s) de uso | Endpoint(s) / componente principal |
 |---|---|---|---|
 | RF01 | Registro | CU01 | `POST /auth/register` |
-| RF02 | Verificación de email | CU01 | `POST /auth/verify-email`, `POST /auth/resend-verification` |
-| RF03 | Login | CU02 | `POST /auth/login`, `GET /auth/google`, `POST /auth/google` |
-| RF03b | Recuperación de contraseña | CU23 | `POST /auth/forgot-password`, `POST /auth/reset-password` |
-| RF04 | Perfil | CU16 | `GET /users/:id`, `PATCH /users/me` |
-| RF05 | Publicación de obra | CU03 | `POST /artworks` |
-| RF06 | Gestión de obras | CU03, CU16 | `GET /users/me/artworks`, `PATCH /artworks/:id`, `DELETE /artworks/:id` |
-| RF07 | Explorador de obras | CU04 | `GET /artworks` |
-| RF08 | Detalle de obra | CU04 | `GET /artworks/:id` |
-| RF09 | Comentarios | *(sin CU dedicado — flujo cubierto dentro de CU04/CU05)* | `GET/POST /artworks/:id/comments` |
-| RF10 | Q2Q | CU05 | `PUT /artworks/:id/rating`, `GET /artworks/:id/ratings` |
-| RF11 | Conversión a carta | CU06, CU22 | `ConversionSchedulerService.runConversionCycle`, `POST /conversion/run` |
-| RF12 | Estadísticas de carta | CU06 | entidad `Card` |
-| RF13 | Colección | CU07 | `GET /cards`, `GET /users/me/cards` |
-| RF14 | Detalle de carta | CU07 | `GET /cards/:id` |
-| RF15 | Paquetes | CU08 | `POST /users/me/packages/open` |
-| RF16 | Regeneración de paquetes | CU08 | `GET /users/me/packages` |
-| RF17 | Autobattler | CU09 | `GET /battle/opponent` |
-| RF18 | Seguimiento | CU10 | `POST/DELETE /users/:id/follow` |
-| RF19 | Favoritos | CU11 | `POST/DELETE /artworks/:id/favorite`, `POST/DELETE /cards/:id/favorite` |
-| RF20 | Notificaciones | CU15 | `GET /notifications`, `PATCH /notifications/:id/read` |
-| RF21 | Reportes de obras | CU12 | `POST /artworks/:id/reports` |
-| RF22 | Reportes de comentarios | CU13 | `POST /comments/:id/reports` |
-| RF23 | Moderación | CU14 | `GET /moderation/reports`, `POST /moderation/reports/:id/resolve` |
+| RF02 | Verificación de email | CU02 | `POST /auth/verify-email`, `POST /auth/resend-verification` |
+| RF03 | Login | CU03 | `POST /auth/login`, `GET /auth/google`, `POST /auth/google` |
+| RF03b | Recuperación de contraseña | CU04 | `POST /auth/forgot-password`, `POST /auth/reset-password` |
+| RF04 | Perfil | CU06 | `GET /users/:id`, `PATCH /users/me` |
+| RF05 | Publicación de obra | CU09 | `POST /artworks` |
+| RF06 | Gestión de obras | CU09, CU10, CU11 | `GET /users/me/artworks`, `PATCH /artworks/:id`, `DELETE /artworks/:id` |
+| RF07 | Explorador de obras | CU12 | `GET /artworks` |
+| RF08 | Detalle de obra | CU12 | `GET /artworks/:id` |
+| RF09 | Comentarios | CU13 | `GET/POST /artworks/:id/comments` |
+| RF10 | Q2Q | CU14 | `PUT /artworks/:id/rating`, `GET /artworks/:id/ratings` |
+| RF11 | Conversión a carta | CU15, CU30 | `ConversionSchedulerService.runConversionCycle`, `POST /conversion/run` |
+| RF12 | Estadísticas de carta | CU15 | entidad `Card` |
+| RF13 | Colección | CU16 | `GET /cards`, `GET /users/me/cards` |
+| RF14 | Detalle de carta | CU16 | `GET /cards/:id` |
+| RF15 | Paquetes | CU17 | `POST /users/me/packages/open` |
+| RF16 | Regeneración de paquetes | CU17 | `GET /users/me/packages` |
+| RF17 | Autobattler | CU18 | `GET /battle/opponent` |
+| RF18 | Seguimiento | CU19 | `POST/DELETE /users/:id/follow` |
+| RF19 | Favoritos | CU20 | `POST/DELETE /artworks/:id/favorite`, `POST/DELETE /cards/:id/favorite` |
+| RF20 | Notificaciones | CU24 | `GET /notifications`, `PATCH /notifications/:id/read` |
+| RF21 | Reportes de obras | CU21 | `POST /artworks/:id/reports` |
+| RF22 | Reportes de comentarios | CU22 | `POST /comments/:id/reports` |
+| RF23 | Moderación | CU23 | `GET /moderation/reports`, `POST /moderation/reports/:id/resolve` |
 | RF24 | Estados de contenido | *(transversal — aplica a todas las entidades con `deleted`/`status`)* | soft delete + enums de estado en cada módulo |
-| RF25 | Gestión de moderadores | CU17 | `POST/DELETE /roles/moderators/:userId` |
-| RF26 | Reapertura de reportes | CU18 | `POST /moderation/reports/:id/reopen` |
-| RF27 | Apelaciones | CU19, CU20 | `POST /artworks/:id/appeals`, `POST /comments/:id/appeals`, `POST /users/me/ban-appeal`, `GET/POST /moderation/appeals*` |
-| RF28 | Carga directa de carta (Admin) | CU21 | `POST /artworks/admin-upload` |
-| RF29 | Disparo manual de conversión (Admin) | CU22 | `POST /conversion/run` |
+| RF25 | Gestión de moderadores | CU25 | `POST/DELETE /roles/moderators/:userId` |
+| RF26 | Reapertura de reportes | CU26 | `POST /moderation/reports/:id/reopen` |
+| RF27 | Apelaciones | CU27, CU28 | `POST /artworks/:id/appeals`, `POST /comments/:id/appeals`, `POST /users/me/ban-appeal`, `GET/POST /moderation/appeals*` |
+| RF28 | Carga directa de carta (Admin) | CU29 | `POST /artworks/admin-upload` |
+| RF29 | Disparo manual de conversión (Admin) | CU30 | `POST /conversion/run` |
 
 ---
 
@@ -115,9 +115,9 @@ Construidos después de la Fase 8, a pedido directo y fuera del orden de fases o
 
 ## Extensión — Herramientas de admin para demo (carga directa de carta y disparo manual de conversión)
 
-También construidas fuera del orden de fases original, a pedido directo: carga directa de obra+carta por un admin sin pasar por el período de calificación (RF28, CU21) y disparo manual del ciclo de conversión que normalmente corre por CRON (RF29, CU22). Ninguna de las dos requirió cambios de modelo de datos — reutilizan las mismas tablas/columnas ya definidas (`artworks.conversion_status`, `cards`) y, en el caso del disparo manual, exactamente la misma rutina de conversión de la Fase 5. El contrato HTTP completo vive en [convenciones de API](/api-conventions.md) §18.8–18.9.
+También construidas fuera del orden de fases original, a pedido directo: carga directa de obra+carta por un admin sin pasar por el período de calificación (RF28, CU29) y disparo manual del ciclo de conversión que normalmente corre por CRON (RF29, CU30). Ninguna de las dos requirió cambios de modelo de datos — reutilizan las mismas tablas/columnas ya definidas (`artworks.conversion_status`, `cards`) y, en el caso del disparo manual, exactamente la misma rutina de conversión de la Fase 5. El contrato HTTP completo vive en [convenciones de API](/api-conventions.md) §18.8–18.9.
 
 ## Extensión — Recuperación de contraseña
 
-Agregada después de la implementación inicial de la Fase 2, a pedido directo (RF03b, CU23). Reutiliza exactamente el mismo mecanismo que la verificación de email: token opaco de un solo uso, hasheado con SHA-256 antes de persistir, con expiración explícita — sólo que en tabla propia (`password_reset_tokens`) para no mezclar los dos propósitos, y con una vigencia más corta (1 hora en vez de 24) por ser un token más sensible. Sigue el mismo patrón anti-enumeración que el reenvío de verificación: responde con el mismo mensaje neutro exista o no la cuenta, y también para una cuenta creada exclusivamente vía Google (sin contraseña local, nada que recuperar). Efecto adicional al actualizar la contraseña: revoca todas las sesiones (`refresh_tokens`) activas de la cuenta. El contrato HTTP completo vive en [convenciones de API](/api-conventions.md) §7.5.
+Agregada después de la implementación inicial de la Fase 2, a pedido directo (RF03b, CU04). Reutiliza exactamente el mismo mecanismo que la verificación de email: token opaco de un solo uso, hasheado con SHA-256 antes de persistir, con expiración explícita — sólo que en tabla propia (`password_reset_tokens`) para no mezclar los dos propósitos, y con una vigencia más corta (1 hora en vez de 24) por ser un token más sensible. Sigue el mismo patrón anti-enumeración que el reenvío de verificación: responde con el mismo mensaje neutro exista o no la cuenta, y también para una cuenta creada exclusivamente vía Google (sin contraseña local, nada que recuperar). Efecto adicional al actualizar la contraseña: revoca todas las sesiones (`refresh_tokens`) activas de la cuenta. El contrato HTTP completo vive en [convenciones de API](/api-conventions.md) §7.5.
 

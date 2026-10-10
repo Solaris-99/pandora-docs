@@ -752,8 +752,8 @@ Cada usuario tiene un inventario de paquetes (0 a 10) que se regenera solo, a ra
 
 ### 14.2 Abrir un Paquete
 - **Ruta:** `POST /api/v1/users/me/packages/open` — **Acceso:** Protegido.
-- Operación atómica (RG 7.6, CU08): consume exactamente un paquete y otorga 5 cartas en una única transacción — si algo falla, ni el paquete se descuenta ni se otorga ninguna carta.
-- Protegida contra doble consumo concurrente (CU08-A2): ante dos peticiones simultáneas del mismo usuario, sólo prosperan tantas como paquetes disponibles haya.
+- Operación atómica (RG 7.6, CU17): consume exactamente un paquete y otorga 5 cartas en una única transacción — si algo falla, ni el paquete se descuenta ni se otorga ninguna carta.
+- Protegida contra doble consumo concurrente (CU17-A2): ante dos peticiones simultáneas del mismo usuario, sólo prosperan tantas como paquetes disponibles haya.
 - **Respuesta de éxito (200 OK):**
 ```json
 {
@@ -765,13 +765,13 @@ Cada usuario tiene un inventario de paquetes (0 a 10) que se regenera solo, a ra
 }
 ```
   Cada elemento de `cardsObtained` usa la misma forma que 13.1 — si el paquete otorgó cartas repetidas entre sí, `copies` ya refleja el total acumulado en la colección tras la apertura (no sólo las obtenidas en este paquete).
-- **Errores:** `NO_PACKAGES_AVAILABLE` (409, CU08-A1 — no hay paquetes disponibles), `NO_CARDS_AVAILABLE` (409 — aún no existe ninguna carta en el sistema; ver nota de diseño en `docs/fase-6-paquetes.md`).
+- **Errores:** `NO_PACKAGES_AVAILABLE` (409, CU17-A1 — no hay paquetes disponibles), `NO_CARDS_AVAILABLE` (409 — aún no existe ninguna carta en el sistema; ver nota de diseño en `docs/fase-6-paquetes.md`).
 
 ---
 
 ## 15. Contrato de Endpoints de Batalla (Fase 7)
 
-RG 7.8 / CU09: la batalla es enteramente local en el cliente. El backend sólo resuelve la selección del rival; no existen endpoints para iniciar partidas, guardar resultados o consultar historial.
+RG 7.8 / CU18: la batalla es enteramente local en el cliente. El backend sólo resuelve la selección del rival; no existen endpoints para iniciar partidas, guardar resultados o consultar historial.
 
 ### 15.1 Obtener Rival
 - **Ruta:** `GET /api/v1/battle/opponent?cardId=<id>` — **Acceso:** Protegido.
@@ -788,13 +788,13 @@ RG 7.8 / CU09: la batalla es enteramente local en el cliente. El backend sólo r
 }
 ```
 - A diferencia de las cartas de la colección (13.1), la carta rival **siempre** incluye `stats` completos — es necesaria para que el cliente simule la batalla, y no representa la colección privada de otro jugador (es una carta cualquiera del catálogo, no la de un rival humano real).
-- **Errores:** `NOT_FOUND` (404, CU09-A2 — la carta indicada no existe), `CARD_NOT_OWNED` (403, CU09-A1 — el usuario no posee la carta elegida), `NO_OPPONENT_AVAILABLE` (409, CU09-A3 — no existe ninguna otra carta en el sistema que pueda actuar como rival).
+- **Errores:** `NOT_FOUND` (404, CU18-A2 — la carta indicada no existe), `CARD_NOT_OWNED` (403, CU18-A1 — el usuario no posee la carta elegida), `NO_OPPONENT_AVAILABLE` (409, CU18-A3 — no existe ninguna otra carta en el sistema que pueda actuar como rival).
 
 ---
 
 ## 16. Contrato de Endpoints de Moderación y Notificaciones (Fase 8)
 
-### 16.1 Reportar una Obra (CU12)
+### 16.1 Reportar una Obra (CU21)
 - **Ruta:** `POST /api/v1/artworks/:id/reports` — **Acceso:** Protegido + email verificado.
 - **Body:**
 ```json
@@ -802,20 +802,20 @@ RG 7.8 / CU09: la batalla es enteramente local en el cliente. El backend sólo r
 ```
   `reason` es una de: `content_inappropriate`, `content_violent`, `content_sexual`, `illicit`, `copyright`, `plagiarism`, `spam`, `harassment`, `other`.
 - **Respuesta de éxito (201):** el reporte creado, con `status: "pending"`.
-- **Errores:** `NOT_FOUND` (404, CU12-A2), `CONTENT_ALREADY_REMOVED` (409, CU12-A3 — la obra ya fue eliminada), `REPORT_ALREADY_PENDING` (409, CU12-A4 — ya existe un reporte pendiente del mismo usuario sobre esta obra).
+- **Errores:** `NOT_FOUND` (404, CU21-A2), `CONTENT_ALREADY_REMOVED` (409, CU21-A3 — la obra ya fue eliminada), `REPORT_ALREADY_PENDING` (409, CU21-A4 — ya existe un reporte pendiente del mismo usuario sobre esta obra).
 
-### 16.2 Reportar un Comentario (CU13)
+### 16.2 Reportar un Comentario (CU22)
 - **Ruta:** `POST /api/v1/comments/:id/reports` — **Acceso:** Protegido + email verificado.
 - Mismo body y misma forma de respuesta que 16.1.
-- **Errores:** `NOT_FOUND` (404), `CONTENT_ALREADY_REMOVED` (409, CU13-A1), `REPORT_ALREADY_PENDING` (409, CU13-A3).
+- **Errores:** `NOT_FOUND` (404), `CONTENT_ALREADY_REMOVED` (409, CU22-A1), `REPORT_ALREADY_PENDING` (409, CU22-A3).
 
-### 16.3 Listar Reportes (CU14)
+### 16.3 Listar Reportes (CU23)
 - **Ruta:** `GET /api/v1/moderation/reports` — **Acceso:** Protegido, rol `moderator` o `admin`.
 - **Query params:** paginación estándar (`page`, `limit`) + `status` opcional (`pending` | `in_review` | `resolved` | `rejected`).
 - **Respuesta:** envoltorio de paginación estándar; cada ítem trae `targetType` (`artwork` | `comment`) además de los campos propios del reporte — necesario para saber qué pasarle a 16.4/16.5.
 - **Errores:** `FORBIDDEN` (403) si el usuario no es moderador/admin.
 
-### 16.4 Detalle de un Reporte (CU14)
+### 16.4 Detalle de un Reporte (CU23)
 - **Ruta:** `GET /api/v1/moderation/reports/:id?targetType=artwork|comment` — **Acceso:** igual que 16.3.
 - `targetType` es **requerido**: los IDs de `artwork_reports` y `comment_reports` son independientes entre sí (ver `docs/fase-8-moderacion.md` sección 2.1), así que el mismo número puede referirse a dos reportes distintos según la tabla.
 - **Respuesta de éxito (200):** el reporte más un objeto `target` con el contexto del contenido denunciado:
@@ -838,7 +838,7 @@ RG 7.8 / CU09: la batalla es enteramente local en el cliente. El backend sólo r
   `target` para un reporte de comentario trae `{ id, comment, authorId, artworkId, deleted }` en su lugar.
 - **Errores:** `NOT_FOUND` (404).
 
-### 16.5 Resolver un Reporte (CU14)
+### 16.5 Resolver un Reporte (CU23)
 - **Ruta:** `POST /api/v1/moderation/reports/:id/resolve` — **Acceso:** igual que 16.3.
 - **Body:**
 ```json
@@ -847,9 +847,9 @@ RG 7.8 / CU09: la batalla es enteramente local en el cliente. El backend sólo r
   `action` es una de: `dismissed`, `warning`, `content_removed`, `comment_removed`, `user_banned`. `content_removed` sólo es válida con `targetType: "artwork"`; `comment_removed` sólo con `targetType: "comment"`.
 - **Efecto según `action`:** ver `docs/fase-8-moderacion.md` sección 3 para el detalle completo (qué se elimina, quién recibe qué notificación). El reportante **siempre** recibe una notificación `report_resolved`, sin importar la acción elegida.
 - **Respuesta de éxito (200):** el reporte actualizado (`status: "resolved"`).
-- **Errores:** `INVALID_REPORT_ACTION` (400 — la acción no corresponde al tipo de contenido), `NOT_FOUND` (404), `REPORT_ALREADY_RESOLVED` (409, CU14-A4 — otro moderador ya lo resolvió).
+- **Errores:** `INVALID_REPORT_ACTION` (400 — la acción no corresponde al tipo de contenido), `NOT_FOUND` (404), `REPORT_ALREADY_RESOLVED` (409, CU23-A4 — otro moderador ya lo resolvió).
 
-### 16.6 Notificaciones (CU15)
+### 16.6 Notificaciones (CU24)
 
 Forma común de una notificación:
 ```json
@@ -881,16 +881,16 @@ No existe ningún endpoint para crear notificaciones manualmente: siempre son un
 
 ---
 
-## 17. Contrato de Endpoints de Favoritos (CU11)
+## 17. Contrato de Endpoints de Favoritos (CU20)
 
-RG CU11: sólo se puede destacar una obra propia o una carta que se posee — no es un "me gusta" general sobre contenido ajeno (ver `docs/mejoras-post-fase-8.md` sección 4).
+RG CU20: sólo se puede destacar una obra propia o una carta que se posee — no es un "me gusta" general sobre contenido ajeno (ver `docs/mejoras-post-fase-8.md` sección 4).
 
 ### 17.1 Destacar/quitar destacado de una obra
-- **`POST /api/v1/artworks/:id/favorite`** — Protegido. Idempotente (CU11-A3). **Errores:** `NOT_FOUND` (404), `FORBIDDEN` (403, CU11-A1 — la obra no es propia).
+- **`POST /api/v1/artworks/:id/favorite`** — Protegido. Idempotente (CU20-A3). **Errores:** `NOT_FOUND` (404), `FORBIDDEN` (403, CU20-A1 — la obra no es propia).
 - **`DELETE /api/v1/artworks/:id/favorite`** — Protegido. No falla si no estaba destacada.
 
 ### 17.2 Destacar/quitar destacado de una carta
-- **`POST /api/v1/cards/:id/favorite`** — Protegido. Idempotente. **Errores:** `NOT_FOUND` (404), `CARD_NOT_OWNED` (403, CU11-A2 — no se posee la carta).
+- **`POST /api/v1/cards/:id/favorite`** — Protegido. Idempotente. **Errores:** `NOT_FOUND` (404), `CARD_NOT_OWNED` (403, CU20-A2 — no se posee la carta).
 - **`DELETE /api/v1/cards/:id/favorite`** — Protegido. No falla si no estaba destacada.
 
 ### 17.3 Listar obras destacadas

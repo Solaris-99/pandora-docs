@@ -198,7 +198,7 @@ El scheduler se dispara a las 00:00, diariamente, mediante el Scheduler nativo d
 
 ## 5.6 Disparo manual (Admin, demo)
 
-La rutina de conversión (5.2–5.4) se expone también como método invocable independientemente del disparador de Cron, y un endpoint de administración (`POST /conversion/run`, CU22) la ejecuta bajo demanda. No es una segunda implementación: es la misma lógica, sólo que disparada por una request en lugar de por el reloj — útil para demos donde no tiene sentido esperar a que termine una semana de calificación real.
+La rutina de conversión (5.2–5.4) se expone también como método invocable independientemente del disparador de Cron, y un endpoint de administración (`POST /conversion/run`, CU30) la ejecuta bajo demanda. No es una segunda implementación: es la misma lógica, sólo que disparada por una request en lugar de por el reloj — útil para demos donde no tiene sentido esperar a que termine una semana de calificación real.
 
 ---
 

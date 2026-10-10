@@ -105,7 +105,7 @@ Lee metadata `@Roles(...)` (por método o por clase, con `getAllAndOverride`) y 
 | Operación | Responsabilidad |
 |---|---|
 | `create(authorId, dto, file)` | Sube imagen a Cloudinary, crea la obra en `pending`, dispara notificación a seguidores. |
-| `createByAdmin(adminId, dto, file)` | CU21: crea obra + carta directamente, `conversion_status = converted`, sin notificar seguidores. |
+| `createByAdmin(adminId, dto, file)` | CU29: crea obra + carta directamente, `conversion_status = converted`, sin notificar seguidores. |
 | `findOne(id, currentUserId?)` | Detalle público + `isFavorited` si hay sesión. |
 | `findAll(query)` / `findMine(authorId, pagination)` | Explorador con filtros (búsqueda, autor, fechas, tag, rareza, calificación) y listado propio. |
 | `update` / `remove` | Edición por el autor; eliminación lógica por autor o moderador. |
@@ -155,7 +155,7 @@ Lee metadata `@Roles(...)` (por método o por clase, con `getAllAndOverride`) y 
 | `findAll(query, currentUserId?)` | Explorador de cartas, con filtro `owned` (requiere sesión). |
 | `findOne(id, currentUserId?)` | Detalle; oculta `stats` si `copies = 0` o no hay sesión. |
 | `ensureRarityCatalogForAuthor(authorId)` | Garantiza que un autor tenga al menos una carta de cada rareza (autoreparación del catálogo mínimo). |
-| `createForArtwork(artworkId, rarity, statsOverride?)` | CU21: crea la carta de una obra ya convertida; completa estadísticas faltantes vía `computeStatsForRarity`. |
+| `createForArtwork(artworkId, rarity, statsOverride?)` | CU29: crea la carta de una obra ya convertida; completa estadísticas faltantes vía `computeStatsForRarity`. |
 | `removeByArtwork(artworkId)` | Cascada lógica al eliminar la obra de origen. |
 
 ## Servicio: `CardCatalogSeederService`
@@ -235,7 +235,7 @@ Utilidad pura: `toOpponentCardView` (mapeo de `Card` a la forma de respuesta del
 
 ## Servicio: `ModerationService`
 
-`listReports`, `getReportDetail`, `resolveReport(moderatorId, targetType, id, action)` (aplica la sanción — advertencia/eliminación/baneo/descarte — y notifica), `reopenReport(targetType, id)` (CU18, sólo admin), `listAppeals`, `getAppealDetail`, `resolveAppeal(reviewerId, id, action)` (CU20). Método privado `notify(...)` centraliza el envío de notificaciones de moderación con `data: {targetType, targetId}`.
+`listReports`, `getReportDetail`, `resolveReport(moderatorId, targetType, id, action)` (aplica la sanción — advertencia/eliminación/baneo/descarte — y notifica), `reopenReport(targetType, id)` (CU26, sólo admin), `listAppeals`, `getAppealDetail`, `resolveAppeal(reviewerId, id, action)` (CU28). Método privado `notify(...)` centraliza el envío de notificaciones de moderación con `data: {targetType, targetId}`.
 
 ## Servicio: `AppealsService`
 
@@ -574,7 +574,7 @@ classDiagram
 %% Capas: Controller -> Service -> Entity (Repository TypeORM), DTOs en el borde,
 %% más las piezas de Passport (strategies + guards) que protegen los endpoints.
 %% Métodos de controller y campos de DTO inferidos de los casos de uso
-%% (CU01, CU02, CU10, CU16, CU17, CU23). DTOs de un solo campo
+%% (CU01, CU03, CU19, CU06, CU25, CU04). DTOs de un solo campo
 %% (VerifyEmail, ResendVerification, ForgotPassword, RefreshToken) omitidos.
 
 classDiagram
@@ -860,7 +860,7 @@ classDiagram
 %% Capas: Controller -> Service -> Entity (Repository TypeORM), DTOs en el borde,
 %% más los guards que restringen quién puede moderar o apelar.
 %% Métodos de controller y campos de DTO inferidos de los casos de uso
-%% (CU12, CU13, CU14, CU18, CU19, CU20). La apelación de baneo se expone
+%% (CU21, CU22, CU23, CU26, CU27, CU28). La apelación de baneo se expone
 %% desde users (POST /users/me/ban-appeal) pero la resuelve AppealsService.
 
 classDiagram
@@ -1113,6 +1113,6 @@ classDiagram
   BannedUserGuard ..> AppealsController : baneado sólo puede apelar
 
   note for Appeal "Único por reporte. El revisor no puede ser<br>quien resolvió el reporte, salvo que sea<br>el único moderador/admin."
-  note for ModerationService "reopenReport (CU18) y resolveAppeal aprobada<br>revierten la sanción igual: restaurar contenido<br>o desbanear, y el reporte pasa a overturned."
+  note for ModerationService "reopenReport (CU26) y resolveAppeal aprobada<br>revierten la sanción igual: restaurar contenido<br>o desbanear, y el reporte pasa a overturned."
 ```
 

@@ -154,8 +154,8 @@ La administración de tags puede restringirse a administrador si dejan de ser li
 | GET | `/moderation/appeals` | Listar apelaciones pendientes (excluye las que el revisor no puede resolver) | Moderator/Admin |
 | GET | `/moderation/appeals/:id` | Detalle de una apelación | Moderator/Admin |
 | POST | `/moderation/appeals/:id/resolve` | Aprobar o rechazar una apelación | Moderator/Admin |
-| POST | `/artworks/admin-upload` | Cargar directamente obra + carta ya convertida (CU21) | Admin |
-| POST | `/conversion/run` | Disparar manualmente el ciclo de conversión (CU22), pensado para demos | Admin |
+| POST | `/artworks/admin-upload` | Cargar directamente obra + carta ya convertida (CU29) | Admin |
+| POST | `/conversion/run` | Disparar manualmente el ciclo de conversión (CU30), pensado para demos | Admin |
 
 `POST /moderation/reports/:id/reopen` es el único endpoint de `/moderation/*` restringido a `admin` exclusivamente; el resto de `/moderation/*` acepta `moderator` o `admin` por igual. `POST /artworks/admin-upload` y `POST /conversion/run` también son exclusivos de `admin`.
 
