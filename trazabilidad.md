@@ -4,6 +4,26 @@ Este documento conecta [requerimientos](/requerimientos.md) con los [casos de us
 
 ---
 
+## Índice
+
+- [1. Trazabilidad de requerimientos funcionales](#1-trazabilidad-de-requerimientos-funcionales)
+- [2. Trazabilidad de requerimientos no funcionales](#2-trazabilidad-de-requerimientos-no-funcionales)
+- [3. Trazabilidad temporal (orden histórico de implementación)](#3-trazabilidad-temporal-orden-histórico-de-implementación)
+  - [Fase 1 — Fundaciones](#fase-1--fundaciones)
+  - [Fase 2 — Usuarios](#fase-2--usuarios)
+  - [Fase 3 — Obras](#fase-3--obras)
+  - [Fase 4 — Q2Q](#fase-4--q2q)
+  - [Fase 5 — Cartas](#fase-5--cartas)
+  - [Fase 6 — Paquetes](#fase-6--paquetes)
+  - [Fase 7 — Juego](#fase-7--juego)
+  - [Fase 8 — Moderación y notificaciones](#fase-8--moderación-y-notificaciones)
+  - [Fase 9 — Hardening](#fase-9--hardening)
+  - [Extensión — Favoritos, borrado con cascada y rol de admin/apelaciones](#extensión--favoritos-borrado-con-cascada-y-rol-de-adminapelaciones)
+  - [Extensión — Herramientas de admin para demo (carga directa de carta y disparo manual de conversión)](#extensión--herramientas-de-admin-para-demo-carga-directa-de-carta-y-disparo-manual-de-conversión)
+  - [Extensión — Recuperación de contraseña](#extensión--recuperación-de-contraseña)
+
+---
+
 # 1. Trazabilidad de requerimientos funcionales
 
 | RF | Descripción corta | Caso(s) de uso | Endpoint(s) / componente principal |

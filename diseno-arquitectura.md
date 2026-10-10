@@ -4,6 +4,31 @@ Este documento cubre la vista general del sistema, la organización por módulos
 
 ---
 
+## Índice
+
+- [1. Vista general del sistema](#1-vista-general-del-sistema)
+- [2. Organización del backend por módulos](#2-organización-del-backend-por-módulos)
+  - [2.1 Capas recomendadas](#21-capas-recomendadas)
+- [3. Observabilidad / logging (RNF14)](#3-observabilidad--logging-rnf14)
+- [4. Almacenamiento de imágenes (Cloudinary)](#4-almacenamiento-de-imágenes-cloudinary)
+  - [4.1 Flujo](#41-flujo)
+  - [4.2 Consideraciones](#42-consideraciones)
+- [5. Conversión de obras a cartas (proceso periódico)](#5-conversión-de-obras-a-cartas-proceso-periódico)
+  - [5.1 Objetivo](#51-objetivo)
+  - [5.2 Flujo](#52-flujo)
+  - [5.3 Estados](#53-estados)
+  - [5.4 Idempotencia](#54-idempotencia)
+  - [5.5 Frecuencia del scheduler](#55-frecuencia-del-scheduler)
+  - [5.6 Disparo manual (Admin, demo)](#56-disparo-manual-admin-demo)
+- [6. Lógica de regeneración de paquetes](#6-lógica-de-regeneración-de-paquetes)
+  - [6.1 Estado mínimo](#61-estado-mínimo)
+  - [6.2 Cálculo](#62-cálculo)
+- [7. Lógica de selección del rival (batalla)](#7-lógica-de-selección-del-rival-batalla)
+- [8. Recomendaciones de diseño para evitar deuda técnica](#8-recomendaciones-de-diseño-para-evitar-deuda-técnica)
+- [9. Resumen arquitectónico final](#9-resumen-arquitectónico-final)
+
+---
+
 # 1. Vista general del sistema
 
 ```mermaid

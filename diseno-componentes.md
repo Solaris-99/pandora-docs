@@ -4,6 +4,44 @@ Este documento cubre los componentes de la capa API: endpoints REST propuestos, 
 
 ---
 
+## Índice
+
+- [1. Endpoints REST propuestos](#1-endpoints-rest-propuestos)
+  - [1.1 Auth](#11-auth)
+  - [1.2 Users / Profiles](#12-users--profiles)
+  - [1.3 Artworks](#13-artworks)
+  - [1.4 Ratings](#14-ratings)
+  - [1.5 Cards](#15-cards)
+  - [1.6 Packages](#16-packages)
+  - [1.7 Battle](#17-battle)
+  - [1.8 Favorites](#18-favorites)
+  - [1.9 Reports](#19-reports)
+  - [1.10 Notifications](#110-notifications)
+  - [1.11 Tags](#111-tags)
+  - [1.12 Administración y Apelaciones](#112-administración-y-apelaciones)
+- [2. Guards y autorización](#2-guards-y-autorización)
+  - [2.1 `JwtAuthGuard`](#21-jwtauthguard)
+  - [2.2 `RolesGuard`](#22-rolesguard)
+  - [2.3 `OwnershipGuard` (verificación en servicio)](#23-ownershipguard-verificación-en-servicio)
+  - [2.4 `VerifiedEmailGuard`](#24-verifiedemailguard)
+  - [2.5 Rate limiting](#25-rate-limiting)
+  - [2.6 `BannedUserGuard`](#26-banneduserguard)
+- [3. Validaciones](#3-validaciones)
+  - [3.1 Validación general](#31-validación-general)
+  - [3.2 Usuario](#32-usuario)
+  - [3.3 Obras](#33-obras)
+  - [3.4 Comentarios](#34-comentarios)
+  - [3.5 Ratings](#35-ratings)
+  - [3.6 Reportes](#36-reportes)
+  - [3.7 DTOs](#37-dtos)
+- [4. Convenciones de API](#4-convenciones-de-api)
+  - [4.1 Respuestas de éxito](#41-respuestas-de-éxito)
+  - [4.2 Errores](#42-errores)
+  - [4.3 Paginación](#43-paginación)
+- [5. Estado de una carta en el cliente](#5-estado-de-una-carta-en-el-cliente)
+
+---
+
 # 1. Endpoints REST propuestos
 
 Los endpoints siguientes son una propuesta derivada de los requerimientos y casos de uso (ver [requerimientos](/requerimientos.md), [casos de uso](/casos-de-uso.md)). Los nombres pueden adaptarse, pero se recomienda mantener una convención uniforme.

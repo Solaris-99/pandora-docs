@@ -4,6 +4,41 @@ Este documento cubre la estrategia de pruebas y un caso de prueba por [caso de u
 
 > CP01–CP23 cubren los casos de uso originales (ahora renumerados, ver [casos de uso](/casos-de-uso.md)). Los casos de uso agregados después de esa primera versión (CU02, CU05, CU07, CU08, CU10, CU11, CU13) todavía no tienen un caso de prueba dedicado en este documento.
 
+---
+
+## Índice
+
+- [1. Estrategia de pruebas](#1-estrategia-de-pruebas)
+  - [1.1 Pruebas unitarias (backend)](#11-pruebas-unitarias-backend)
+  - [1.2 Pruebas de integración](#12-pruebas-de-integración)
+  - [1.3 Pruebas end-to-end (flujos completos prioritarios)](#13-pruebas-end-to-end-flujos-completos-prioritarios)
+- [2. Casos de prueba por caso de uso](#2-casos-de-prueba-por-caso-de-uso)
+  - [CP01 — Registro exitoso (CU01)](#cp01--registro-exitoso-cu01)
+  - [CP02 — Login (CU03)](#cp02--login-cu03)
+  - [CP03 — Subir obra (CU09)](#cp03--subir-obra-cu09)
+  - [CP04 — Explorar obras (CU12)](#cp04--explorar-obras-cu12)
+  - [CP05 — Calificar obra mediante Q2Q (CU14)](#cp05--calificar-obra-mediante-q2q-cu14)
+  - [CP06 — Conversión de obra a carta (CU15)](#cp06--conversión-de-obra-a-carta-cu15)
+  - [CP07 — Explorar colección/cartas (CU16)](#cp07--explorar-coleccióncartas-cu16)
+  - [CP08 — Abrir paquete (CU17)](#cp08--abrir-paquete-cu17)
+  - [CP09 — Jugar autobattler (CU18)](#cp09--jugar-autobattler-cu18)
+  - [CP10 — Seguir usuario (CU19)](#cp10--seguir-usuario-cu19)
+  - [CP11 — Destacar obra o carta (CU20)](#cp11--destacar-obra-o-carta-cu20)
+  - [CP12 — Denunciar obra (CU21)](#cp12--denunciar-obra-cu21)
+  - [CP13 — Denunciar comentario (CU22)](#cp13--denunciar-comentario-cu22)
+  - [CP14 — Administrar denuncias (CU23)](#cp14--administrar-denuncias-cu23)
+  - [CP15 — Notificaciones (CU24)](#cp15--notificaciones-cu24)
+  - [CP16 — Ver/editar perfil (CU06)](#cp16--vereditar-perfil-cu06)
+  - [CP17 — Gestionar rol de moderador (CU25)](#cp17--gestionar-rol-de-moderador-cu25)
+  - [CP18 — Reabrir un reporte resuelto (CU26)](#cp18--reabrir-un-reporte-resuelto-cu26)
+  - [CP19 — Apelar una sanción (CU27)](#cp19--apelar-una-sanción-cu27)
+  - [CP20 — Revisar una apelación (CU28)](#cp20--revisar-una-apelación-cu28)
+  - [CP21 — Cargar carta directamente (Admin) (CU29)](#cp21--cargar-carta-directamente-admin-cu29)
+  - [CP22 — Disparar el ciclo de conversión manualmente (Admin) (CU30)](#cp22--disparar-el-ciclo-de-conversión-manualmente-admin-cu30)
+  - [CP23 — Recuperar contraseña olvidada (CU04)](#cp23--recuperar-contraseña-olvidada-cu04)
+
+---
+
 # 1. Estrategia de pruebas
 
 ## 1.1 Pruebas unitarias (backend)

@@ -4,6 +4,29 @@ Este documento establece las especificaciones, formatos y contratos de comunicac
 
 ---
 
+## Índice
+
+- [1. Prefijo Global y Versionado](#1-prefijo-global-y-versionado)
+- [2. Formato Estándar de Respuestas de Error](#2-formato-estándar-de-respuestas-de-error)
+- [3. Catálogo de Códigos de Error](#3-catálogo-de-códigos-de-error)
+- [4. Validaciones Globales](#4-validaciones-globales)
+- [5. Autenticación y Autorización (JWT)](#5-autenticación-y-autorización-jwt)
+- [6. Contrato de Endpoints de Autenticación (Fase 1)](#6-contrato-de-endpoints-de-autenticación-fase-1)
+- [7. Contrato de Endpoints de Autenticación (Fase 2)](#7-contrato-de-endpoints-de-autenticación-fase-2)
+- [8. Contrato de Endpoints de Usuarios (Fase 2)](#8-contrato-de-endpoints-de-usuarios-fase-2)
+- [9. Contrato de Endpoints de Obras (Fase 3)](#9-contrato-de-endpoints-de-obras-fase-3)
+- [10. Contrato de Endpoints de Tags (Fase 3)](#10-contrato-de-endpoints-de-tags-fase-3)
+- [11. Contrato de Endpoints de Comentarios (Fase 3)](#11-contrato-de-endpoints-de-comentarios-fase-3)
+- [12. Contrato de Endpoints de Calificaciones Q2Q (Fase 4)](#12-contrato-de-endpoints-de-calificaciones-q2q-fase-4)
+- [13. Contrato de Endpoints de Cartas (Fase 5)](#13-contrato-de-endpoints-de-cartas-fase-5)
+- [14. Contrato de Endpoints de Paquetes (Fase 6)](#14-contrato-de-endpoints-de-paquetes-fase-6)
+- [15. Contrato de Endpoints de Batalla (Fase 7)](#15-contrato-de-endpoints-de-batalla-fase-7)
+- [16. Contrato de Endpoints de Moderación y Notificaciones (Fase 8)](#16-contrato-de-endpoints-de-moderación-y-notificaciones-fase-8)
+- [17. Contrato de Endpoints de Favoritos (CU20)](#17-contrato-de-endpoints-de-favoritos-cu20)
+- [18. Contrato de Endpoints de Administración y Apelaciones](#18-contrato-de-endpoints-de-administración-y-apelaciones)
+
+---
+
 ## 1. Prefijo Global y Versionado
 
 Todos los endpoints REST del backend se encuentran bajo el prefijo:

@@ -4,6 +4,312 @@ Este documento cubre el esquema físico de base de datos: tablas, columnas, tipo
 
 ---
 
+## Índice
+
+- [2. Diagrama de tablas (notación textual)](#2-diagrama-de-tablas-notación-textual)
+- [4. Diagrama](#4-diagrama)
+- [1. Tablas](#1-tablas)
+  - [1.1 users](#11-users)
+  - [1.2 roles / user_roles](#12-roles--user_roles)
+  - [1.3 artworks](#13-artworks)
+  - [1.4 artwork_comments](#14-artwork_comments)
+  - [1.5 artwork_ratings](#15-artwork_ratings)
+  - [1.6 cards](#16-cards)
+  - [1.7 user_cards](#17-user_cards)
+  - [1.8 card_packs](#18-card_packs)
+  - [1.9 tags](#19-tags)
+  - [1.10 artwork_tags](#110-artwork_tags)
+  - [1.11 follows](#111-follows)
+  - [1.12 favorite_cards](#112-favorite_cards)
+  - [1.13 favorite_artworks](#113-favorite_artworks)
+  - [1.14 reports (artwork_reports / comment_reports)](#114-reports-artwork_reports--comment_reports)
+  - [1.15 notifications](#115-notifications)
+  - [1.16 email_verification_tokens](#116-email_verification_tokens)
+  - [1.17 password_reset_tokens](#117-password_reset_tokens)
+  - [1.18 refresh_tokens](#118-refresh_tokens)
+  - [1.19 oauth_accounts](#119-oauth_accounts)
+  - [1.20 appeals](#120-appeals)
+- [3. Índices recomendados](#3-índices-recomendados)
+
+---
+
+# 2. Diagrama de tablas (notación textual)
+
+```text
+users 1 ─── N artworks
+users 1 ─── N artwork_comments
+users 1 ─── N artwork_ratings
+artworks 1 ─── N artwork_comments
+artworks 1 ─── N artwork_ratings
+artworks 1 ─── 1 cards
+users N ─── N cards                    (user_cards)
+users 1 ─── 1 card_packs
+users N ─── N users                    (follows)
+users N ─── N artworks                 (favorite_artworks)
+users N ─── N cards                    (favorite_cards)
+artworks N ─── N tags                  (artwork_tags)
+users 1 ─── N notifications
+artworks 1 ─── N artwork_reports
+artwork_comments 1 ─── N comment_reports
+users 1 ─── N reports (artwork_reports/comment_reports, como reporter/resolver)
+users 1 ─── N email_verification_tokens
+users 1 ─── N password_reset_tokens
+users 1 ─── N refresh_tokens
+users 1 ─── N oauth_accounts
+users N ─── N roles                    (user_roles)
+users 1 ─── N appeals                  (appellant_id)
+users 1 ─── N appeals                  (reviewed_by, nullable)
+artwork_reports  1 ─── 0..1 appeals    (report_target_type = artwork)
+comment_reports  1 ─── 0..1 appeals    (report_target_type = comment)
+```
+
+---
+
+# 4. Diagrama
+
+[Diagrama original en dbDiagram](https://dbdiagram.io/d/Pandora-6a9ee57bff72c756bcfca7b5)
+
+```mermaid
+erDiagram
+    users {
+        bigint id PK
+        varchar username UK
+        varchar email UK
+        varchar password_hash "nullable, NULL en cuentas OAuth"
+        boolean email_verified
+        enum status "active, suspended, banned, pending_verification"
+        varchar bio "nullable"
+        varchar avatar_url "nullable"
+        timestamp created_at
+        timestamp updated_at "nullable"
+    }
+
+    roles {
+        bigint id PK
+        varchar name UK "user, moderator, admin"
+        varchar description "nullable"
+    }
+
+    user_roles {
+        bigint user_id PK, FK
+        bigint role_id PK, FK
+    }
+
+    artworks {
+        bigint id PK
+        varchar title
+        varchar description "nullable"
+        bigint author_id FK
+        varchar image_original_url
+        varchar image_medium_url
+        varchar image_thumbnail_url
+        varchar image_public_id "nullable, id de Cloudinary"
+        boolean conversion_request
+        enum conversion_status "pending, processing, converted, skipped, failed"
+        timestamp qualification_started_at
+        boolean deleted
+        timestamp created_at
+        timestamp updated_at "nullable"
+    }
+
+    artwork_comments {
+        bigint id PK
+        bigint author_id FK
+        bigint artwork_id FK
+        varchar comment
+        boolean deleted
+        timestamp created_at
+        timestamp updated_at "nullable"
+    }
+
+    artwork_ratings {
+        bigint id PK
+        bigint artwork_id FK
+        bigint voter_id FK
+        smallint stars "1 a 5"
+        enum emotion "joy, fear, anger, serenity, grief, awe"
+        timestamp created_at
+        timestamp updated_at "nullable"
+    }
+
+    cards {
+        bigint id PK
+        bigint artwork_id FK, UK
+        integer attack
+        integer defense
+        integer hp
+        integer speed
+        enum rarity "common, uncommon, rare, epic, legendary"
+        boolean deleted
+        timestamp created_at
+        timestamp updated_at "nullable"
+    }
+
+    user_cards {
+        bigint id PK
+        bigint user_id FK
+        bigint card_id FK
+        integer copies
+    }
+
+    card_packs {
+        bigint id PK
+        bigint user_id FK, UK
+        integer amount "0 a 10"
+        timestamp last_regeneration_at "nullable"
+        timestamp updated_at "nullable"
+    }
+
+    tags {
+        bigint id PK
+        varchar name UK
+    }
+
+    artwork_tags {
+        bigint artwork_id PK, FK
+        bigint tag_id PK, FK
+    }
+
+    follows {
+        bigint follower_id PK, FK
+        bigint followed_id PK, FK
+        timestamp created_at
+    }
+
+    favorite_cards {
+        bigint user_id PK, FK
+        bigint card_id PK, FK
+        timestamp created_at
+    }
+
+    favorite_artworks {
+        bigint user_id PK, FK
+        bigint artwork_id PK, FK
+        timestamp created_at
+    }
+
+    artwork_reports {
+        bigint id PK
+        bigint artwork_id FK
+        bigint reporter_id FK
+        enum reason
+        varchar comment "nullable"
+        enum status
+        bigint resolved_by FK "nullable"
+        enum resolution "nullable"
+        timestamp created_at
+        timestamp resolved_at "nullable"
+    }
+
+    comment_reports {
+        bigint id PK
+        bigint comment_id FK
+        bigint reporter_id FK
+        enum reason
+        varchar comment "nullable"
+        enum status
+        bigint resolved_by FK "nullable"
+        enum resolution "nullable"
+        timestamp created_at
+        timestamp resolved_at "nullable"
+    }
+
+    notifications {
+        bigint id PK
+        bigint user_id FK
+        enum type
+        varchar title
+        varchar content
+        boolean is_read
+        bigint reference_id "nullable"
+        jsonb metadata "nullable"
+        timestamp created_at
+    }
+
+    email_verification_tokens {
+        bigint id PK
+        bigint user_id FK
+        varchar token_hash UK
+        timestamp expires_at
+        timestamp used_at "nullable"
+        timestamp created_at
+    }
+
+    password_reset_tokens {
+        bigint id PK
+        bigint user_id FK
+        varchar token_hash UK
+        timestamp expires_at
+        timestamp used_at "nullable"
+        timestamp created_at
+    }
+
+    refresh_tokens {
+        bigint id PK
+        bigint user_id FK
+        varchar token_hash UK
+        timestamp expires_at
+        timestamp revoked_at "nullable"
+        timestamp created_at
+    }
+
+    oauth_accounts {
+        bigint id PK
+        bigint user_id FK
+        varchar provider
+        varchar provider_user_id
+    }
+
+    appeals {
+        bigint id PK
+        enum report_target_type "artwork, comment"
+        bigint report_id "referencia lógica a artwork_reports/comment_reports"
+        bigint appellant_id FK
+        enum reason
+        varchar detail "nullable"
+        enum status
+        bigint reviewed_by FK "nullable"
+        timestamp reviewed_at "nullable"
+        timestamp created_at
+    }
+
+    users ||--o{ artworks : "author_id"
+    users ||--o{ artwork_comments : "author_id"
+    users ||--o{ artwork_ratings : "voter_id"
+    artworks ||--o{ artwork_comments : "artwork_id"
+    artworks ||--o{ artwork_ratings : "artwork_id"
+    artworks ||--|| cards : "artwork_id"
+    users ||--o{ user_cards : "user_id"
+    cards ||--o{ user_cards : "card_id"
+    users ||--|| card_packs : "user_id"
+    users ||--o{ follows : "follower_id"
+    users ||--o{ follows : "followed_id"
+    users ||--o{ favorite_cards : "user_id"
+    cards ||--o{ favorite_cards : "card_id"
+    users ||--o{ favorite_artworks : "user_id"
+    artworks ||--o{ favorite_artworks : "artwork_id"
+    artworks ||--o{ artwork_tags : "artwork_id"
+    tags ||--o{ artwork_tags : "tag_id"
+    users ||--o{ user_roles : "user_id"
+    roles ||--o{ user_roles : "role_id"
+    artworks ||--o{ artwork_reports : "artwork_id"
+    users ||--o{ artwork_reports : "reporter_id"
+    users ||--o{ artwork_reports : "resolved_by"
+    artwork_comments ||--o{ comment_reports : "comment_id"
+    users ||--o{ comment_reports : "reporter_id"
+    users ||--o{ comment_reports : "resolved_by"
+    users ||--o{ notifications : "user_id"
+    users ||--o{ email_verification_tokens : "user_id"
+    users ||--o{ password_reset_tokens : "user_id"
+    users ||--o{ refresh_tokens : "user_id"
+    users ||--o{ oauth_accounts : "user_id"
+    users ||--o{ appeals : "appellant_id"
+    users ||--o{ appeals : "reviewed_by"
+    artwork_reports ||--o| appeals : "report_id (target=artwork)"
+    comment_reports ||--o| appeals : "report_id (target=comment)"
+```
+
+---
 
 # 1. Tablas
 
@@ -544,38 +850,6 @@ rejected
 
 ---
 
-# 2. Diagrama de tablas (notación textual)
-
-```text
-users 1 ─── N artworks
-users 1 ─── N artwork_comments
-users 1 ─── N artwork_ratings
-artworks 1 ─── N artwork_comments
-artworks 1 ─── N artwork_ratings
-artworks 1 ─── 1 cards
-users N ─── N cards                    (user_cards)
-users 1 ─── 1 card_packs
-users N ─── N users                    (follows)
-users N ─── N artworks                 (favorite_artworks)
-users N ─── N cards                    (favorite_cards)
-artworks N ─── N tags                  (artwork_tags)
-users 1 ─── N notifications
-artworks 1 ─── N artwork_reports
-artwork_comments 1 ─── N comment_reports
-users 1 ─── N reports (artwork_reports/comment_reports, como reporter/resolver)
-users 1 ─── N email_verification_tokens
-users 1 ─── N password_reset_tokens
-users 1 ─── N refresh_tokens
-users 1 ─── N oauth_accounts
-users N ─── N roles                    (user_roles)
-users 1 ─── N appeals                  (appellant_id)
-users 1 ─── N appeals                  (reviewed_by, nullable)
-artwork_reports  1 ─── 0..1 appeals    (report_target_type = artwork)
-comment_reports  1 ─── 0..1 appeals    (report_target_type = comment)
-```
-
----
-
 # 3. Índices recomendados
 
 Para PostgreSQL se recomienda considerar, como mínimo:
@@ -600,8 +874,3 @@ email_verification_tokens(token_hash)   -- ya cubierto por el UNIQUE
 password_reset_tokens(token_hash)       -- ya cubierto por el UNIQUE
 refresh_tokens(token_hash)              -- ya cubierto por el UNIQUE
 ```
-
-# 4. Diagrama
-
-[![Diagrama](/imgs/diag-tablas.png)](https://dbdiagram.io/d/Pandora-6a9ee57bff72c756bcfca7b5)
-

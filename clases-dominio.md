@@ -2,6 +2,160 @@
 
 Este documento presenta el **modelo conceptual de dominio**: las clases del negocio, su responsabilidad y sus relaciones, independientemente de cómo se implementan o persisten.
 
+---
+
+## Índice
+
+- [3. Diagrama](#3-diagrama)
+- [1. Catálogo de clases de dominio](#1-catálogo-de-clases-de-dominio)
+  - [1.1 Usuario](#11-usuario)
+  - [1.2 Rol](#12-rol)
+  - [1.3 Obra (Artwork)](#13-obra-artwork)
+  - [1.4 Tag](#14-tag)
+  - [1.5 Comentario](#15-comentario)
+  - [1.6 Valoración (Rating / Q2Q)](#16-valoración-rating--q2q)
+  - [1.7 Carta (Card)](#17-carta-card)
+  - [1.8 Colección (relación Usuario–Carta)](#18-colección-relación-usuariocarta)
+  - [1.9 Inventario de Paquetes](#19-inventario-de-paquetes)
+  - [1.10 Seguimiento (Follow)](#110-seguimiento-follow)
+  - [1.11 Destacado (Favorite)](#111-destacado-favorite)
+  - [1.12 Reporte (Report)](#112-reporte-report)
+  - [1.13 Apelación (Appeal)](#113-apelación-appeal)
+  - [1.14 Notificación (Notification)](#114-notificación-notification)
+  - [1.15 Credencial temporal (Token de verificación / recuperación)](#115-credencial-temporal-token-de-verificación--recuperación)
+  - [1.16 Cuenta externa (OAuthAccount)](#116-cuenta-externa-oauthaccount)
+  - [1.17 Sesión (Refresh Token)](#117-sesión-refresh-token)
+  - [1.18 Batalla (concepto no persistido)](#118-batalla-concepto-no-persistido)
+- [2. Relaciones entre clases de dominio](#2-relaciones-entre-clases-de-dominio)
+
+---
+
+# 3. Diagrama
+
+[Diagrama en Mermaid Live](https://mermaid.live/edit#pako:eNqVVs1u2zgQfhWBpxZrG5Ycu7YOCxROgfbQtEjSHha-TMiJQ5QiVYp03QZ5qj5CX6wjWaKlWLazvnhIzffN_4CPjBuBLGVcQVFcSlhbyFZ6paOouom-FB6sNNFjeRVF__gCrYYM6yNmIFUt56T_w1jxHoqH5nPhQJilR-2gvrqTppZgAw7sF6vaXF_RynvJCRWl0Z0xCqHy5qnt1LVRwSFtsjuLByqf7iwEHSedV41ZgQW3MufS6PpGZrBG_cnKtdTQeFMYJbl0sDR6g7Yg7a5D--iCQkOnCWiWoKpAWnZQyYwsCDgR2i2sz4W2NFmZz3ZVHG6deWblVAK_gjK2ci1QUDAWFX0lWDwaTUNRTBNB1wmwbp9gKuR3jyHB96iLpt4bKYKIisgEiPpsweIvOKD-QPncxXeJn0teh0WwxEG7kuItdx4U-ToejeJx05zKUS2vkaqJFnr9vsbcWIeBLzNObprU8ZDZToUbd5F6wrfqSRcelTPvDs28zVF189sxJNCBUthvZSML6pEe0iuiaFqq1du56WtzbrRDLQOvQnmy8ZYWBWouQd1iRjkC1TFxa75h6ONtLm27sf0Rh3eD_27ryp0R6HJrNojC2GZexOfmZqdqDohusOj06nMHKGmG9w9WKTRLLFqxeMWi4fBfkq5IqrZE-KUReLdz6yiiNXwvRLRmrUJgJl1V-WD8uI2Tanvio2rlcJSE1bDWMfJ6X_35_Tw3V10v9qAKt6S8cl7Colfc5BKK10fjLqW-MT5pMHyoDd7g2tMqIxJzEve8iJflPPF6ol4cXgfVSmYXRev5ZLHbI9oh6itgvYtKvU5bndDr5OiIXhUOzbIvp1n_T9xuyVFPR6_K5nl9Fny4N85D2mvhrPZu9nvUupWhN8FZqv1WpsEt5Zdkpw2qlnMnN_vc9Y9eQK80G7C1lYKlznocsAwtPXjoyKq1tmLuAeldxVISKad-OxRgvw25oSlfsZV-InwO-j9jsobCGr9-YOk9qIJOPhfgsH7DBRXUAu3SeO1YmswqCpY-si1LJ_FodjFOLuJZkiySi_l4OmA_WTqcJ4tR_GaWzBbTSZxMnwbsV2UzHs0n03gxn84vkvFiNpkMGApJrfKxfkKWf09_AegKK50)
+
+``` mermaid
+classDiagram
+
+  class Usuario {
+    +username
+    +email
+    +passwordHash
+    +estadoCuenta
+    +bio
+    +avatarUrl
+    +emailVerificado : boolean
+  }
+
+  class Rol {
+    +nombre
+  }
+
+  class Obra {
+    +titulo
+    +descripcion
+    +imagenOriginal
+    +solicitaConversion : boolean
+    +estadoConversion
+    +inicioCalificacion
+    +eliminada : boolean
+  }
+
+  class Tag {
+    +nombre
+  }
+
+  class Comentario {
+    +texto
+    +eliminado : boolean
+  }
+
+  class Valoracion {
+    +estrellas : 1..5
+    +emocion
+  }
+
+  class Carta {
+    +ataque
+    +defensa
+    +vida
+    +velocidad
+    +rareza
+  }
+
+  class InventarioDePaquetes {
+    +cantidadActual : 0..10
+    +ultimaRegeneracion
+  }
+
+  class Reporte {
+    +motivo
+    +comentario
+    +estado
+    +resolucion
+    +resueltoEn
+  }
+
+  class Apelacion {
+    +motivo
+    +detalle
+    +estado
+    +revisadaEn
+  }
+
+  class Notificacion {
+    +tipo
+    +titulo
+    +contenido
+    +leida : boolean
+  }
+
+  class CredencialTemporal {
+    +tipoToken
+    +expiracion
+    +usadaEn
+  }
+
+  class CuentaExterna {
+    +proveedor
+    +idProveedorExterno
+  }
+
+  class Sesion {
+    +expiracion
+    +revocada : boolean
+  }
+
+
+  Usuario  "1" --> "N" Obra          : autor
+  Usuario  "1" --> "N" Comentario    : autor
+  Usuario  "1" --> "N" Valoracion    : emite
+  Obra     "1" --> "N" Comentario
+  Obra     "1" --> "N" Valoracion
+  Obra     "1" --> "0..1" Carta      : conversión
+  Usuario  "N" --> "N" Carta         : Colección (copias)
+  Usuario  "1" --> "1" InventarioDePaquetes
+  Usuario  "N" --> "N" Usuario       : Seguimiento
+  Usuario  "N" --> "N" Obra          : Destacado
+  Usuario  "N" --> "N" Carta         : Destacado
+  Obra     "N" --> "N" Tag
+  Usuario  "1" --> "N" Notificacion
+  Obra         "1" --> "N" Reporte
+  Comentario   "1" --> "N" Reporte
+  Usuario      "1" --> "N" Reporte   : denunciante
+  Usuario      "1" --> "N" Reporte   : resolutor (0..1)
+  Usuario      "1" --> "N" CredencialTemporal
+  Usuario      "1" --> "N" CuentaExterna
+  Usuario      "1" --> "N" Sesion
+  Usuario      "N" --> "N" Rol
+  Usuario      "1" --> "N" Apelacion : apelante
+  Usuario      "1" --> "N" Apelacion : revisor (0..1)
+  Reporte      "1" --> "0..1" Apelacion
+
+```
+
+---
+
 # 1. Catálogo de clases de dominio
 
 ## 1.1 Usuario
@@ -173,128 +327,4 @@ Usuario      N ─── N Rol
 Usuario      1 ─── N Apelación             (como apelante)
 Usuario      1 ─── N Apelación             (como revisor, opcional)
 Reporte      1 ─── 0..1 Apelación
-```
-
-# 3. Diagrama
-
-[Diagrama en Mermaid Live](https://mermaid.live/edit#pako:eNqVVs1u2zgQfhWBpxZrG5Ycu7YOCxROgfbQtEjSHha-TMiJQ5QiVYp03QZ5qj5CX6wjWaKlWLazvnhIzffN_4CPjBuBLGVcQVFcSlhbyFZ6paOouom-FB6sNNFjeRVF__gCrYYM6yNmIFUt56T_w1jxHoqH5nPhQJilR-2gvrqTppZgAw7sF6vaXF_RynvJCRWl0Z0xCqHy5qnt1LVRwSFtsjuLByqf7iwEHSedV41ZgQW3MufS6PpGZrBG_cnKtdTQeFMYJbl0sDR6g7Yg7a5D--iCQkOnCWiWoKpAWnZQyYwsCDgR2i2sz4W2NFmZz3ZVHG6deWblVAK_gjK2ci1QUDAWFX0lWDwaTUNRTBNB1wmwbp9gKuR3jyHB96iLpt4bKYKIisgEiPpsweIvOKD-QPncxXeJn0teh0WwxEG7kuItdx4U-ToejeJx05zKUS2vkaqJFnr9vsbcWIeBLzNObprU8ZDZToUbd5F6wrfqSRcelTPvDs28zVF189sxJNCBUthvZSML6pEe0iuiaFqq1du56WtzbrRDLQOvQnmy8ZYWBWouQd1iRjkC1TFxa75h6ONtLm27sf0Rh3eD_27ryp0R6HJrNojC2GZexOfmZqdqDohusOj06nMHKGmG9w9WKTRLLFqxeMWi4fBfkq5IqrZE-KUReLdz6yiiNXwvRLRmrUJgJl1V-WD8uI2Tanvio2rlcJSE1bDWMfJ6X_35_Tw3V10v9qAKt6S8cl7Colfc5BKK10fjLqW-MT5pMHyoDd7g2tMqIxJzEve8iJflPPF6ol4cXgfVSmYXRev5ZLHbI9oh6itgvYtKvU5bndDr5OiIXhUOzbIvp1n_T9xuyVFPR6_K5nl9Fny4N85D2mvhrPZu9nvUupWhN8FZqv1WpsEt5Zdkpw2qlnMnN_vc9Y9eQK80G7C1lYKlznocsAwtPXjoyKq1tmLuAeldxVISKad-OxRgvw25oSlfsZV-InwO-j9jsobCGr9-YOk9qIJOPhfgsH7DBRXUAu3SeO1YmswqCpY-si1LJ_FodjFOLuJZkiySi_l4OmA_WTqcJ4tR_GaWzBbTSZxMnwbsV2UzHs0n03gxn84vkvFiNpkMGApJrfKxfkKWf09_AegKK50)
-
-``` mermaid
-classDiagram
-
-  class Usuario {
-    +username
-    +email
-    +passwordHash
-    +estadoCuenta
-    +bio
-    +avatarUrl
-    +emailVerificado : boolean
-  }
-
-  class Rol {
-    +nombre
-  }
-
-  class Obra {
-    +titulo
-    +descripcion
-    +imagenOriginal
-    +solicitaConversion : boolean
-    +estadoConversion
-    +inicioCalificacion
-    +eliminada : boolean
-  }
-
-  class Tag {
-    +nombre
-  }
-
-  class Comentario {
-    +texto
-    +eliminado : boolean
-  }
-
-  class Valoracion {
-    +estrellas : 1..5
-    +emocion
-  }
-
-  class Carta {
-    +ataque
-    +defensa
-    +vida
-    +velocidad
-    +rareza
-  }
-
-  class InventarioDePaquetes {
-    +cantidadActual : 0..10
-    +ultimaRegeneracion
-  }
-
-  class Reporte {
-    +motivo
-    +comentario
-    +estado
-    +resolucion
-    +resueltoEn
-  }
-
-  class Apelacion {
-    +motivo
-    +detalle
-    +estado
-    +revisadaEn
-  }
-
-  class Notificacion {
-    +tipo
-    +titulo
-    +contenido
-    +leida : boolean
-  }
-
-  class CredencialTemporal {
-    +tipoToken
-    +expiracion
-    +usadaEn
-  }
-
-  class CuentaExterna {
-    +proveedor
-    +idProveedorExterno
-  }
-
-  class Sesion {
-    +expiracion
-    +revocada : boolean
-  }
-
-
-  Usuario  "1" --> "N" Obra          : autor
-  Usuario  "1" --> "N" Comentario    : autor
-  Usuario  "1" --> "N" Valoracion    : emite
-  Obra     "1" --> "N" Comentario
-  Obra     "1" --> "N" Valoracion
-  Obra     "1" --> "0..1" Carta      : conversión
-  Usuario  "N" --> "N" Carta         : Colección (copias)
-  Usuario  "1" --> "1" InventarioDePaquetes
-  Usuario  "N" --> "N" Usuario       : Seguimiento
-  Usuario  "N" --> "N" Obra          : Destacado
-  Usuario  "N" --> "N" Carta         : Destacado
-  Obra     "N" --> "N" Tag
-  Usuario  "1" --> "N" Notificacion
-  Obra         "1" --> "N" Reporte
-  Comentario   "1" --> "N" Reporte
-  Usuario      "1" --> "N" Reporte   : denunciante
-  Usuario      "1" --> "N" Reporte   : resolutor (0..1)
-  Usuario      "1" --> "N" CredencialTemporal
-  Usuario      "1" --> "N" CuentaExterna
-  Usuario      "1" --> "N" Sesion
-  Usuario      "N" --> "N" Rol
-  Usuario      "1" --> "N" Apelacion : apelante
-  Usuario      "1" --> "N" Apelacion : revisor (0..1)
-  Reporte      "1" --> "0..1" Apelacion
-
 ```

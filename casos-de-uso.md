@@ -2,6 +2,58 @@
 
  Este documento cubre actores, permisos y el catálogo completo de casos de uso, con sus flujos principales, alternativos y observaciones.
 
+---
+
+## Índice
+
+- [3. Diagrama](#3-diagrama)
+- [1. Actores y permisos](#1-actores-y-permisos)
+  - [1.1 Invitado](#11-invitado)
+  - [1.2 Usuario autenticado](#12-usuario-autenticado)
+  - [1.3 Moderador](#13-moderador)
+  - [1.4 Admin](#14-admin)
+- [2. Catálogo de casos de uso](#2-catálogo-de-casos-de-uso)
+  - [CU01 — Registrarse](#cu01--registrarse)
+  - [CU02 — Verificar email](#cu02--verificar-email)
+  - [CU03 — Login](#cu03--login)
+  - [CU04 — Recuperar contraseña olvidada](#cu04--recuperar-contraseña-olvidada)
+  - [CU05 — Limpieza de cuentas no verificadas](#cu05--limpieza-de-cuentas-no-verificadas)
+  - [CU06 — Ver/editar perfil](#cu06--vereditar-perfil)
+  - [CU07 — Cambiar email](#cu07--cambiar-email)
+  - [CU08 — Cambiar contraseña](#cu08--cambiar-contraseña)
+  - [CU09 — Subir obra](#cu09--subir-obra)
+  - [CU10 — Editar obra](#cu10--editar-obra)
+  - [CU11 — Eliminar obra](#cu11--eliminar-obra)
+  - [CU12 — Explorar obras](#cu12--explorar-obras)
+  - [CU13 — Comentar obra](#cu13--comentar-obra)
+  - [CU14 — Calificar obra mediante Q2Q](#cu14--calificar-obra-mediante-q2q)
+  - [CU15 — Conversión de obra a carta](#cu15--conversión-de-obra-a-carta)
+  - [CU16 — Explorar colección/cartas](#cu16--explorar-coleccióncartas)
+  - [CU17 — Abrir paquete](#cu17--abrir-paquete)
+  - [CU18 — Jugar autobattler](#cu18--jugar-autobattler)
+  - [CU19 — Seguir usuario](#cu19--seguir-usuario)
+  - [CU20 — Destacar obra o carta](#cu20--destacar-obra-o-carta)
+  - [CU21 — Denunciar obra](#cu21--denunciar-obra)
+  - [CU22 — Denunciar comentario](#cu22--denunciar-comentario)
+  - [CU23 — Administrar denuncias](#cu23--administrar-denuncias)
+  - [CU24 — Notificaciones](#cu24--notificaciones)
+  - [CU25 — Gestionar rol de moderador](#cu25--gestionar-rol-de-moderador)
+  - [CU26 — Reabrir un reporte resuelto](#cu26--reabrir-un-reporte-resuelto)
+  - [CU27 — Apelar una sanción](#cu27--apelar-una-sanción)
+  - [CU28 — Revisar una apelación](#cu28--revisar-una-apelación)
+  - [CU29 — Cargar carta directamente (Admin)](#cu29--cargar-carta-directamente-admin)
+  - [CU30 — Disparar el ciclo de conversión manualmente (Admin)](#cu30--disparar-el-ciclo-de-conversión-manualmente-admin)
+- [4. Flujo consolidado de moderación (CU21–CU23, CU26–CU28)](#4-flujo-consolidado-de-moderación-cu21cu23-cu26cu28)
+
+---
+
+# 3. Diagrama
+[![Diagrama](./imgs/diag-casos-uso.jpg)](https://drive.google.com/file/d/1IKb8TWgXZewPg7JQTgwWP-iWlpQOBo1r/view?usp=sharing)
+
+> El diagrama todavía refleja la numeración original de los casos de uso (CU01–CU23); la tabla del punto 2 de este documento es la referencia vigente tras la reorganización.
+
+---
+
 # 1. Actores y permisos
 
 ## 1.1 Invitado
@@ -898,11 +950,6 @@ No genera notificación a seguidores del admin: no es un upload orgánico. El ad
 No es un proceso alternativo al CRON: es el mismo `runConversionCycle` (CU15), sólo que disparado bajo demanda en lugar de por el reloj.
 
 ---
-
-# 3. Diagrama
-[![Diagrama](./imgs/diag-casos-uso.jpg)](https://drive.google.com/file/d/1IKb8TWgXZewPg7JQTgwWP-iWlpQOBo1r/view?usp=sharing)
-
-> El diagrama todavía refleja la numeración original de los casos de uso (CU01–CU23); la tabla del punto 2 de este documento es la referencia vigente tras la reorganización.
 
 # 4. Flujo consolidado de moderación (CU21–CU23, CU26–CU28)
 

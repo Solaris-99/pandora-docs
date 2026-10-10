@@ -11,6 +11,29 @@ Este documento cubre exclusivamente: descripción del proyecto, alcance, requeri
 
 ---
 
+## Índice
+
+- [1. Descripción del proyecto](#1-descripción-del-proyecto)
+- [2. Alcance](#2-alcance)
+  - [2.1 Incluido](#21-incluido)
+  - [2.2 Fuera del alcance actual](#22-fuera-del-alcance-actual)
+- [3. Requerimientos funcionales](#3-requerimientos-funcionales)
+- [4. Requerimientos no funcionales](#4-requerimientos-no-funcionales)
+- [5. Reglas de negocio](#5-reglas-de-negocio)
+  - [5.1 Usuarios](#51-usuarios)
+  - [5.2 Obras](#52-obras)
+  - [5.3 Calificaciones Q2Q](#53-calificaciones-q2q)
+  - [5.4 Conversión](#54-conversión)
+  - [5.5 Cartas y colección](#55-cartas-y-colección)
+  - [5.6 Paquetes](#56-paquetes)
+  - [5.7 Rarezas](#57-rarezas)
+  - [5.8 Batallas](#58-batallas)
+  - [5.9 Generales](#59-generales)
+  - [5.10 Estadísticas base, emociones y rarezas](#510-estadísticas-base-emociones-y-rarezas)
+  - [5.11 Apelaciones y administración](#511-apelaciones-y-administración)
+
+---
+
 # 1. Descripción del proyecto
 
 Pandora es una plataforma que integra publicación de arte digital, curaduría comunitaria, coleccionismo de cartas y un juego de cartas automatizado. Los usuarios pueden publicar obras, explorar contenido, comentar, valorar obras durante un período limitado mediante estrellas y emociones, y participar en un sistema donde la percepción de la comunidad contribuye a determinar los atributos de una carta asociada a la obra.
