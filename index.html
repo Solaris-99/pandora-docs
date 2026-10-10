@@ -12,13 +12,46 @@
   <body class="loading sidebar-chevron-left sidebar-group-underline">
     <div id="app"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    <script>
+      function enableMermaidZoom() {
+        document.querySelectorAll(".mermaid svg").forEach((svg) => {
+          if (svg.dataset.zoomEnabled) return;
+          svg.dataset.zoomEnabled = "true";
+
+          svgPanZoom(svg, {
+            zoomEnabled: true,
+            controlIconsEnabled: true,
+            fit: true,
+            center: true,
+            minZoom: 0.5,
+            maxZoom: 10
+          });
+        });
+      }
+
+      // Run after Docsify/Mermaid renders, and again after Docsify page changes.
+      window.addEventListener("load", enableMermaidZoom);
+      window.$docsify = window.$docsify || {};
+      window.$docsify.plugins = [
+        ...(window.$docsify.plugins || []),
+        (hook) => {
+          hook.doneEach(enableMermaidZoom);
+        }
+      ];
+    </script>
+
     <!-- Configuration -->
     <script>
       window.$docsify = {
         loadSidebar: true,
-        subMaxLevel: 3,
+        subMaxLevel: 2,
         relativePath: true,
-
+        auto2top: true,
+        autoHeader: true,
+        search: {
+          placeholder: "Buscar..."
+        }
       };
     </script>
 
@@ -26,12 +59,17 @@
     <script src="//cdn.jsdelivr.net/npm/docsify@5"></script>
 
     <!-- Plugins (optional) -->
-    <!-- <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script> -->
-       <script type="module">
+    <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script>
+    <script type="module">
       import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
       mermaid.initialize({ startOnLoad: true });
       window.mermaid = mermaid;
     </script>
     <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
+    <style>
+      svg {
+        min-height: 500px;
+      }
+    </style>
   </body>
 </html>
