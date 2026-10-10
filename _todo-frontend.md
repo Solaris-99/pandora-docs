@@ -40,4 +40,4 @@ Los correos de verificación y recuperación (`interfaces-entre-sistemas.md` §5
 
 ## ~~Reglas de la batalla local (a alinear entre web y mobile)~~ — resuelto
 
-Acordada y documentada en [`battle-formula.md`](/battle-formula.md) (2026-10-07): orden de turnos por velocidad, esquive, golpe crítico y reducción de daño, usando `attack`/`defense`/`hp`/`speed`. `requerimientos.md` §5.8 ya la referencia. Implementación de referencia en el frontend web: `src/features/battle/simulate.ts`. Mobile todavía tiene que migrar su `BattleEngine` (propuesta provisoria en `_todo_mobile.md` §2) a esta fórmula.
+La fórmula quedó acordada y documentada en `battle-formula.md` (2026-10-07); `requerimientos.md` §5.8 sigue definiendo que la simulación es local al cliente. Ambos clientes la implementan tal cual.

@@ -12,28 +12,18 @@ Valores que no se versionan y que se proveerán en `local.properties` (ya ignora
 | `GOOGLE_CLIENT_ID` | Client ID **web** de Google, usado como `serverClientId` en Credential Manager (`GetGoogleIdOption`). Debe coincidir con `GOOGLE_CLIENT_ID` del backend, que es la `audience` que verifica `POST /auth/google` (`interfaces-entre-sistemas.md` §4.2). |
 
 Trabajo en mobile:
-- Leer ambas claves en `app/build.gradle.kts` y exponerlas como `BuildConfig` (hoy `buildConfig = false`; hay que activarlo).
+- Leer ambas claves en `app/build.gradle.kts` y exponerlas como `BuildConfig` (hecho en la Fase 1).
 - Fallar el build con mensaje claro si falta alguna en `release`; en `debug`, usar un valor por defecto (`http://10.0.2.2:3000/api/v1/`) y deshabilitar el botón de Google si no hay client ID.
 - Permitir tráfico HTTP sólo en debug (network security config), nunca en release.
 - Registrar en Google Cloud el cliente Android (paquete + SHA-1 de la firma debug y release) además del cliente web.
 
 ## 2. Reglas de la batalla local
 
-**Resuelto (2026-10-07):** la fórmula ya está acordada y documentada en [`battle-formula.md`](/battle-formula.md) — orden de turnos por velocidad, esquive (tope 75%), golpe crítico (sin tope, ignora esquive) y reducción de daño (tope 90%), con cada decisión de implementación (empate de velocidad, redondeo, piso de daño, tope de rondas) marcada explícitamente para que `BattleEngine` la replique igual. Implementación de referencia en el frontend web: `src/features/battle/simulate.ts` (incluye tests unitarios de cada fórmula por separado).
+Resuelto: la fórmula está acordada en [`battle-formula.md`](/battle-formula.md) (fuente de verdad para web y mobile). Pendiente para la fase de batalla:
 
-**Pendiente en mobile:** la propuesta provisoria de abajo (`daño = max(1, attack − defense/2)`, sin esquive ni crítico) queda obsoleta — hay que migrar `BattleEngine` a la fórmula de `battle-formula.md`. Se mantiene aislado en su propia clase (determinista con semilla inyectada) para que este cambio no toque la UI:
-
-- Emite una lista de eventos (turno, atacante, daño, `isCrit`, `dodged`, HP restante) que la UI anima — la UI web ya distingue los tres casos en el log (golpe normal / crítico / esquive), mobile debería hacer lo mismo. No persiste nada ni llama al backend salvo `GET /battle/opponent`.
-- Tests unitarios: cada fórmula (esquive, reducción de daño, crítico) por separado además del flujo completo — mismo criterio que `simulate.test.ts` en el frontend web.
-
-<details>
-<summary>Propuesta original (obsoleta, dejada de referencia)</summary>
-
-- Orden de turnos por `speed` (mayor primero; empate: la carta del jugador).
-- Turnos alternados; `daño = max(1, attack − defense / 2)`.
-- Termina cuando `hp ≤ 0`; tope de 50 turnos, gana quien tenga mayor porcentaje de HP restante (empate = empate).
-
-</details>
+- Implementar `BattleEngine` como código Kotlin puro, con el generador aleatorio inyectable, siguiendo exactamente ese documento, incluidas las "decisiones de implementación" (prioridad del jugador en empate de velocidad, piso de 1 de daño, tope de 500 rondas).
+- Tests unitarios con rolls fijos que reproduzcan los mismos resultados que `src/features/battle/simulate.ts` del frontend (pedirle al frontend un par de casos de referencia con stats y rolls).
+- Si `battle-formula.md` cambia, se actualiza el documento primero y luego ambos clientes.
 
 ## 3. Avatar de perfil
 
