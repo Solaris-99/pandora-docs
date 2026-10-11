@@ -34,3 +34,7 @@ Métodos privados clave: `hashToken()` (SHA-256, para tokens opacos), `issueRefr
 ## DTOs
 
 `RegisterDto`, `LoginDto`, `VerifyEmailDto`, `ResendVerificationDto`, `ForgotPasswordDto`, `ResetPasswordDto`, `RefreshTokenDto`, `GoogleLoginDto` (entrada) · `TokenPairResponseDto`, `VerifyEmailResponseDto`, `MeResponseDto` (salida).
+
+## Nota: confirmación de cambio de email (CU07)
+
+`AuthController` también expone `POST /auth/confirm-email-change` (público, mismo patrón que verificar email/recuperar contraseña: se llega desde un enlace de correo). No hay lógica propia de `AuthService` acá — delega directamente en `UsersService.confirmEmailChange(token)`, ya que la entidad `EmailChangeToken` y el campo `User.email` que modifica pertenecen al módulo `users` (ver [módulo `users`](/clases-diseno/users.md)). Válido porque `AuthModule` ya depende de `UsersModule`; la solicitud del cambio (`POST /users/me/email`) vive del lado de `users` por el mismo motivo.

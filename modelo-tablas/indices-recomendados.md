@@ -19,6 +19,8 @@ comment_reports(status, created_at)
 appeals(status, created_at)
 appeals(report_target_type, report_id)  -- ya cubierto por el UNIQUE
 email_verification_tokens(token_hash)   -- ya cubierto por el UNIQUE
+email_change_tokens(token_hash)         -- ya cubierto por el UNIQUE
+email_change_tokens(user_id, used_at)   -- invalidar tokens pendientes previos al solicitar un nuevo cambio
 password_reset_tokens(token_hash)       -- ya cubierto por el UNIQUE
 refresh_tokens(token_hash)              -- ya cubierto por el UNIQUE
 ```

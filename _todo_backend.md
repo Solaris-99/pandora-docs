@@ -2,42 +2,18 @@
 
 > Trabajo detectado a partir de los casos de uso agregados en [casos-de-uso](/casos-de-uso/README.md) (CU05, CU07, CU08, CU10, CU11) que todavía no tienen contrato, endpoint o validación implementados. Lo que requiere coordinación con los clientes ya está en `_todo-frontend.md` y `_todo_mobile.md`; acá sólo queda lo que resuelve el backend por su cuenta.
 
-## Endpoint para cambiar contraseña (CU08)
+## ~~Endpoint para cambiar contraseña (CU08)~~ — resuelto
 
-No existe todavía un endpoint para que un usuario autenticado cambie su propia contraseña — `/auth/forgot-password`/`/auth/reset-password` son sólo para quien no puede iniciar sesión. [CU08](/casos-de-uso/cu08-cambiar-contrasena.md) describe el flujo: contraseña actual + nueva contraseña en dos campos (nueva/repetir).
+`PATCH /users/me/password` (`UsersController` → `UsersService.changePassword`), payload `{currentPassword, newPassword}`. Verifica `currentPassword` contra el hash almacenado (`401 INVALID_CREDENTIALS` si no coincide), misma política de longitud que el registro para `newPassword`, `409 NO_LOCAL_PASSWORD` si la cuenta es sólo-Google (`password_hash` nulo), y revoca los demás `refresh_tokens` activos de la cuenta al confirmar — mismo mecanismo que `resetPassword` (CU04). Ver [clases de diseño §users](/clases-diseno/users.md) y [convenciones de API §8.6](/api-conventions.md).
 
-Pendiente:
-- `PATCH /users/me/password` (Auth), payload `{currentPassword, newPassword}`.
-- Verificar `currentPassword` contra el hash almacenado antes de aceptar la nueva.
-- Misma política de longitud que el registro (RNF, ver [requerimientos §5.1](/requerimientos/reglas-01-usuarios.md)).
-- Por consistencia con [CU04](/casos-de-uso/cu04-recuperar-contrasena-olvidada.md), revocar los demás `refresh_tokens` activos de la cuenta al confirmar el cambio.
-- No aplica si la cuenta no tiene `password_hash` (sólo Google) -> 400/409.
+## ~~Endpoint para cambiar email (CU07)~~ — resuelto
 
-## Endpoint para cambiar email (CU07)
+Dos endpoints: `POST /users/me/email` (solicita el cambio — valida formato/unicidad/distinción contra el email actual, invalida cualquier solicitud pendiente previa y envía el correo de confirmación a la dirección **nueva**) y `POST /auth/confirm-email-change` (público, token por email — recién ahí se aplica `User.email`). Se optó por la tabla análoga a `email_verification_tokens` (nueva entidad `EmailChangeToken`/`email_change_tokens`, con `new_email` propio) en vez de agregar `pending_email` a `users` — reutiliza el mismo mecanismo de token opaco hasheado de un solo uso. Ver [modelo de tablas](/modelo-tablas/email-change-tokens.md), [clases de diseño §users](/clases-diseno/users.md) y [convenciones de API §7.6/§8.7](/api-conventions.md).
 
-No existe todavía un endpoint para que un usuario autenticado cambie su propio email. [CU07](/casos-de-uso/cu07-cambiar-email.md) describe el flujo: el email nuevo no se aplica hasta confirmarse (mismo mecanismo que [CU02](/casos-de-uso/cu02-verificar-email.md)), y el email anterior sigue siendo el activo (login, notificaciones) mientras tanto.
+## ~~Job de limpieza de cuentas no verificadas (CU05)~~ — resuelto
 
-Pendiente:
-- `POST /users/me/email` (Auth), payload `{newEmail}` — valida formato y unicidad contra `users.email` antes de aceptar.
-- Cambio de esquema en [`users`](/modelo-tablas/users.md): agregar `pending_email` (nullable), o una tabla análoga a [`email_verification_tokens`](/modelo-tablas/email-verification-tokens.md) que además guarde el email nuevo propuesto.
-- Reutilizar el mecanismo de token opaco de un solo uso (hash SHA-256, expiración) ya usado por verificación de email y recuperación de contraseña, en vez de crear uno nuevo desde cero.
-- Al confirmarse el token: copiar `pending_email` a `email`, limpiar `pending_email`.
-- Si se solicita un nuevo cambio antes de confirmar el anterior, invalidar el token pendiente previo (mismo patrón que `password_reset_tokens`).
+`AccountCleanupSchedulerService` (nuevo, mismo módulo `scheduler` que `ConversionSchedulerService`), `@Cron` diario a las 00:00. Busca `User` con `email_verified = false` y `created_at` anterior a 72h, y los elimina físicamente por repositorio (sin cascada manual: todas las FK hacia `users.id` ya estaban declaradas `ON DELETE CASCADE`/`SET NULL`). Si falla una cuenta puntual, se registra el error y se sigue con el resto del lote. Ver [clases de diseño §scheduler](/clases-diseno/scheduler.md).
 
-## Job de limpieza de cuentas no verificadas (CU05)
+## ~~Validar período de calificación al editar/eliminar obra (CU10/CU11)~~ — resuelto
 
-No existe todavía el proceso periódico que describe [CU05](/casos-de-uso/cu05-limpieza-de-cuentas-no-verificadas.md). Hoy una cuenta `pending_verification` que nunca confirma su email queda así indefinidamente.
-
-Pendiente:
-- Job con `@Cron`, mismo mecanismo que `ConversionSchedulerService` (ver [módulo `scheduler`](/clases-diseno/scheduler.md)), corriendo diariamente a las 00:00.
-- Busca `users` con `email_verified = false` (o `status = pending_verification`) y `created_at` anterior a `now() - 72h`.
-- A diferencia del resto del sistema, **no** es un borrado lógico: la cuenta se elimina físicamente, con cascada a sus tokens de verificación.
-- Si falla la eliminación de una cuenta puntual, registrar el error y seguir con el resto del lote (no abortar el ciclo completo).
-
-## Validar período de calificación al editar/eliminar obra (CU10/CU11)
-
-[CU10](/casos-de-uso/cu10-editar-obra.md) y [CU11](/casos-de-uso/cu11-eliminar-obra.md) agregan una precondición que no está explícita todavía en `ArtworksService.update`/`remove` (ver [módulo `artworks`](/clases-diseno/artworks.md)): una obra ya convertida en carta (`conversion_status = converted`) no debería poder editarse ni eliminarse por su autor.
-
-Pendiente:
-- Confirmar si `update`/`remove` ya rechazan este caso; si no, agregar el chequeo (409 si `conversion_status = converted`) antes de aplicar el cambio.
-- Este rechazo es específico del autor — no debe afectar la eliminación por moderación (`moderationRemove`), que puede aplicarse en cualquier momento.
+No lo rechazaban. `ArtworksService.update()`/`remove()` ahora responden `409 ARTWORK_ALREADY_CONVERTED` cuando `conversion_status = converted`. En `remove()` el chequeo es específico del autor (`!isModerator`): un moderador/admin puede seguir eliminando una obra ya convertida en cualquier momento, igual que `moderationRemove`, que no se tocó. Ver [clases de diseño §artworks](/clases-diseno/artworks.md) y [convenciones de API §9.2](/api-conventions.md).

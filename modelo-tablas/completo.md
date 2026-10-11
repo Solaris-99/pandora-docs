@@ -66,6 +66,10 @@
 
 ---
 
+[email_change_tokens](email-change-tokens.md ':include')
+
+---
+
 [password_reset_tokens](password-reset-tokens.md ':include')
 
 ---

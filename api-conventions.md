@@ -94,10 +94,13 @@ Todo error devuelto por la API (errores 4xx y 5xx) sigue una estructura JSON hom
 | `CONFLICT` | 409 | Conflicto de estado o duplicidad de clave única en la base de datos. |
 | `EMAIL_ALREADY_EXISTS` | 409 | El email ya está registrado por otra cuenta. |
 | `USERNAME_ALREADY_EXISTS` | 409 | El username ya está registrado por otra cuenta. |
-| `INVALID_TOKEN` | 400 | Token de verificación de email inválido o ya utilizado. |
-| `TOKEN_EXPIRED` | 400 | Token de verificación de email expirado (vigencia: 24 horas). |
+| `INVALID_TOKEN` | 400 | Token de verificación/recuperación/cambio inválido o ya utilizado. |
+| `TOKEN_EXPIRED` | 400 | Token de verificación/recuperación/cambio expirado. |
 | `USER_ALREADY_VERIFIED` | 400 | Se intentó reenviar verificación a una cuenta ya verificada. |
 | `CANNOT_FOLLOW_SELF` | 400 | Se intentó seguir/dejar de seguir a la propia cuenta. |
+| `NO_LOCAL_PASSWORD` | 409 | Se intentó cambiar la contraseña de una cuenta sin contraseña local (sólo Google). |
+| `EMAIL_SAME_AS_CURRENT` | 400 | El email nuevo solicitado coincide con el actual. |
+| `ARTWORK_ALREADY_CONVERTED` | 409 | El autor intentó editar o eliminar una obra que ya fue convertida en carta. |
 | `QUALIFICATION_ENDED` | 403 | Se intentó crear, actualizar o retirar una valoración Q2Q fuera de la semana de calificación de la obra. |
 | `OAUTH_ERROR` | 400/401 | Falla al validar el `idToken` o el perfil devuelto por Google. |
 | `NO_PACKAGES_AVAILABLE` | 409 | Se intentó abrir un paquete sin tener ninguno disponible. |
@@ -412,6 +415,20 @@ A partir de la Fase 4, **todo endpoint que autentica** (registro, login, verific
 - Efecto adicional: revoca todos los `refresh_tokens` activos del usuario — cualquier sesión abierta con la contraseña anterior deja de poder renovar su `accessToken` y debe volver a autenticarse.
 - **Errores:** `INVALID_TOKEN` (400, token inexistente o ya usado — mismo código que 7.1, no uno específico), `TOKEN_EXPIRED` (400).
 
+### 7.6 Confirmar cambio de email (CU07)
+- **Ruta:** `POST /api/v1/auth/confirm-email-change` — **Acceso:** Público (como 7.1/7.5: se llega acá desde un enlace de correo).
+- **Cuerpo de la petición:**
+```json
+{ "token": "b7e2...f1a9" }
+```
+- El `token` es el recibido en el correo enviado a la dirección **nueva** (parámetro `?token=` del enlace `{FRONTEND_URL}/confirm-email-change?token=...`). **Vigencia: 24 horas, uso único.**
+- **Respuesta de éxito (200 OK):**
+```json
+{ "message": "Tu correo electrónico fue actualizado correctamente." }
+```
+- Hasta confirmarse, el email anterior de la cuenta sigue siendo el activo (login, notificaciones) — ver 8.7 para la solicitud que dispara este correo.
+- **Errores:** `INVALID_TOKEN` (400), `TOKEN_EXPIRED` (400), `EMAIL_ALREADY_EXISTS` (409, si el email propuesto fue tomado por otra cuenta entre la solicitud y esta confirmación).
+
 ---
 
 ## 8. Contrato de Endpoints de Usuarios (Fase 2)
@@ -484,6 +501,34 @@ A partir de la Fase 4, **todo endpoint que autentica** (registro, login, verific
 ### 8.5 Paginación Estándar
 A partir de la Fase 2, los endpoints con listados paginados aceptan `page` y `limit` como query params y devuelven el envoltorio `{ items, total, page, limit, totalPages }`. Este es el formato que deben esperar el portal web y la app móvil para toda nueva colección paginada (galería de obras, notificaciones, reportes, etc. en fases posteriores).
 
+### 8.6 Cambiar contraseña (CU08)
+- **Ruta:** `PATCH /api/v1/users/me/password` — **Acceso:** Protegido.
+- **Cuerpo de la petición:**
+```json
+{ "currentPassword": "miPasswordActual", "newPassword": "miPasswordNueva123" }
+```
+- `newPassword` sigue la misma política de longitud que el registro (6–50 caracteres).
+- **Respuesta de éxito (200 OK):**
+```json
+{ "message": "Tu contraseña fue actualizada correctamente." }
+```
+- Distinto de 7.5 (recuperar contraseña olvidada): acá el usuario ya tiene sesión y prueba identidad con la contraseña **actual**, no con un token por email.
+- Efecto adicional: revoca todos los `refresh_tokens` activos de la cuenta, igual que 7.5 — cualquier sesión/dispositivo deberá volver a autenticarse para renovar su `accessToken`.
+- **Errores:** `INVALID_CREDENTIALS` (401, la contraseña actual no coincide), `NO_LOCAL_PASSWORD` (409, cuenta creada únicamente vía Google — no hay contraseña local que cambiar), `VALIDATION_ERROR` (400).
+
+### 8.7 Cambiar email (CU07)
+- **Ruta:** `POST /api/v1/users/me/email` — **Acceso:** Protegido.
+- **Cuerpo de la petición:**
+```json
+{ "newEmail": "nuevo@correo.com" }
+```
+- **Respuesta de éxito (200 OK):**
+```json
+{ "message": "Te enviamos un correo a la nueva dirección para confirmar el cambio." }
+```
+- No aplica el cambio todavía: el email de la cuenta (login, notificaciones) sigue siendo el actual hasta confirmarse vía 7.6. Solicitar un nuevo cambio antes de confirmar el anterior invalida el token pendiente previo.
+- **Errores:** `EMAIL_SAME_AS_CURRENT` (400, coincide con el email actual), `EMAIL_ALREADY_EXISTS` (409), `VALIDATION_ERROR` (400).
+
 ---
 
 ## 9. Contrato de Endpoints de Obras (Fase 3)
@@ -508,9 +553,11 @@ A partir de la Fase 2, los endpoints con listados paginados aceptan `page` y `li
 ### 9.2 Editar / Eliminar Obra
 - **Ruta:** `PATCH /api/v1/artworks/:id` — **Acceso:** Protegido, sólo el autor.
   - Mismo `multipart/form-data` que la creación, pero **todos los campos son opcionales**. Omitir `image` conserva la imagen actual; si se envía una nueva, la anterior se elimina de Cloudinary. Omitir `tags` conserva los tags actuales; enviar `tags` reemplaza la lista completa (enviar una lista vacía la limpia).
-  - **Errores:** `FORBIDDEN` (403, no es el autor), `NOT_FOUND` (404).
+  - **CU10-A1:** una obra ya convertida en carta (`conversionStatus = converted`) no puede editarse — su período de calificación ya terminó.
+  - **Errores:** `FORBIDDEN` (403, no es el autor), `ARTWORK_ALREADY_CONVERTED` (409), `NOT_FOUND` (404).
 - **Ruta:** `DELETE /api/v1/artworks/:id` — **Acceso:** Protegido, autor **o** moderador/admin. Eliminación lógica (la obra deja de listarse pero no se borra físicamente).
-  - **Errores:** `FORBIDDEN` (403), `NOT_FOUND` (404).
+  - **CU11-A1:** misma restricción que arriba, pero **sólo cuando quien elimina es el autor** — un moderador/admin puede eliminar una obra ya convertida en cualquier momento (distinto de la eliminación por moderación vía CU23, que tampoco tiene esta restricción).
+  - **Errores:** `FORBIDDEN` (403), `ARTWORK_ALREADY_CONVERTED` (409, sólo para el autor), `NOT_FOUND` (404).
 
 ### 9.3 Detalle de Obra
 - **Ruta:** `GET /api/v1/artworks/:id` — **Acceso:** Público.

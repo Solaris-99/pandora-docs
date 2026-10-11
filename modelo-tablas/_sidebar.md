@@ -6,6 +6,7 @@
   - [users](/modelo-tablas/users.md)
   - [roles / user_roles](/modelo-tablas/roles.md)
   - [email_verification_tokens](/modelo-tablas/email-verification-tokens.md)
+  - [email_change_tokens](/modelo-tablas/email-change-tokens.md)
   - [password_reset_tokens](/modelo-tablas/password-reset-tokens.md)
   - [refresh_tokens](/modelo-tablas/refresh-tokens.md)
   - [oauth_accounts](/modelo-tablas/oauth-accounts.md)
