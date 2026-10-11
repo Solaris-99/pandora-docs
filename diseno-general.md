@@ -1,5 +1,5 @@
 # Pandora — Documento de diseño general
-
+> Este documento es un snapshot y no debería ser tomado como referencia del sistema actual.
 > Documento técnico-funcional consolidado a partir de la propuesta de proyecto, requerimientos, casos de uso y definición inicial de datos, incorporando las decisiones posteriores indicadas para el diseño del sistema.
 
 **Versión:** 1.0  

@@ -38,3 +38,9 @@ Decisión vigente: abrir en el navegador, sin deep links.
 - Tras registrarse: pantalla "Revisá tu correo" con botón *Reenviar* (`POST /auth/resend-verification`, límite 5/min) y botón *Ya verifiqué* que vuelve a consultar `GET /auth/me` y continúa si `emailVerified` es `true`.
 - Olvidé mi contraseña: pide el email (`POST /auth/forgot-password`), muestra el mensaje neutro de la API y vuelve al login; el cambio se hace en el portal web.
 - Si más adelante se habilitan App Links (ver `_todo-frontend.md`): declarar el `intent-filter` con `autoVerify` para `/verify-email` y `/reset-password`, y mostrar pantallas nativas que llamen a `POST /auth/verify-email` / `/auth/reset-password`.
+
+## 5. Cambiar email y cambiar contraseña ([CU07](/casos-de-uso/cu07-cambiar-email.md) / [CU08](/casos-de-uso/cu08-cambiar-contrasena.md))
+
+Bloqueado hasta que existan los endpoints (ver `_todo-frontend.md`):
+- Cambiar contraseña: pantalla nativa simple en la sección de perfil (contraseña actual + nueva + repetir), sin enlaces por correo involucrados.
+- Cambiar email: pantalla nativa para introducir el nuevo email, con el popup de confirmación que describe CU07. Tras confirmar, el correo de verificación a la dirección nueva se abre en el navegador — mismo patrón que el punto 4, sin deep links. Mientras no se verifique, `GET /auth/me` sigue devolviendo el email anterior.

@@ -41,3 +41,11 @@ Los correos de verificación y recuperación ([interfaces entre sistemas, correo
 ## ~~Reglas de la batalla local (a alinear entre web y mobile)~~ — resuelto
 
 La fórmula quedó acordada y documentada en `battle-formula.md` (2026-10-07); [requerimientos §5.8](/requerimientos/reglas-08-batallas.md) sigue definiendo que la simulación es local al cliente. Ambos clientes la implementan tal cual.
+
+## Endpoint para cambiar contraseña (CU08)
+
+No existe todavía un endpoint para que un usuario autenticado cambie su propia contraseña — `/auth/forgot-password`/`/auth/reset-password` son sólo para quien no puede iniciar sesión. [CU08](/casos-de-uso/cu08-cambiar-contrasena.md) ya describe el flujo esperado: contraseña actual + nueva contraseña en dos campos (nueva/repetir). Propuesta: `PATCH /users/me/password` (Auth), payload `{currentPassword, newPassword}`, misma política de longitud que el registro. Por consistencia con [CU04](/casos-de-uso/cu04-recuperar-contrasena-olvidada.md), debería revocar los demás `refresh_tokens` activos de la cuenta al confirmar el cambio.
+
+## Endpoint para cambiar email (CU07)
+
+No existe todavía un endpoint para que un usuario autenticado cambie su propio email. [CU07](/casos-de-uso/cu07-cambiar-email.md) describe el flujo esperado: el email nuevo no se aplica hasta confirmarse (mismo mecanismo de verificación que [CU02](/casos-de-uso/cu02-verificar-email.md)), y el email anterior sigue siendo el activo mientras tanto. Esto requiere un endpoint nuevo (p. ej. `POST /users/me/email` con `{newEmail}`) y casi seguro un cambio de esquema — una columna `pending_email` en `users`, o una tabla análoga a `email_verification_tokens` que además guarde el email nuevo — ya que el cambio no puede aplicarse hasta que se confirme el enlace enviado a la dirección nueva.

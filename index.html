@@ -1,271 +1,283 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <!-- Core Theme -->
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/addons/vue.min.css" />
-  </head>
-  <body class="loading sidebar-chevron-left sidebar-group-underline">
-    <div id="app"></div>
+  <!-- Core Theme -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css"/>
 
-    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
-    <script>
-      function enableMermaidZoom() {
-        document.querySelectorAll(".mermaid svg").forEach((svg) => {
-          if (svg.dataset.zoomEnabled) return;
-          svg.dataset.zoomEnabled = "true";
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/addons/vue.min.css" />
 
-          svgPanZoom(svg, {
-            zoomEnabled: true,
-            controlIconsEnabled: true,
-            fit: true,
-            center: true,
-            minZoom: 0.5,
-            maxZoom: 10
-          });
+ </head>
+
+<body class="loading sidebar-chevron-left sidebar-group-underline">
+  <div id="app"></div>
+  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script>
+    function enableMermaidZoom() {
+      document.querySelectorAll(".mermaid svg").forEach((svg) => {
+        if (svg.dataset.zoomEnabled) return;
+        svg.dataset.zoomEnabled = "true";
+
+        svgPanZoom(svg, {
+          zoomEnabled: true,
+          controlIconsEnabled: true,
+          fit: true,
+          center: true,
+          minZoom: 0.5,
+          maxZoom: 10
         });
-      }
-
-      // Run after Docsify/Mermaid renders, and again after Docsify page changes.
-      window.addEventListener("load", enableMermaidZoom);
-      window.$docsify = window.$docsify || {};
-      window.$docsify.plugins = [
-        ...(window.$docsify.plugins || []),
-        (hook) => {
-          hook.doneEach(enableMermaidZoom);
-        }
-      ];
-    </script>
-
-    <!-- Configuration -->
-    <script>
-      // Merge instead of reassigning, so plugins registered above (mermaid zoom) are kept.
-      window.$docsify = Object.assign(window.$docsify || {}, {
-        loadSidebar: true,
-        subMaxLevel: 2,
-        relativePath: true,
-        auto2top: true,
-        autoHeader: true,
-        search: {
-          placeholder: "Buscar...",
-          // Explicit list: with nested _sidebar.md files, "auto" only indexes the sidebar currently loaded.
-          paths: [
-            "/",
-            "/requerimientos/",
-            ...[
-              "descripcion",
-              "alcance",
-              "requerimientos-funcionales",
-              "requerimientos-no-funcionales",
-              "reglas-01-usuarios",
-              "reglas-02-obras",
-              "reglas-03-calificaciones-q2q",
-              "reglas-04-conversion",
-              "reglas-05-cartas-y-coleccion",
-              "reglas-06-paquetes",
-              "reglas-07-rarezas",
-              "reglas-08-batallas",
-              "reglas-09-generales",
-              "reglas-10-estadisticas-base-emociones-y-rarezas",
-              "reglas-11-apelaciones-y-administracion"
-            ].map((p) => "/requerimientos/" + p),
-            "/trazabilidad/",
-            "/trazabilidad/requerimientos-funcionales",
-            "/trazabilidad/requerimientos-no-funcionales",
-            "/trazabilidad/trazabilidad-temporal",
-            "/clases-dominio/",
-            ...[
-              "usuario",
-              "rol",
-              "obra",
-              "tag",
-              "comentario",
-              "valoracion",
-              "carta",
-              "coleccion",
-              "inventario-de-paquetes",
-              "seguimiento",
-              "destacado",
-              "reporte",
-              "apelacion",
-              "notificacion",
-              "credencial-temporal",
-              "cuenta-externa",
-              "sesion",
-              "batalla"
-            ].map((p) => "/clases-dominio/" + p),
-            "/modelo-tablas/",
-            ...[
-              "users",
-              "roles",
-              "artworks",
-              "artwork-comments",
-              "artwork-ratings",
-              "cards",
-              "user-cards",
-              "card-packs",
-              "tags",
-              "artwork-tags",
-              "follows",
-              "favorite-cards",
-              "favorite-artworks",
-              "reports",
-              "notifications",
-              "email-verification-tokens",
-              "password-reset-tokens",
-              "refresh-tokens",
-              "oauth-accounts",
-              "appeals",
-              "indices-recomendados"
-            ].map((p) => "/modelo-tablas/" + p),
-            "/clases-diseno/",
-            ...[
-              "convencion-general",
-              "auth",
-              "users",
-              "roles",
-              "artworks",
-              "ratings",
-              "comments",
-              "cards-collections",
-              "packages",
-              "battle",
-              "follows-favorites",
-              "notifications",
-              "reports",
-              "moderation",
-              "tags",
-              "storage",
-              "conversion",
-              "scheduler",
-              "common"
-            ].map((p) => "/clases-diseno/" + p),
-            "/diseno-componentes/",
-            ...[
-              "endpoints-auth",
-              "endpoints-users",
-              "endpoints-artworks",
-              "endpoints-ratings",
-              "endpoints-cards",
-              "endpoints-packages",
-              "endpoints-battle",
-              "endpoints-favorites",
-              "endpoints-reports",
-              "endpoints-notifications",
-              "endpoints-tags",
-              "endpoints-administracion",
-              "guards",
-              "validaciones",
-              "convenciones-api",
-              "estado-carta"
-            ].map((p) => "/diseno-componentes/" + p),
-            "/diseno-arquitectura/",
-            ...[
-              "organizacion-modulos",
-              "observabilidad",
-              "almacenamiento-imagenes",
-              "conversion",
-              "regeneracion-paquetes",
-              "seleccion-rival",
-              "recomendaciones"
-            ].map((p) => "/diseno-arquitectura/" + p),
-            "/interfaces-entre-sistemas/",
-            ...[
-              "postgresql",
-              "cloudinary",
-              "google",
-              "resend",
-              "lorem-picsum",
-              "consideraciones-transversales"
-            ].map((p) => "/interfaces-entre-sistemas/" + p),
-            "/casos-de-prueba/",
-            ...[
-              "estrategia",
-              "cp01-registro-exitoso",
-              "cp02-login",
-              "cp03-subir-obra",
-              "cp04-explorar-obras",
-              "cp05-calificar-obra-mediante-q2q",
-              "cp06-conversion-de-obra-a-carta",
-              "cp07-explorar-coleccion-cartas",
-              "cp08-abrir-paquete",
-              "cp09-jugar-autobattler",
-              "cp10-seguir-usuario",
-              "cp11-destacar-obra-o-carta",
-              "cp12-denunciar-obra",
-              "cp13-denunciar-comentario",
-              "cp14-administrar-denuncias",
-              "cp15-notificaciones",
-              "cp16-ver-editar-perfil",
-              "cp17-gestionar-rol-de-moderador",
-              "cp18-reabrir-un-reporte-resuelto",
-              "cp19-apelar-una-sancion",
-              "cp20-revisar-una-apelacion",
-              "cp21-cargar-carta-directamente",
-              "cp22-disparar-el-ciclo-de-conversion-manualmente",
-              "cp23-recuperar-contrasena-olvidada"
-            ].map((p) => "/casos-de-prueba/" + p),
-            "/DESIGN",
-            "/battle-formula",
-            "/casos-de-uso/",
-            "/casos-de-uso/actores",
-            "/casos-de-uso/flujo-moderacion",
-            ...[
-              "cu01-registrarse",
-              "cu02-verificar-email",
-              "cu03-login",
-              "cu04-recuperar-contrasena-olvidada",
-              "cu05-limpieza-de-cuentas-no-verificadas",
-              "cu06-ver-editar-perfil",
-              "cu07-cambiar-email",
-              "cu08-cambiar-contrasena",
-              "cu09-subir-obra",
-              "cu10-editar-obra",
-              "cu11-eliminar-obra",
-              "cu12-explorar-obras",
-              "cu13-comentar-obra",
-              "cu14-calificar-obra-mediante-q2q",
-              "cu15-conversion-de-obra-a-carta",
-              "cu16-explorar-coleccion-cartas",
-              "cu17-abrir-paquete",
-              "cu18-jugar-autobattler",
-              "cu19-seguir-usuario",
-              "cu20-destacar-obra-o-carta",
-              "cu21-denunciar-obra",
-              "cu22-denunciar-comentario",
-              "cu23-administrar-denuncias",
-              "cu24-notificaciones",
-              "cu25-gestionar-rol-de-moderador",
-              "cu26-reabrir-un-reporte-resuelto",
-              "cu27-apelar-una-sancion",
-              "cu28-revisar-una-apelacion",
-              "cu29-cargar-carta-directamente",
-              "cu30-disparar-el-ciclo-de-conversion-manualmente"
-            ].map((p) => "/casos-de-uso/" + p)
-          ]
-        }
       });
-    </script>
+    }
 
-    <!-- Docsify.js -->
-    <script src="//cdn.jsdelivr.net/npm/docsify@5"></script>
-
-    <!-- Plugins (optional) -->
-    <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script>
-    <script type="module">
-      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
-      mermaid.initialize({ startOnLoad: true });
-      window.mermaid = mermaid;
-    </script>
-    <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
-    <style>
-      svg {
-        min-height: 500px;
+    // Run after Docsify/Mermaid renders, and again after Docsify page changes.
+    window.addEventListener("load", enableMermaidZoom);
+    window.$docsify = window.$docsify || {};
+    window.$docsify.plugins = [
+      ...(window.$docsify.plugins || []),
+      (hook) => {
+        hook.doneEach(enableMermaidZoom);
       }
-    </style>
-  </body>
+    ];
+  </script>
+
+  <!-- Configuration -->
+  <script>
+    // Merge instead of reassigning, so plugins registered above (mermaid zoom) are kept.
+    window.$docsify = Object.assign(window.$docsify || {}, {
+      loadSidebar: true,
+      subMaxLevel: 2,
+      relativePath: true,
+      auto2top: true,
+      autoHeader: true,
+      breadcrumb: {
+        showHome: true,
+        homeText: 'Home',
+        separator: ' &rsaquo; ',
+        casing: 'capitalize',
+        linkColor: 'var(--theme-color, #42b983)',
+        size: 'small'
+      },
+      search: {
+        placeholder: "Buscar...",
+        // Explicit list: with nested _sidebar.md files, "auto" only indexes the sidebar currently loaded.
+        paths: [
+          "/",
+          "/requerimientos/",
+          ...[
+            "descripcion",
+            "alcance",
+            "requerimientos-funcionales",
+            "requerimientos-no-funcionales",
+            "reglas-01-usuarios",
+            "reglas-02-obras",
+            "reglas-03-calificaciones-q2q",
+            "reglas-04-conversion",
+            "reglas-05-cartas-y-coleccion",
+            "reglas-06-paquetes",
+            "reglas-07-rarezas",
+            "reglas-08-batallas",
+            "reglas-09-generales",
+            "reglas-10-estadisticas-base-emociones-y-rarezas",
+            "reglas-11-apelaciones-y-administracion"
+          ].map((p) => "/requerimientos/" + p),
+          "/trazabilidad/",
+          "/trazabilidad/requerimientos-funcionales",
+          "/trazabilidad/requerimientos-no-funcionales",
+          "/trazabilidad/trazabilidad-temporal",
+          "/clases-dominio/",
+          ...[
+            "usuario",
+            "rol",
+            "obra",
+            "tag",
+            "comentario",
+            "valoracion",
+            "carta",
+            "coleccion",
+            "inventario-de-paquetes",
+            "seguimiento",
+            "destacado",
+            "reporte",
+            "apelacion",
+            "notificacion",
+            "credencial-temporal",
+            "cuenta-externa",
+            "sesion",
+            "batalla"
+          ].map((p) => "/clases-dominio/" + p),
+          "/modelo-tablas/",
+          ...[
+            "users",
+            "roles",
+            "artworks",
+            "artwork-comments",
+            "artwork-ratings",
+            "cards",
+            "user-cards",
+            "card-packs",
+            "tags",
+            "artwork-tags",
+            "follows",
+            "favorite-cards",
+            "favorite-artworks",
+            "reports",
+            "notifications",
+            "email-verification-tokens",
+            "password-reset-tokens",
+            "refresh-tokens",
+            "oauth-accounts",
+            "appeals",
+            "indices-recomendados"
+          ].map((p) => "/modelo-tablas/" + p),
+          "/clases-diseno/",
+          ...[
+            "convencion-general",
+            "auth",
+            "users",
+            "roles",
+            "artworks",
+            "ratings",
+            "comments",
+            "cards-collections",
+            "packages",
+            "battle",
+            "follows-favorites",
+            "notifications",
+            "reports",
+            "moderation",
+            "tags",
+            "storage",
+            "conversion",
+            "scheduler",
+            "common"
+          ].map((p) => "/clases-diseno/" + p),
+          "/diseno-componentes/",
+          ...[
+            "endpoints-auth",
+            "endpoints-users",
+            "endpoints-artworks",
+            "endpoints-ratings",
+            "endpoints-cards",
+            "endpoints-packages",
+            "endpoints-battle",
+            "endpoints-favorites",
+            "endpoints-reports",
+            "endpoints-notifications",
+            "endpoints-tags",
+            "endpoints-administracion",
+            "guards",
+            "validaciones",
+            "convenciones-api",
+            "estado-carta"
+          ].map((p) => "/diseno-componentes/" + p),
+          "/diseno-arquitectura/",
+          ...[
+            "organizacion-modulos",
+            "observabilidad",
+            "almacenamiento-imagenes",
+            "conversion",
+            "regeneracion-paquetes",
+            "seleccion-rival",
+            "recomendaciones"
+          ].map((p) => "/diseno-arquitectura/" + p),
+          "/interfaces-entre-sistemas/",
+          ...[
+            "postgresql",
+            "cloudinary",
+            "google",
+            "resend",
+            "lorem-picsum",
+            "consideraciones-transversales"
+          ].map((p) => "/interfaces-entre-sistemas/" + p),
+          "/casos-de-prueba/",
+          ...[
+            "estrategia",
+            "cp01-registro-exitoso",
+            "cp02-login",
+            "cp03-subir-obra",
+            "cp04-explorar-obras",
+            "cp05-calificar-obra-mediante-q2q",
+            "cp06-conversion-de-obra-a-carta",
+            "cp07-explorar-coleccion-cartas",
+            "cp08-abrir-paquete",
+            "cp09-jugar-autobattler",
+            "cp10-seguir-usuario",
+            "cp11-destacar-obra-o-carta",
+            "cp12-denunciar-obra",
+            "cp13-denunciar-comentario",
+            "cp14-administrar-denuncias",
+            "cp15-notificaciones",
+            "cp16-ver-editar-perfil",
+            "cp17-gestionar-rol-de-moderador",
+            "cp18-reabrir-un-reporte-resuelto",
+            "cp19-apelar-una-sancion",
+            "cp20-revisar-una-apelacion",
+            "cp21-cargar-carta-directamente",
+            "cp22-disparar-el-ciclo-de-conversion-manualmente",
+            "cp23-recuperar-contrasena-olvidada"
+          ].map((p) => "/casos-de-prueba/" + p),
+          "/DESIGN",
+          "/battle-formula",
+          "/casos-de-uso/",
+          "/casos-de-uso/actores",
+          "/casos-de-uso/flujo-moderacion",
+          ...[
+            "cu01-registrarse",
+            "cu02-verificar-email",
+            "cu03-login",
+            "cu04-recuperar-contrasena-olvidada",
+            "cu05-limpieza-de-cuentas-no-verificadas",
+            "cu06-ver-editar-perfil",
+            "cu07-cambiar-email",
+            "cu08-cambiar-contrasena",
+            "cu09-subir-obra",
+            "cu10-editar-obra",
+            "cu11-eliminar-obra",
+            "cu12-explorar-obras",
+            "cu13-comentar-obra",
+            "cu14-calificar-obra-mediante-q2q",
+            "cu15-conversion-de-obra-a-carta",
+            "cu16-explorar-coleccion-cartas",
+            "cu17-abrir-paquete",
+            "cu18-jugar-autobattler",
+            "cu19-seguir-usuario",
+            "cu20-destacar-obra-o-carta",
+            "cu21-denunciar-obra",
+            "cu22-denunciar-comentario",
+            "cu23-administrar-denuncias",
+            "cu24-notificaciones",
+            "cu25-gestionar-rol-de-moderador",
+            "cu26-reabrir-un-reporte-resuelto",
+            "cu27-apelar-una-sancion",
+            "cu28-revisar-una-apelacion",
+            "cu29-cargar-carta-directamente",
+            "cu30-disparar-el-ciclo-de-conversion-manualmente"
+          ].map((p) => "/casos-de-uso/" + p)
+        ]
+      }
+    });
+  </script>
+
+  <!-- Docsify.js -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@5"></script>
+
+  <!-- Plugins (optional) -->
+  <!-- Adds the breadcrumb JavaScript -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true });
+    window.mermaid = mermaid;
+    </script>
+  <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
+  <style>
+    svg {
+      min-height: 500px;
+    }
+</style>
+</body>
+
 </html>
