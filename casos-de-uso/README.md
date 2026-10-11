@@ -27,7 +27,7 @@ Este documento cubre actores, permisos y el catálogo completo de casos de uso, 
 
 ## Catálogo de casos de uso
 
-Los casos de uso cubren registro, verificación y recuperación de cuenta, perfil, obras (subir/editar/eliminar/comentar/calificar), conversión a carta, colección, moderación, seguimiento, batalla, paquetes, destacados, reportes, notificaciones y las herramientas de administración/apelaciones.
+Los casos de uso cubren registro, verificación y recuperación de cuenta, perfil (incluido el avatar), obras (subir/editar/eliminar/comentar/calificar), conversión a carta, colección, moderación, seguimiento, batalla, paquetes, destacados, reportes, notificaciones y las herramientas de administración/apelaciones.
 
 | ID | Nombre | Actor principal |
 |---|---|---|
@@ -61,3 +61,4 @@ Los casos de uso cubren registro, verificación y recuperación de cuenta, perfi
 | [CU28](cu28-revisar-una-apelacion.md) | Revisar una apelación | Moderador o Admin |
 | [CU29](cu29-cargar-carta-directamente.md) | Cargar carta directamente (Admin) | Admin |
 | [CU30](cu30-disparar-el-ciclo-de-conversion-manualmente.md) | Disparar el ciclo de conversión manualmente (Admin) | Admin |
+| [CU31](cu31-subir-avatar.md) | Subir avatar | Usuario autenticado, con email verificado |

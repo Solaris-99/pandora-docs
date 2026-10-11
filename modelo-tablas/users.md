@@ -10,6 +10,7 @@
 | status | enum | active, suspended, banned, pending_verification |
 | bio | varchar(300) | nullable |
 | avatar_url | varchar | nullable |
+| avatar_public_id | varchar | nullable — `public_id` de Cloudinary del avatar actual (CU31); null si nunca se subió uno por esta vía (incluye el avatar importado desde Google) |
 | created_at | timestamp | NOT NULL |
 | updated_at | timestamp | nullable |
 

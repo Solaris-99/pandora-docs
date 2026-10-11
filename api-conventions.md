@@ -529,6 +529,27 @@ A partir de la Fase 2, los endpoints con listados paginados aceptan `page` y `li
 - No aplica el cambio todavía: el email de la cuenta (login, notificaciones) sigue siendo el actual hasta confirmarse vía 7.6. Solicitar un nuevo cambio antes de confirmar el anterior invalida el token pendiente previo.
 - **Errores:** `EMAIL_SAME_AS_CURRENT` (400, coincide con el email actual), `EMAIL_ALREADY_EXISTS` (409), `VALIDATION_ERROR` (400).
 
+### 8.8 Subir avatar (CU31)
+- **Ruta:** `POST /api/v1/users/me/avatar` — **Acceso:** Protegido, requiere email verificado.
+- **Cuerpo de la petición:** `multipart/form-data`, campo `avatar` con el archivo de imagen (PNG/JPG/JPEG/WEBP, **máximo 2 MB**).
+- **Respuesta de éxito (200 OK):** el perfil actualizado, mismo formato que 8.2 (`PATCH /users/me`):
+```json
+{
+  "id": 1,
+  "username": "solaris",
+  "email": "solaris@pandora.art",
+  "bio": "Artista digital.",
+  "avatarUrl": "https://res.cloudinary.com/.../pandora/avatars/xyz.png",
+  "roles": ["user"],
+  "emailVerified": true,
+  "status": "active",
+  "updatedAt": "2026-10-11T20:00:00.000Z"
+}
+```
+- El avatar anterior (si había uno subido por esta misma vía) se elimina de Cloudinary recién después de confirmar el guardado del nuevo — mismo orden que al reemplazar la imagen de una obra (9.2), para no perder el avatar vigente si la subida nueva falla a mitad de camino.
+- A diferencia de 8.2, acá **sí** se valida el contenido real del archivo (firma binaria, no sólo `mimetype`/extensión) — mismo pipe que la subida de obras (9.1), con un límite de peso propio.
+- **Errores:** `VALIDATION_ERROR` (400, archivo ausente/formato no permitido/> 2 MB), `USER_NOT_VERIFIED` (403), `USER_NOT_FOUND` (404), `INTERNAL_SERVER_ERROR` (500, Cloudinary no configurado en el servidor).
+
 ---
 
 ## 9. Contrato de Endpoints de Obras (Fase 3)

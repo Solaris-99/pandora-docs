@@ -2,7 +2,7 @@
 
 ## Entidades
 
-- **User**: `id`, `username: string`, `email: string`, `password_hash: string | null`, `email_verified: boolean`, `status: UserStatus`, `bio: string | null`, `avatar_url: string | null`, `roles: Role[]` (`ManyToMany`), `created_at`, `updated_at`.
+- **User**: `id`, `username: string`, `email: string`, `password_hash: string | null`, `email_verified: boolean`, `status: UserStatus`, `bio: string | null`, `avatar_url: string | null`, `avatar_public_id: string | null` (CU31 — `public_id` de Cloudinary, para poder reemplazar/borrar el avatar; mismo motivo que `Artwork.image_public_id`), `roles: Role[]` (`ManyToMany`), `created_at`, `updated_at`.
 - **Follow**: `follower_id`, `followed_id`, `created_at`.
 - **EmailChangeToken** (CU07): `id`, `user_id`, `new_email: string`, `token_hash: string`, `expires_at: Date`, `used_at: Date | null`, `created_at`. Relación `ManyToOne` a `User` (`onDelete: CASCADE`). Mismo patrón que `EmailVerificationToken` (token opaco hasheado, un solo uso, con expiración), pero además guarda el email nuevo propuesto — recién se aplica a `User.email` al confirmarse.
 
@@ -13,7 +13,8 @@
 | `findByEmail` / `findByUsername` / `findById` | Búsquedas base (con roles cargados). |
 | `create` / `save` / `updateStatus` | Persistencia de alta y cambios de estado. |
 | `getPublicProfile(targetId, currentId?)` | Perfil público + contadores de seguidores/seguidos + `isFollowing` si hay sesión. |
-| `updateProfile(userId, dto)` | Edita username/bio/avatar propios, valida unicidad de username. |
+| `updateProfile(userId, dto)` | Edita username/bio/`avatar_url` (texto libre) propios, valida unicidad de username. |
+| `uploadAvatar(userId, file)` (CU31) | Sube el archivo a Cloudinary vía `StorageService.uploadAvatarImage()`, guarda `avatar_url`/`avatar_public_id`, y recién después borra el avatar anterior en Cloudinary (si había uno) — mismo orden que `ArtworksService.update()` al reemplazar una imagen. |
 | `changePassword(userId, dto)` (CU08) | Verifica `currentPassword` contra el hash almacenado, hashea y guarda `newPassword`, revoca los `refresh_tokens` activos de la cuenta (mismo efecto que `AuthService.resetPassword`). 409 `NO_LOCAL_PASSWORD` si la cuenta es sólo-Google (`password_hash` nulo). |
 | `requestEmailChange(userId, dto)` / `confirmEmailChange(token)` (CU07) | Dos pasos: la solicitud valida unicidad/distinción contra el email actual e invalida cualquier `EmailChangeToken` pendiente previo antes de emitir uno nuevo y enviar el correo (vía `MailService`); la confirmación recién copia `new_email` a `User.email`, re-chequeando unicidad por si el email fue tomado por otra cuenta mientras tanto. |
 | `followUser` / `unfollowUser` | Alta/baja idempotente de `Follow`, dispara notificación `user_follow`. |
@@ -24,4 +25,4 @@ Nota de dependencias: `UsersService` inyecta directamente el repositorio de `Ref
 
 ## DTOs
 
-`UpdateProfileDto`, `ChangePasswordDto`, `ChangeEmailDto`, `ConfirmEmailChangeDto` (entrada) · `PublicProfileResponseDto`, `UpdateProfileResponseDto`, `FollowListItemDto` (salida).
+`UpdateProfileDto`, `ChangePasswordDto`, `ChangeEmailDto`, `ConfirmEmailChangeDto` (entrada) · `PublicProfileResponseDto`, `UpdateProfileResponseDto`, `FollowListItemDto` (salida). `uploadAvatar` no tiene DTO de entrada propio (el archivo llega vía `multipart/form-data`, validado por `buildImageValidationPipe`) y reutiliza `UpdateProfileResponseDto` de salida.

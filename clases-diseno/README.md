@@ -237,7 +237,7 @@ classDiagram
     class StorageService {
       <<Service · storage>>
       +uploadArtworkImage(file) urls + publicId
-      +deleteArtworkImage(publicId)
+      +deleteImage(publicId)
     }
     class FavoritesService {
       <<Service · favorites>>

@@ -12,6 +12,7 @@
   - [CU06 — Ver/editar perfil](/casos-de-uso/cu06-ver-editar-perfil.md)
   - [CU07 — Cambiar email](/casos-de-uso/cu07-cambiar-email.md)
   - [CU08 — Cambiar contraseña](/casos-de-uso/cu08-cambiar-contrasena.md)
+  - [CU31 — Subir avatar](/casos-de-uso/cu31-subir-avatar.md)
 - Obras
   - [CU09 — Subir obra](/casos-de-uso/cu09-subir-obra.md)
   - [CU10 — Editar obra](/casos-de-uso/cu10-editar-obra.md)

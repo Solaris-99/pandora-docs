@@ -126,4 +126,8 @@
 
 ---
 
+[CU31](cu31-subir-avatar.md ':include')
+
+---
+
 [Flujo de moderación](flujo-moderacion.md ':include')

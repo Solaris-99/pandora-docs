@@ -10,7 +10,8 @@ Este documento detalla las interacciones entre el backend de Pandora (como siste
 - [PostgreSQL](postgresql.md)
 - [Cloudinary (almacenamiento de imágenes)](cloudinary.md)
   - [Subida (`uploadArtworkImage`)](cloudinary.md#subida-uploadartworkimage)
-  - [Borrado (`deleteArtworkImage`)](cloudinary.md#borrado-deleteartworkimage)
+  - [Subida de avatar (`uploadAvatarImage`, CU31)](cloudinary.md#subida-de-avatar-uploadavatarimage-cu31)
+  - [Borrado (`deleteImage`)](cloudinary.md#borrado-deleteimage)
   - [Límite conocido](cloudinary.md#límite-conocido)
 - [Google (identidad federada / OAuth)](google.md)
   - [Flujo Web — authorization code (Passport)](google.md#flujo-web-authorization-code-passport)
@@ -30,7 +31,7 @@ Este documento detalla las interacciones entre el backend de Pandora (como siste
 | Sistema | Rol | Protocolo | Dirección | ¿Obligatorio para arrancar? | Modo de fallo |
 |---|---|---|---|---|---|
 | [PostgreSQL](postgresql.md) | Almacenamiento primario de datos | TCP/SQL (TypeORM) | Backend → PostgreSQL | Sí | El proceso no arranca sin conexión a la base |
-| [Cloudinary](cloudinary.md) | Almacenamiento/CDN de imágenes de obras | HTTPS REST (SDK oficial `cloudinary`) | Backend → Cloudinary | No (el proceso arranca igual) | Sin credenciales: cualquier subida responde `500 INTERNAL_SERVER_ERROR` explícito |
+| [Cloudinary](cloudinary.md) | Almacenamiento/CDN de imágenes de obras y avatares | HTTPS REST (SDK oficial `cloudinary`) | Backend → Cloudinary | No (el proceso arranca igual) | Sin credenciales: cualquier subida responde `500 INTERNAL_SERVER_ERROR` explícito |
 | [Google](google.md) | Identidad federada (login social) | OAuth2 authorization code (web) / verificación de ID token (Android) | Backend ↔ Google | No | Sin credenciales: las rutas `/auth/google*` fallan; login local no se ve afectado |
 | [Resend](resend.md) | Envío de correo transaccional | HTTPS REST (SDK oficial `resend`) | Backend → Resend | No | Sin API key: modo *log* local (el correo se imprime en logs, no se bloquea el flujo) |
 | [Lorem Picsum](lorem-picsum.md) | Imágenes placeholder para el catálogo semilla | URL hotlink — **el backend no llama a Picsum**, sólo construye la URL | Cliente (navegador/app) → Picsum, referenciado por el backend | No | Si Picsum cae, sólo se ven rotas esas imágenes puntuales; no afecta al backend |
