@@ -8,9 +8,9 @@
 
 `api-conventions.md` §5.4 recomienda evitar `localStorage` para el `refreshToken` por exposición a XSS, y sugiere `httpOnly` cookie o almacenamiento cifrado. El frontend no puede lograr `httpOnly` unilateralmente — requiere que el backend setee la cookie vía `Set-Cookie` en `/auth/login`, `/auth/register` y `/auth/refresh`. Si se prioriza, sería un modo opcional (Android seguiría necesitando el token en el body JSON). Mientras tanto el `refreshToken` vive en `localStorage` (`persist` de Zustand, `features/auth/store.ts`) — un `localStorage` "cifrado" no es una alternativa real, ya que la clave de cifrado tendría que vivir en el mismo JS accesible al atacante.
 
-### Validación de composición de contraseña en el backend (pendiente, hardening opcional)
+### ~~Validación de composición de contraseña en el backend~~ — resuelto
 
-El frontend (2026-10-14) exige client-side, para registro/reset/cambio de contraseña, un mínimo de 8 caracteres con al menos una mayúscula, una minúscula, un número y un símbolo (`passwordSchema`, `src/lib/schemas.ts`). `api-conventions.md` §4 sigue documentando sólo la política de longitud (6–50 caracteres) sin requisito de composición, y el backend no la valida. Al ser un chequeo puramente de cliente, una cuenta creada antes de este cambio o una request directa a la API (sin pasar por el frontend) puede seguir teniendo una contraseña que no cumpla esta política. Si se quiere que la regla sea real, habría que replicarla server-side (mismo mensaje sugerido: "Debe incluir mayúscula, minúscula, número y símbolo").
+El backend ahora replica exactamente la política que ya exigía el cliente (`passwordSchema`, `src/lib/schemas.ts`): 8–50 caracteres, con al menos una mayúscula, una minúscula, un número y un símbolo. Decorador compartido `IsStrongPassword()` (`src/common/decorators/is-strong-password.decorator.ts`), aplicado a `RegisterDto.password`, `ResetPasswordDto.newPassword` y `ChangePasswordDto.newPassword` — nunca a `currentPassword`, que sólo se compara contra el hash existente, no se re-valida contra la política actual (una cuenta creada antes de este cambio puede seguir autenticándose con una contraseña más corta/simple; sólo al cambiarla se le exige la política nueva). Ver [convenciones de API §4](/api-conventions.md).
 
 ### Flujo de Google web sin `refreshToken` (decisión de diseño del cliente)
 

@@ -129,7 +129,7 @@ El backend implementa rechazo estricto de campos no permitidos (**whitelisting**
 - Las cadenas de texto son sanitizadas y validadas según las siguientes reglas base:
   - **username**: Obligatorio, entre 1 y 30 caracteres, sólo letras/números/guión bajo (`^[a-zA-Z0-9_]+$`) — mismo charset exigido tanto al registrarse como al editar el perfil.
   - **email**: Formato de email válido (`user@domain.com`), máximo 30 caracteres.
-  - **password**: Mínimo 6 caracteres, máximo 50 caracteres.
+  - **password**: Entre 8 y 50 caracteres, y debe incluir al menos una mayúscula, una minúscula, un número y un símbolo — aplica a `RegisterDto.password`, `ResetPasswordDto.newPassword` y `ChangePasswordDto.newPassword` (nunca a `ChangePasswordDto.currentPassword`, que sólo se compara contra el hash existente).
   - **Todo campo de texto libre que un cliente pueda renderizar** (título/descripción de obra, tags, comentario, bio, campo `comment`/`detail` de reportes y apelaciones): se le remueve cualquier marcado HTML antes de persistir — ver 4.2.
 
 ### 4.1 Rate limiting (RNF03, RNF08)
@@ -235,7 +235,7 @@ A partir de la Fase 4, **todo endpoint que autentica** (registro, login, verific
 {
   "username": "solaris",
   "email": "solaris@pandora.art",
-  "password": "miPasswordSegura123"
+  "password": "miPasswordSegura123!"
 }
 ```
 - **Respuesta de éxito (201 Created):**
@@ -262,7 +262,7 @@ A partir de la Fase 4, **todo endpoint que autentica** (registro, login, verific
 ```json
 {
   "email": "solaris@pandora.art",
-  "password": "miPasswordSegura123"
+  "password": "miPasswordSegura123!"
 }
 ```
 - **Respuesta de éxito (200 OK):**
@@ -404,7 +404,7 @@ A partir de la Fase 4, **todo endpoint que autentica** (registro, login, verific
 - **Ruta:** `POST /api/v1/auth/reset-password` — **Acceso:** Público.
 - **Cuerpo de la petición:**
 ```json
-{ "token": "b7e2...f1a9", "newPassword": "miPasswordNueva123" }
+{ "token": "b7e2...f1a9", "newPassword": "miPasswordNueva123!" }
 ```
 - El `token` es el recibido por correo (parámetro `?token=` del enlace `{FRONTEND_URL}/reset-password?token=...`).
 - **Respuesta de éxito (200 OK):**
@@ -505,9 +505,9 @@ A partir de la Fase 2, los endpoints con listados paginados aceptan `page` y `li
 - **Ruta:** `PATCH /api/v1/users/me/password` — **Acceso:** Protegido.
 - **Cuerpo de la petición:**
 ```json
-{ "currentPassword": "miPasswordActual", "newPassword": "miPasswordNueva123" }
+{ "currentPassword": "miPasswordActual", "newPassword": "miPasswordNueva123!" }
 ```
-- `newPassword` sigue la misma política de longitud que el registro (6–50 caracteres).
+- `newPassword` sigue la misma política que el registro (ver 4): 8–50 caracteres, con al menos una mayúscula, una minúscula, un número y un símbolo.
 - **Respuesta de éxito (200 OK):**
 ```json
 { "message": "Tu contraseña fue actualizada correctamente." }
