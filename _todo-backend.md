@@ -17,3 +17,27 @@ Dos endpoints: `POST /users/me/email` (solicita el cambio — valida formato/uni
 ## ~~Validar período de calificación al editar/eliminar obra (CU10/CU11)~~ — resuelto
 
 No lo rechazaban. `ArtworksService.update()`/`remove()` ahora responden `409 ARTWORK_ALREADY_CONVERTED` cuando `conversion_status = converted`. En `remove()` el chequeo es específico del autor (`!isModerator`): un moderador/admin puede seguir eliminando una obra ya convertida en cualquier momento, igual que `moderationRemove`, que no se tocó. Ver [clases de diseño §artworks](/clases-diseno/artworks.md) y [convenciones de API §9.2](/api-conventions.md).
+
+## Notificaciones sin referencia al recurso (detectado desde mobile)
+
+`data: { targetType, targetId }` ([api-conventions §16.6](/api-conventions.md)) solo viaja en las notificaciones de moderación (`artwork_removed`, `comment_removed`, `artwork_restored`, `comment_restored`, `appeal_resolved`). El resto no trae ninguna referencia, así que el cliente no puede abrir el recurso al tocarlas:
+
+| Tipo | Referencia que falta | Destino en la app |
+|---|---|---|
+| `artwork_comment`, `artwork_vote_summary`, `qualification_ended`, `artwork_converted`, `follow_upload` | `targetType: "artwork"`, `targetId` = id de la obra | Detalle de la obra |
+| `user_follow` | `targetType: "user"`, `targetId` = id de quien siguió | Perfil de esa persona |
+| `comment_restored` | `targetType: "comment"` ya viaja, pero sin el id de la obra a la que pertenece el comentario | Obra con el comentario |
+
+Propuesta: agregar `data` a esos tipos (y, para comentarios, un `artworkId` opcional dentro de `data`). Es compatible hacia atrás: el campo ya es opcional. Mientras tanto, mobile solo enlaza las notificaciones que hoy traen `data`.
+
+## Forma de la respuesta de apelaciones (detectado desde mobile)
+
+[§18.3–18.5](/api-conventions.md) dicen que crear una apelación devuelve "la apelación creada, con `status: "pending"`", y que `GET /users/me/appeals` lista las propias, pero no documentan los campos de cada ítem. `AppealResponseDto` (clases de diseño) solo lista `id`, `reason`, `detail`, `status` y `report`. Mobile decodifica de forma tolerante (todo opcional salvo `id`) y muestra estado, motivo, texto y tipo de contenido. Para mostrar bien la lista falta documentar, como mínimo: `createdAt`, `reviewedAt` y, dentro de `report`, `targetType`, `targetId` y `resolution`; y confirmar los valores posibles de `status` (`pending` | `approved` | `rejected`).
+
+## `createdAt` de comentarios adelantado 3 horas (detectado desde mobile)
+
+Al comentar desde la app contra el backend de desarrollo, `POST /artworks/:id/comments` guardó `createdAt = 2026-10-14T21:43:51.585Z` cuando la hora UTC real era ≈ `18:43Z` (el campo `timestamp` de los errores del mismo servidor sí marca `18:44Z`). Parece una columna `timestamp` sin zona horaria o un `TZ` del proceso/DB distinto de UTC (el desfase coincide con UTC−3). El cliente muestra "Dentro de 2 horas" en comentarios recién creados. Revisar el tipo de columna (`timestamptz`) y el `TZ` de la base de datos para que todas las fechas se emitan en UTC real.
+
+## `GET /artworks?converted=false` devuelve lo mismo que `converted=true` (detectado desde mobile)
+
+Contra el backend de desarrollo, `GET /artworks?tag=fantasia&converted=false` y `...&converted=true` devuelven exactamente el mismo conjunto (`total: 9`, todas `conversionStatus: converted`), y sin el parámetro `total: 13`. [`api-conventions.md`](api-conventions.md) dice que `false` = "el resto". Causa probable: el DTO convierte el query string con `@Transform(({ value }) => Boolean(value))` (o `@Type(() => Boolean)`), con lo que la cadena `"false"` se evalúa como `true`. Debe parsearse `value === 'true'` / `'false'` de forma explícita. El mismo patrón puede afectar a `qualificationOnly` y a otros filtros booleanos de query. La app ya envía el valor correcto, por lo que el filtro "Sin carta" de Explorar no funcionará hasta que se corrija.
