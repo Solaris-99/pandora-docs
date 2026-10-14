@@ -187,7 +187,7 @@ spacing:
 
 > Fuente de verdad del sistema de diseño de Pandora, para que web y mobile compartan la misma identidad visual — igual que `battle-formula.md` para la mecánica de combate. Se escribió a partir de una plantilla de referencia (paleta M3 + especificación de componentes) adaptada al dominio real de Pandora (obras → calificación → cartas → colección → batalla), no una traducción literal.
 >
-> **Relación con la implementación web actual:** `src/index.css` ya tiene un acento violeta aplicado (ver `docs/frontend-todo.md`), pero sólo cubre los roles de shadcn (`primary`, `secondary`, `accent`, `muted`, `border`...) — no todavía la paleta M3 completa de acá (roles `tertiary`, niveles de `surface-container`, paleta clara derivada formalmente, tipografía Syne/Plus Jakarta Sans/JetBrains Mono, radios más angostos). Migrar el CSS del frontend para que coincida 1:1 con este documento es un paso aparte, todavía no hecho — ver tabla de mapeo al final.
+> **Relación con la implementación web actual:** `src/index.css` ya tiene un acento violeta aplicado (ver `docs/shared/_todo-frontend.md`), pero sólo cubre los roles de shadcn (`primary`, `secondary`, `accent`, `muted`, `border`...) — no todavía la paleta M3 completa de acá (roles `tertiary`, niveles de `surface-container`, paleta clara derivada formalmente, tipografía Syne/Plus Jakarta Sans/JetBrains Mono, radios más angostos). Migrar el CSS del frontend para que coincida 1:1 con este documento es un paso aparte, todavía no hecho — ver tabla de mapeo al final.
 
 ## Marca y estilo
 
@@ -229,7 +229,7 @@ Los valores exactos (hex) están en el frontmatter de este documento, separados 
 Estos son convenciones del frontend que preceden a este documento y **se mantienen** — no las reemplaza la paleta de arriba, conviven con ella:
 
 - **Stats de carta** (`CardDetailPage`, `CardTile`, `BattleArena`): ataque en rojo (`red-600`/`red-400`), defensa en ámbar (`amber-600`/`amber-400`), vida en esmeralda (`emerald-600`/`emerald-400`), velocidad en celeste (`sky-600`/`sky-400`). Son colores "de juego" (icono + número), no roles de marca — no se tocan.
-- **Log de batalla**: turnos del jugador en celeste, del rival en rojo, resultado en esmeralda (victoria) o rojo (derrota) — ver `docs/frontend-todo.md`.
+- **Log de batalla**: turnos del jugador en celeste, del rival en rojo, resultado en esmeralda (victoria) o rojo (derrota) — mismo criterio que los colores de stats, sin semántica definida más allá de esta implementación.
 - **Rareza de carta** (`common` → `legendary`): hoy sólo usa 3 variantes genéricas de `Badge` (`outline`/`secondary`/`default`). Este documento propone — a confirmar antes de implementar — una escala propia de 5 pasos para que cada rareza se reconozca de un vistazo en la colección:
 
   | Rareza | Color sugerido |

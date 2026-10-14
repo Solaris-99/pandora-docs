@@ -1,51 +1,81 @@
 # Pedidos del frontend al backend
 
-> Ítems detectados durante la implementación del frontend que requieren un cambio de contrato o un endpoint nuevo — no son deuda técnica del lado del frontend, sino mejoras a coordinar con el backend. Movidos acá desde `frontend-todo.md` (que sólo debería contener limitaciones/decisiones puramente del cliente).
+> Pedidos de cambio de contrato/endpoint hacia el backend, y decisiones o limitaciones del cliente web con valor de coordinación para mobile/backend. Antes esto último vivía separado en `frontend-todo.md` (deuda técnica puramente del cliente); se consolidó todo acá para no mantener dos listas. Los ítems resueltos quedan tachados con el detalle de cómo se resolvió, para que quede el rastro de qué se pidió.
 
-## ~~Búsqueda de tags~~ — resuelto
+## Seguridad / autenticación
 
-`GET /api/v1/tags?search=<query>` (api-conventions.md §10) ya filtra server-side (`ILIKE` sobre `name`). Se mantuvo como array plano sin envoltorio de paginación — el catálogo de tags sigue siendo chico, así que no se agregó paginación real todavía; si el catálogo crece mucho eso sí quedaría pendiente.
+### Cookie `httpOnly` para el `refreshToken` (pendiente, hardening opcional)
 
-## ~~Filtro `rarity` en el explorador de obras~~ — resuelto
+`api-conventions.md` §5.4 recomienda evitar `localStorage` para el `refreshToken` por exposición a XSS, y sugiere `httpOnly` cookie o almacenamiento cifrado. El frontend no puede lograr `httpOnly` unilateralmente — requiere que el backend setee la cookie vía `Set-Cookie` en `/auth/login`, `/auth/register` y `/auth/refresh`. Si se prioriza, sería un modo opcional (Android seguiría necesitando el token en el body JSON). Mientras tanto el `refreshToken` vive en `localStorage` (`persist` de Zustand, `features/auth/store.ts`) — un `localStorage` "cifrado" no es una alternativa real, ya que la clave de cifrado tendría que vivir en el mismo JS accesible al atacante.
 
-`GET /artworks?rarity=<rareza>` (§9.4) ya filtra por la rareza de la carta ya generada (join contra `cards`). Decisión sobre el caso "obra sin carta convertida": simplemente no matchea el filtro — no hay un valor "sin rareza" explícito.
+### Validación de composición de contraseña en el backend (pendiente, hardening opcional)
 
-## ~~Selector de cartas propias sin filtro `owned`~~ — resuelto
+El frontend (2026-10-14) exige client-side, para registro/reset/cambio de contraseña, un mínimo de 8 caracteres con al menos una mayúscula, una minúscula, un número y un símbolo (`passwordSchema`, `src/lib/schemas.ts`). `api-conventions.md` §4 sigue documentando sólo la política de longitud (6–50 caracteres) sin requisito de composición, y el backend no la valida. Al ser un chequeo puramente de cliente, una cuenta creada antes de este cambio o una request directa a la API (sin pasar por el frontend) puede seguir teniendo una contraseña que no cumpla esta política. Si se quiere que la regla sea real, habría que replicarla server-side (mismo mensaje sugerido: "Debe incluir mayúscula, minúscula, número y símbolo").
 
-`GET /users/me/cards?owned=true` (§13.4) ya filtra a sólo las cartas que el usuario posee (`copies > 0`), tanto en `GET /cards` como en `GET /users/me/cards`. Sin token, `owned=true` devuelve una lista vacía en vez de ignorarse.
+### Flujo de Google web sin `refreshToken` (decisión de diseño del cliente)
 
-## ~~`isFavorited` ausente en el detalle de obra/carta~~ — resuelto
+El flujo de redirección (§7.3) no recibe `refreshToken` por diseño — no se quiere exponer un token de larga duración en la URL de redirección. Como consecuencia, esa sesión expira a los 15 minutos sin refresco silencioso y el usuario tiene que volver a autenticarse con Google. El flujo 7.4 (popup/fetch con `idToken`) daría sesión persistente, pero no se implementó por requerir integrar el SDK de Google Identity Services en el cliente web. El refresco de `accessToken` además es sólo reactivo (on-401, `src/lib/axios.ts`), no proactivo vía el `exp` del JWT — una mejora menor, no un bug.
 
-`GET /artworks/:id` (§9.3) y `GET /cards/:id` (§13.1) ya exponen `isFavorited` (mismo patrón que `isFollowing`): sólo presente con un token válido, ausente en petición anónima. No se agregó a los listados (`GET /artworks`, `GET /cards`), sólo al detalle — se consideró fuera de alcance de este pedido.
+### IDs serializados como string en algunas respuestas
 
-## ~~Notificaciones sin referencia al recurso afectado~~ — resuelto
+El backend documenta todo id como número JSON (`api-conventions.md`), pero en la práctica a veces serializa bigints como string (`"id": "43"`). El frontend se defiende centralizando `idSchema = z.coerce.number()` (`src/lib/schemas.ts`) en vez de confiar en el tipo documentado — si esto persiste o reaparece, Android debería considerar una defensa equivalente al parsear JSON (un `Int`/`Long` estricto rompería donde el frontend web no rompe).
 
-Las notificaciones de moderación ahora traen un campo opcional `data: { targetType, targetId }` (§16.6) en `artwork_removed`, `comment_removed`, `artwork_restored`, `comment_restored` (`targetType: "artwork"|"comment"`) y `appeal_resolved` (`targetType: "appeal"`). `user_warned`/`user_banned`/`user_unbanned` quedaron fuera a propósito: el flujo de apelación de baneo (`POST /users/me/ban-appeal`) siempre es sobre la propia cuenta, no necesita un id.
+## Obras
 
-## ~~`GET /artworks/qualification` rechaza los filtros que documenta §9.5~~ — resuelto
+### Explorador/Home sólo muestran obras en período de calificación
 
-El atajo dedicado `GET /artworks/qualification` fue eliminado (tanto de la API como de la documentación) en vez de arreglado: sólo aceptaba `page`/`limit` mientras el contrato prometía el set completo de filtros de `/artworks`, y el frontend (`ExplorePage`, preview de obras recientes en Home) ya usaba `GET /artworks?qualificationOnly=true` en su lugar. Ese filtro sobre el explorador general sigue siendo la única vía — ya aceptaba correctamente el set completo de filtros y sigue documentado en §9.4.
+`ExplorePage` y el preview de obras recientes del Home filtran con `GET /artworks?qualificationOnly=true` (§9.4) — sólo obras con `conversionStatus: "pending"`, aún sin procesar por el ciclo de conversión. Una obra ya `converted`/`skipped` no pertenece a "explorar": vive en el catálogo de cartas. Relevante para que mobile replique el mismo recorte si tiene una pantalla equivalente.
 
-## Cookie `httpOnly` para el `refreshToken` (opcional, hardening)
+### ~~Búsqueda de tags server-side~~ — resuelto en el backend, pendiente de migrar en el frontend
 
-`api-conventions.md` §5.4 recomienda evitar `localStorage` para el `refreshToken` por exposición a XSS, y sugiere `httpOnly` cookie o almacenamiento cifrado. El frontend no puede lograr `httpOnly` unilateralmente — requiere que el backend setee la cookie vía `Set-Cookie` en `/auth/login`, `/auth/register` y `/auth/refresh`. Si se prioriza este hardening para el cliente web, sería un modo opcional (la app Android seguiría necesitando el token en el body JSON).
+`GET /api/v1/tags?search=<query>` (§10) ya filtra server-side (`ILIKE` sobre `name`), devuelto como array plano sin paginación (catálogo todavía chico). `TagsInput` (subir/editar obra) sigue filtrando en el cliente sobre el `GET /tags` completo — no es urgente mientras el catálogo sea chico, pero falta migrarlo.
 
-## Subida de avatar (detectado desde mobile)
+### Obra convertida ya no puede editarse ni eliminarse por su autor (`ARTWORK_ALREADY_CONVERTED`)
 
-`PATCH /users/me` (§8.2) sólo acepta `avatar_url` como string y no existe un endpoint de subida de avatar. La app Android no puede mostrar un selector de imagen de perfil hasta que haya uno. Propuesta: `POST /users/me/avatar` (`multipart/form-data`, campo `image`, mismas reglas que §9.1: PNG/JPG/JPEG/WEBP, máx. 25 MB) que suba a Cloudinary y devuelva el perfil actualizado, reutilizando `StorageService`. Si no se prioriza, mobile queda con edición de `username`/`bio` y avatar sólo de Google.
+CU10-A1/CU11-A1: el backend responde 409 `ARTWORK_ALREADY_CONVERTED` si el autor intenta editar/eliminar una obra con `conversionStatus: "converted"` (un moderador/admin sí puede eliminarla en cualquier momento). El frontend lo gatea proactivamente — `ArtworkDetailPage` oculta editar/eliminar y `ArtworkEditPage` muestra un estado vacío en vez del 409 reactivo. Mobile debería aplicar la misma precondición en su propia UI de edición.
 
-## Verificación de email y reset de contraseña desde la app (detectado desde mobile)
+## Cartas y favoritos
 
-Los correos de verificación y recuperación ([interfaces entre sistemas, correos enviados](/interfaces-entre-sistemas/resend.md#correos-enviados)) enlazan a `{FRONTEND_URL}/verify-email?token=...` y `{FRONTEND_URL}/reset-password?token=...`. Mobile los abre en el navegador (el portal web hace el `POST` correspondiente), sin cambios de contrato. Si se quisiera abrirlos directo en la app habría que, del lado web/backend: publicar `/.well-known/assetlinks.json` en el dominio del frontend (con el SHA-256 de la firma de la app) y confirmar que las rutas `/verify-email` y `/reset-password` se mantengan estables. Opcional; no bloquea nada.
+### ~~`owned=true` / `isFavorited`~~ — resueltos en el backend, pendientes de migrar en el frontend
 
-## ~~Reglas de la batalla local (a alinear entre web y mobile)~~ — resuelto
+`GET /cards`/`GET /users/me/cards?owned=true` (§13.4) ya filtra a sólo las cartas que el usuario posee, e `isFavorited` ya está expuesto en `GET /artworks/:id` y `GET /cards/:id` (§9.3/§13.1, mismo patrón que `isFollowing`, sólo en el detalle, no en los listados). El frontend todavía no los consume: `BattleCardPicker` sigue pidiendo `useMyCards({ page: 1, limit: 100 })` y filtrando `owned` en el cliente, y `useFavoriteArtworkIds`/`useFavoriteCardIds` (`features/favorites/hooks.ts`) siguen resolviendo "¿está destacado?" pidiendo la lista completa de destacados propios (mismo límite de 100) y comprobando membership — ambos son el mismo patrón pragmático, pendiente de simplificar.
 
-La fórmula quedó acordada y documentada en `battle-formula.md` (2026-10-07); [requerimientos §5.8](/requerimientos/reglas-08-batallas.md) sigue definiendo que la simulación es local al cliente. Ambos clientes la implementan tal cual.
+## Batalla
 
-## Endpoint para cambiar contraseña (CU08)
+### ~~Reglas de la batalla local~~ — resuelto
 
-No existe todavía un endpoint para que un usuario autenticado cambie su propia contraseña — `/auth/forgot-password`/`/auth/reset-password` son sólo para quien no puede iniciar sesión. [CU08](/casos-de-uso/cu08-cambiar-contrasena.md) ya describe el flujo esperado: contraseña actual + nueva contraseña en dos campos (nueva/repetir). Propuesta: `PATCH /users/me/password` (Auth), payload `{currentPassword, newPassword}`, misma política de longitud que el registro. Por consistencia con [CU04](/casos-de-uso/cu04-recuperar-contrasena-olvidada.md), debería revocar los demás `refresh_tokens` activos de la cuenta al confirmar el cambio.
+La fórmula (dodge/crítico/reducción de daño) quedó acordada y documentada en `battle-formula.md` (2026-10-07); [requerimientos §5.8](/requerimientos/reglas-08-batallas.md) define que la simulación es local a cada cliente. `features/battle/simulate.ts` en el frontend es la implementación de referencia. Si se agrega algo más elaborado (multi-golpe, efectos por rareza/emoción, etc.), hay que actualizar primero `battle-formula.md` y después cada cliente.
 
-## Endpoint para cambiar email (CU07)
+## Notificaciones y apelaciones
 
-No existe todavía un endpoint para que un usuario autenticado cambie su propio email. [CU07](/casos-de-uso/cu07-cambiar-email.md) describe el flujo esperado: el email nuevo no se aplica hasta confirmarse (mismo mecanismo de verificación que [CU02](/casos-de-uso/cu02-verificar-email.md)), y el email anterior sigue siendo el activo mientras tanto. Esto requiere un endpoint nuevo (p. ej. `POST /users/me/email` con `{newEmail}`) y casi seguro un cambio de esquema — una columna `pending_email` en `users`, o una tabla análoga a `email_verification_tokens` que además guarde el email nuevo — ya que el cambio no puede aplicarse hasta que se confirme el enlace enviado a la dirección nueva.
+### ~~Notificaciones sin referencia al recurso afectado~~ — resuelto en el backend, pendiente de migrar en el frontend
+
+Las notificaciones de moderación ya traen `data: { targetType, targetId }` (§16.6) en `artwork_removed`/`comment_removed`/`artwork_restored`/`comment_restored`/`appeal_resolved`. El frontend todavía no lo usa: una notificación de contenido eliminado no permite deep-link hasta la apelación — `MyAppealsPage`/`AppealContentDialog` le siguen pidiendo el tipo y el ID manualmente al usuario. Pendiente reemplazar ese diálogo por un botón directo cuando la notificación traiga esos datos.
+
+No hay mecanismo de push: el contador de no leídas (`useUnreadCount`) hace polling en un intervalo corto en vez de recibir un evento. Si se agrega push/WebSocket en el backend más adelante, ambos clientes podrían dejar de hacer polling.
+
+## Cuenta
+
+### ~~Cambiar contraseña (CU08)~~ — resuelto y consumido
+
+`PATCH /users/me/password` (§8.6). El frontend agregó una sección "Cambiar contraseña" en `SettingsProfilePage` (`useChangePassword`). Como no hay un campo en el usuario de sesión que indique si la cuenta tiene contraseña local (login sólo-Google), el formulario se muestra siempre y `NO_LOCAL_PASSWORD` (409) se maneja reactivo, igual que `INVALID_CREDENTIALS`.
+
+### ~~Cambiar email (CU07)~~ — resuelto y consumido
+
+`POST /users/me/email` + `POST /auth/confirm-email-change` (§7.6/§8.7). El frontend agregó una sección "Cambiar email" en `SettingsProfilePage` (`useRequestEmailChange`) y una página pública nueva, `ConfirmEmailChangePage`, para confirmar desde el link del correo (mismo patrón que `VerifyEmailPage`/`ResetPasswordPage`). El email de sesión no se actualiza hasta confirmarse.
+
+### ~~Subir avatar (CU31)~~ — resuelto y consumido
+
+`POST /users/me/avatar` (§8.8, multipart, campo `avatar`, máx. 2 MB). El frontend agregó una sección "Avatar" en `SettingsProfilePage` (`useUploadAvatar`), gateada en el cliente a `user.emailVerified` para no depender de que el 403 `USER_NOT_VERIFIED` llegue recién al enviar.
+
+## Administración
+
+### Campos de stats opcionales: vacío vs. cero
+
+`AdminCardUploadForm` usa `z.preprocess` para distinguir "vacío" de "0" en `attack`/`defense`/`hp`/`speed` (`src/features/admin/api.ts`): un input vacío se envía como `undefined` (el backend calcula el valor por rareza) en vez de coercionar a `0`. Si mobile tiene una pantalla equivalente de carga admin, debería omitir el campo en vez de mandar `0` por el mismo motivo.
+
+## Mobile (detectado desde la app)
+
+### Verificación de email y reset de contraseña desde la app (opcional, no bloquea)
+
+Los correos de verificación y recuperación ([interfaces entre sistemas, correos enviados](/interfaces-entre-sistemas/resend.md#correos-enviados)) enlazan a `{FRONTEND_URL}/verify-email?token=...` y `{FRONTEND_URL}/reset-password?token=...`. Mobile los abre en el navegador (el portal web hace el `POST` correspondiente), sin cambios de contrato. Si se quisiera abrirlos directo en la app habría que, del lado web/backend: publicar `/.well-known/assetlinks.json` en el dominio del frontend (con el SHA-256 de la firma de la app) y confirmar que las rutas se mantengan estables.
