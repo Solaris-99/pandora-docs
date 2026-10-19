@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <link rel="icon" href="_media/favicon.ico"
+  <link rel="icon" href="_media/favicon.ico"/>
   <!-- Core Theme -->
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css"/>
 
@@ -16,10 +16,23 @@
   <div id="app"></div>
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script>
+    // The mermaid ES module loads after this script; it fires "mermaid-ready" when available.
+    const mermaidReady = new Promise((resolve) => {
+      if (window.mermaid) return resolve(window.mermaid);
+      window.addEventListener("mermaid-ready", () => resolve(window.mermaid), { once: true });
+    });
+
     function enableMermaidZoom() {
-      document.querySelectorAll(".mermaid svg").forEach((svg) => {
+      document.querySelectorAll(".mermaid > svg").forEach((svg) => {
         if (svg.dataset.zoomEnabled) return;
+        const { height } = svg.getBoundingClientRect();
+        // Hidden/not laid out yet: svg-pan-zoom would compute NaN matrices.
+        if (!height) return;
         svg.dataset.zoomEnabled = "true";
+
+        // svg-pan-zoom drops the viewBox, so pin the rendered size first or the SVG collapses.
+        svg.style.maxWidth = "100%";
+        svg.style.height = height + "px";
 
         svgPanZoom(svg, {
           zoomEnabled: true,
@@ -32,13 +45,32 @@
       });
     }
 
-    // Run after Docsify/Mermaid renders, and again after Docsify page changes.
-    window.addEventListener("load", enableMermaidZoom);
+    // Render mermaid and enable zoom in one plugin, so zoom only runs once the
+    // (async) mermaid.run() has actually produced the SVGs.
     window.$docsify = window.$docsify || {};
     window.$docsify.plugins = [
       ...(window.$docsify.plugins || []),
       (hook) => {
-        hook.doneEach(enableMermaidZoom);
+        hook.afterEach((html, next) => {
+          const container = document.createElement("div");
+          container.innerHTML = html;
+          container.querySelectorAll("pre[data-lang=mermaid]").forEach((pre) => {
+            const div = document.createElement("div");
+            div.className = "mermaid";
+            div.textContent = pre.textContent;
+            pre.replaceWith(div);
+          });
+          next(container.innerHTML);
+        });
+
+        hook.doneEach(async () => {
+          const mermaid = await mermaidReady;
+          try {
+            await mermaid.run({ querySelector: ".mermaid", suppressErrors: true });
+          } finally {
+            enableMermaidZoom();
+          }
+        });
       }
     ];
   </script>
@@ -269,13 +301,14 @@
   <!-- Adds the breadcrumb JavaScript -->
   <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script>
   <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
-    mermaid.initialize({ startOnLoad: true });
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@12/dist/mermaid.esm.min.mjs";
+    // Rendering is driven by the docsify plugin above (doneEach), not on page load.
+    mermaid.initialize({ startOnLoad: false });
     window.mermaid = mermaid;
+    window.dispatchEvent(new Event("mermaid-ready"));
     </script>
-  <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
   <style>
-    svg {
+    .mermaid > svg {
       min-height: 500px;
     }
 </style>

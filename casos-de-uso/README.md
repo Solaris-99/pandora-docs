@@ -17,11 +17,227 @@ Este documento cubre actores, permisos y el catálogo completo de casos de uso, 
 - [Documento completo](completo.md) — todos los casos de uso en una sola página
 
 ---
+# Diagrama
 
-## Diagrama
-[![Diagrama](../imgs/diag-casos-uso.jpg)](https://drive.google.com/file/d/1IKb8TWgXZewPg7JQTgwWP-iWlpQOBo1r/view?usp=sharing)
 
-> El diagrama todavía refleja la numeración original de los casos de uso (CU01–CU23); la tabla del [catálogo](#catálogo-de-casos-de-uso) es la referencia vigente tras la reorganización.
+### Actores
+
+Admin hereda todo lo que puede hacer Moderador, y Moderador todo lo de Usuario autenticado; por eso los diagramas siguientes sólo enlazan cada caso de uso con el actor de menor nivel que lo ejecuta.
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+usecase-beta
+  direction LR
+  accTitle: Actores de Pandora
+  accDescr: Jerarquía de actores. Admin hereda de Moderador, que hereda de Usuario autenticado.
+
+  actor invitado("Invitado")
+  actor usuario("Usuario autenticado")
+  actor moderador("Moderador")
+  actor admin("Admin")
+  actor sistema("CRON / sistema")@{ type: hollow }
+
+  moderador --|> usuario
+  admin --|> moderador
+```
+
+### Cuenta
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+usecase-beta
+  direction LR
+  accTitle: Casos de uso de cuenta
+  accDescr: Registro, verificación, login, recuperación y gestión del perfil propio.
+
+  actor invitado("Invitado")
+  actor usuario("Usuario autenticado")
+  actor sistema("CRON / sistema")@{ type: hollow }
+
+  systemBoundary cuenta("Cuenta")@{ type: package }
+    cu01("CU01 · Registrarse")
+    cu02("CU02 · Verificar email")
+    cu03("CU03 · Login")
+    cu04("CU04 · Recuperar contraseña")
+    cu05("CU05 · Limpiar cuentas no verificadas")
+    cu06("CU06 · Ver/editar perfil")
+    cu07("CU07 · Cambiar email")
+    cu08("CU08 · Cambiar contraseña")
+    cu31("CU31 · Subir avatar")
+  end
+
+  invitado -- cu01
+  invitado -- cu02
+  invitado -- cu03
+  invitado -- cu04
+  usuario -- cu06
+  usuario -- cu07
+  usuario -- cu08
+  usuario -- cu31
+  sistema -- cu05
+
+  cu01 ..> : include cu02
+  cu07 ..> : include cu02
+```
+
+### Obras
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+usecase-beta
+  direction LR
+  accTitle: Casos de uso de obras
+  accDescr: Publicación, edición, exploración, comentarios y calificación de obras.
+
+  actor usuario("Usuario autenticado")
+  actor invitado("Invitado")
+
+  systemBoundary obras("Obras")@{ type: package }
+    cu09("CU09 · Subir obra")
+    cu10("CU10 · Editar obra")
+    cu11("CU11 · Eliminar obra")
+    cu13("CU13 · Comentar obra")
+    cu14("CU14 · Calificar obra (Q2Q)")
+    cu12("CU12 · Explorar obras")
+  end
+
+  invitado -- cu12
+  usuario -- cu09
+  usuario -- cu10
+  usuario -- cu11
+  usuario -- cu12
+  usuario -- cu13
+  usuario -- cu14
+```
+
+### Cartas y juego
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+usecase-beta
+  direction LR
+  accTitle: Casos de uso de cartas y juego
+  accDescr: Conversión de obras a cartas, colección, paquetes y autobattler.
+
+  actor invitado("Invitado")
+  actor usuario("Usuario autenticado")
+  actor sistema("CRON / sistema")@{ type: hollow }
+
+  systemBoundary cartas("Cartas y juego")@{ type: package }
+    cu15("CU15 · Convertir obra a carta")
+    cu16("CU16 · Explorar colección/cartas")
+    cu17("CU17 · Abrir paquete")
+    cu18("CU18 · Jugar autobattler")
+  end
+
+  sistema -- cu15
+  invitado -- cu16
+  usuario -- cu16
+  usuario -- cu17
+  usuario -- cu18
+```
+
+### Social
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+usecase-beta
+  direction LR
+  accTitle: Casos de uso sociales
+  accDescr: Seguimiento de usuarios, destacados y notificaciones.
+
+  actor usuario("Usuario autenticado")
+
+  systemBoundary social("Social")@{ type: package }
+    cu19("CU19 · Seguir usuario")
+    cu20("CU20 · Destacar obra o carta")
+    cu24("CU24 · Notificaciones")
+  end
+
+  usuario -- cu19
+  usuario -- cu20
+  usuario -- cu24
+```
+
+### Moderación
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+usecase-beta
+  direction LR
+  accTitle: Casos de uso de moderación
+  accDescr: Denuncias, su resolución por moderación, y apelaciones.
+
+  actor usuario("Usuario autenticado")
+  actor moderador("Moderador")
+
+  systemBoundary moderacion("Moderación")@{ type: package }
+    cu21("CU21 · Denunciar obra")
+    cu22("CU22 · Denunciar comentario")
+    cu23("CU23 · Administrar denuncias")
+    cu27("CU27 · Apelar una sanción")
+    cu28("CU28 · Revisar una apelación")
+  end
+
+  usuario -- cu21
+  usuario -- cu22
+  usuario -- cu27
+  moderador -- cu23
+  moderador -- cu28
+```
+
+### Administración
+
+CU15 pertenece a [Cartas y juego](#cartas-y-juego); aparece acá porque CU30 dispara esa misma rutina.
+
+```mermaid
+---
+config:
+  layout: dagre
+---
+usecase-beta
+  direction LR
+  accTitle: Casos de uso de administración
+  accDescr: Herramientas exclusivas del admin. CU30 dispara la misma rutina de conversión que CU15.
+
+  actor admin("Admin")
+
+  systemBoundary administracion("Administración")@{ type: package }
+    cu25("CU25 · Gestionar rol de moderador")
+    cu26("CU26 · Reabrir reporte resuelto")
+    cu29("CU29 · Cargar carta directamente")
+    cu30("CU30 · Disparar conversión manual")
+  end
+
+  cu15("CU15 · Convertir obra a carta")
+
+  admin -- cu25
+  admin -- cu26
+  admin -- cu29
+  admin -- cu30
+
+  cu30 ..> : include cu15
+```
+
+[Diagrama (Legacy) en draw.io](https://drive.google.com/file/d/1IKb8TWgXZewPg7JQTgwWP-iWlpQOBo1r/view?usp=sharing)
 
 ---
 
