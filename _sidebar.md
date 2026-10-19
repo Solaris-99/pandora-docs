@@ -11,3 +11,4 @@
 - [Casos de Prueba](/casos-de-prueba/README.md)
 - [Diseño (estilos)](/DESIGN.md)
 - [Fórmula de Batalla](/battle-formula.md)
+- [Project Timeline](/project-timeline.md)
