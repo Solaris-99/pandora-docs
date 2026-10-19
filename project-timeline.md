@@ -1,12 +1,12 @@
-# Pandora — Project Timeline
+# Pandora — Cronograma del proyecto
 
-Weekly timeline derived from `project-timeline.csv`. Each bar spans the week(s) that piece of work was reported in.
+Cronograma semanal derivado de `project-timeline.csv`. Cada barra abarca la(s) semana(s) en que se registró ese trabajo.
 
-<span style="color:#6d3bd7">■</span> Backend · <span style="color:#a078ff">■</span> Frontend · <span style="color:#abd600">■</span> Mobile · <span style="color:#a39dab">■</span> Docs
+<span style="color:#6d3bd7">■</span> Backend · <span style="color:#a078ff">■</span> Frontend · <span style="color:#abd600">■</span> Mobile · <span style="color:#a39dab">■</span> Documentación
 
-## Summary
+## Resumen
 
-Backend, frontend and mobile work merged into a single development timeline, one bar per week.
+El trabajo de backend, frontend y mobile unificado en una única línea de desarrollo, con una barra por semana.
 
 ```mermaid
 %%{init: {
@@ -22,7 +22,7 @@ Backend, frontend and mobile work merged into a single development timeline, one
     "taskTextOutsideColor": "#1c1b1f",
     "taskTextDarkColor": "#1c1b1f"
   },
-  "gantt": { "barHeight": 24, "barGap": 8, "topPadding": 40, "leftPadding": 110, "gridLineStartPadding": 30, "fontSize": 13, "sectionFontSize": 14, "numberSectionStyles": 2 },
+  "gantt": { "barHeight": 24, "barGap": 8, "topPadding": 40, "leftPadding": 130, "gridLineStartPadding": 30, "fontSize": 13, "sectionFontSize": 14, "numberSectionStyles": 2 },
   "themeCSS": ".task0{fill:#6d3bd7;stroke:#4a1fa8} .task1{fill:#cac4d0;stroke:#7a7580} .taskText0{fill:#fff} .taskText1{fill:#1c1b1f} .milestone{fill:#22005d;stroke:#22005d} .sectionTitle{font-weight:600}"
 }}%%
 gantt
@@ -32,24 +32,26 @@ gantt
     weekday monday
     todayMarker off
 
-    section Development
-    Backend + web kickoff                          :milestone, s0, 2026-08-17, 0d
-    Project setup (backend + web)                  :s1, 2026-08-17, 7d
-    Core modules and entities                      :s2, 2026-09-07, 7d
-    Core features · auth, artworks, Q2Q, cards, battle :s3, 2026-09-14, 7d
-    Moderation, appeals, admin, hardening          :s4, 2026-09-21, 7d
-    Mobile kickoff                                 :milestone, s5, 2026-09-28, 0d
-    API fixes, web test suite, mobile setup        :s6, 2026-09-28, 7d
-    New use cases, design system, mobile auth      :s7, 2026-10-05, 7d
-    Account settings, password rules, mobile features :s8, 2026-10-12, 7d
+    section Desarrollo
+    Inicio backend + web                           :milestone, s0, 2026-08-17, 0d
+    Configuración inicial (backend + web)          :s1, 2026-08-17, 7d
+    Módulos y entidades base                       :s2, 2026-09-07, 7d
+    Funcionalidades base · auth, obras, Q2Q, cartas, batalla :s3, 2026-09-14, 7d
+    Moderación, apelaciones, admin, hardening      :s4, 2026-09-21, 7d
+    Inicio mobile                                  :milestone, s5, 2026-09-28, 0d
+    Correcciones de API, tests web, setup mobile   :s6, 2026-09-28, 7d
+    Nuevos casos de uso, sistema de diseño, auth mobile :s7, 2026-10-05, 7d
+    Configuración de cuenta, reglas de contraseña, funcionalidades mobile :s8, 2026-10-12, 7d
 
-    section Docs
+    section Documentación
     Documentación inicial                          :t1, 2026-09-07, 14d
-    Docs site and per-feature docs                 :t2, 2026-09-14, 21d
-    Use-case split, design system guide            :t3, 2026-10-05, 14d
+    Sitio de documentación y docs por funcionalidad :t2, 2026-09-14, 21d
+    Casos de uso por archivo, guía de diseño       :t3, 2026-10-05, 14d
 ```
 
-## Detail by workstream
+## Detalle por área
+
+Detalle derivado por commits del proyecto.
 
 ```mermaid
 %%{init: {
