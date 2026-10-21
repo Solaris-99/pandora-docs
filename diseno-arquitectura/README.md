@@ -7,6 +7,7 @@ Este documento cubre la vista general del sistema, la organización por módulos
 ## Índice
 
 - [Vista general del sistema](#vista-general-del-sistema)
+- [Arquitectura del Portal Web (Frontend)](#arquitectura-del-portal-web-frontend)
 - [Organización del backend por módulos](organizacion-modulos.md)
   - [Capas recomendadas](organizacion-modulos.md#capas-recomendadas)
 - [Observabilidad / logging (RNF14)](observabilidad.md)
@@ -60,9 +61,44 @@ flowchart TB
     Services --> Mail
 ```
 
-Elementos genéricos a propósito: qué controller/service/guard concreto compone cada módulo vive en [diagramas de clases de diseño](/clases-diseno/README.md#diagramas-de-clases-de-diseño) y [diseño de componentes](/diseno-componentes/README.md); el detalle interno de Portal Web y App Android tendrá su propio diagrama aparte.
+Elementos genéricos a propósito: qué controller/service/guard concreto compone cada módulo vive en [diagramas de clases de diseño](/clases-diseno/README.md#diagramas-de-clases-de-diseño) y [diseño de componentes](/diseno-componentes/README.md). El detalle interno de Portal Web se desarrolla a continuación; el de App Android queda pendiente del lado de mobile.
 
 El backend es la única fuente de autoridad para reglas de negocio: el frontend (web o Android) no debe reimplementar validaciones críticas, ya que ambos clientes comparten exactamente el mismo backend y contrato de API.
+
+---
+
+## Arquitectura del Portal Web (Frontend)
+
+Detalle interno del nodo "Portal Web" del diagrama anterior. Es una SPA React + TypeScript (Vite) organizada por feature (`src/features/<dominio>/{api,hooks,store?,components,pages,types}`), sin lógica de negocio propia: toda regla de negocio vive en el backend, el cliente sólo la consume.
+
+```mermaid
+flowchart TB
+    User(["Usuario"])
+
+    subgraph WebApp["Portal Web — React + TypeScript"]
+        direction TB
+        Router["React Router<br/>(rutas públicas / protegidas por rol)"]
+        Pages["Páginas y componentes<br/>(organizados por feature)"]
+        State["Estado<br/>TanStack Query (caché de servidor) + Zustand (sesión/UI)"]
+        ApiClient["Cliente HTTP<br/>Axios + interceptores (JWT, refresh automático)"]
+
+        Router --> Pages --> State --> ApiClient
+    end
+
+    Backend[("Backend API<br/>NestJS")]
+
+    User --> Router
+    ApiClient --> Backend
+```
+
+Capas, de afuera hacia adentro:
+
+- **React Router**: define las rutas públicas (explorar, detalle de obra/carta, login) y las protegidas (`RequireAuth`/`RequireVerified`/`RequireRole`), redirigiendo según el estado de sesión.
+- **Páginas y componentes**: una carpeta por feature (`artworks`, `cards`, `battle`, `users`, etc.), cada una con sus propias páginas y componentes de UI (shadcn/ui + Tailwind).
+- **Estado**: TanStack Query cachea y sincroniza todo dato que viene del servidor (listados, detalle, mutaciones); Zustand sólo guarda lo que no es caché de servidor — sesión (`accessToken`/`refreshToken`/usuario) y estado efímero de UI (p. ej. la simulación de batalla en curso).
+- **Cliente HTTP**: una única instancia de Axios con interceptores — adjunta el header `Authorization`, normaliza todo error al formato de [convenciones de API §2](/api-conventions.md#2), y reintenta con refresh automático de token ante un `401`.
+
+El frontend nunca recalcula reglas de negocio (rareza, estadísticas de carta, resultado de un reporte, etc.): las consume tal como las devuelve el backend. La única excepción documentada es el simulador de batalla, que corre 100% en el cliente por diseño (ver [convenciones de API §15](/api-conventions.md#15) y `battle-formula.md`).
 
 ---
 
@@ -72,32 +108,15 @@ Pandora queda definido como un sistema cliente-servidor compuesto por un portal 
 
 La principal secuencia de negocio es:
 
-```text
-Usuario publica obra
-        |
-        v
-Período Q2Q de 7 días
-        |
-        +--> comentarios continúan habilitados
-        |
-        v
-Fin de período
-        |
-        v
-Scheduler detecta obras elegibles
-        |
-        v
-Conversión a carta
-        |
-        v
-Carta disponible para colección
-        |
-        v
-Paquetes
-        |
-        v
-Colección del usuario
-        |
-        v
-Autobattler local
+```mermaid
+flowchart TD
+    A["Usuario publica obra"] --> B["Período Q2Q de 7 días"]
+    B -.-> B1["Comentarios continúan habilitados"]
+    B --> C["Fin de período"]
+    C --> D["Scheduler detecta obras elegibles"]
+    D --> E["Conversión a carta"]
+    E --> F["Carta disponible para colección"]
+    F --> G["Paquetes"]
+    G --> H["Colección del usuario"]
+    H --> I["Autobattler local"]
 ```
