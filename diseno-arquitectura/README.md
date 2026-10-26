@@ -8,6 +8,7 @@ Este documento cubre la vista general del sistema, la organización por módulos
 
 - [Vista general del sistema](#vista-general-del-sistema)
 - [Arquitectura del Portal Web (Frontend)](#arquitectura-del-portal-web-frontend)
+- [Arquitectura de la App Android](#arquitectura-de-la-app-android)
 - [Organización del backend por módulos](organizacion-modulos.md)
   - [Capas recomendadas](organizacion-modulos.md#capas-recomendadas)
 - [Observabilidad / logging (RNF14)](observabilidad.md)
@@ -36,7 +37,7 @@ Este documento cubre la vista general del sistema, la organización por módulos
 ```mermaid
 flowchart TB
     Web["Portal Web<br/>React + TypeScript"]
-    App["App Android<br/>Java"]
+    App["App Android<br/>Kotlin + Compose"]
 
     subgraph Backend["Backend — NestJS"]
         direction TB
@@ -61,7 +62,7 @@ flowchart TB
     Services --> Mail
 ```
 
-Elementos genéricos a propósito: qué controller/service/guard concreto compone cada módulo vive en [diagramas de clases de diseño](/clases-diseno/README.md#diagramas-de-clases-de-diseño) y [diseño de componentes](/diseno-componentes/README.md). El detalle interno de Portal Web se desarrolla a continuación; el de App Android queda pendiente del lado de mobile.
+Elementos genéricos a propósito: qué controller/service/guard concreto compone cada módulo vive en [diagramas de clases de diseño](/clases-diseno/README.md#diagramas-de-clases-de-diseño) y [diseño de componentes](/diseno-componentes/README.md). El detalle interno de Portal Web y de App Android se desarrolla a continuación.
 
 El backend es la única fuente de autoridad para reglas de negocio: el frontend (web o Android) no debe reimplementar validaciones críticas, ya que ambos clientes comparten exactamente el mismo backend y contrato de API.
 
@@ -99,6 +100,45 @@ Capas, de afuera hacia adentro:
 - **Cliente HTTP**: una única instancia de Axios con interceptores — adjunta el header `Authorization`, normaliza todo error al formato de [convenciones de API §2](/api-conventions.md#2), y reintenta con refresh automático de token ante un `401`.
 
 El frontend nunca recalcula reglas de negocio (rareza, estadísticas de carta, resultado de un reporte, etc.): las consume tal como las devuelve el backend. La única excepción documentada es el simulador de batalla, que corre 100% en el cliente por diseño (ver [convenciones de API §15](/api-conventions.md#15) y `battle-formula.md`).
+
+---
+
+## Arquitectura de la App Android
+
+Detalle interno del nodo "App Android" del primer diagrama. Es una app Kotlin + Jetpack Compose de un solo módulo, organizada por feature (`ui/<dominio>` y `data/<dominio>`, con lo transversal en `core/`). Igual que el portal web, es un cliente puro del backend.
+
+```mermaid
+flowchart TB
+    User(["Usuario"])
+
+    subgraph AndroidApp["App Android — Kotlin + Compose"]
+        direction TB
+        Nav["Navigation 3<br/>(pestañas, rutas protegidas por sesión)"]
+        Screens["Pantallas Compose<br/>(organizadas por feature)"]
+        VMs["ViewModels<br/>StateFlow&lt;UiState&gt;"]
+        Repos["Repositorios<br/>(uno por feature)"]
+        ApiClient["Cliente HTTP<br/>Retrofit + OkHttp (JWT, refresh automático)"]
+        Session["SessionManager<br/>tokens cifrados con Android Keystore"]
+
+        Nav --> Screens --> VMs --> Repos --> ApiClient
+        ApiClient --> Session
+    end
+
+    Backend[("Backend API<br/>NestJS")]
+
+    User --> Nav
+    ApiClient --> Backend
+```
+
+Capas, de afuera hacia adentro:
+
+- **Navigation 3**: barra inferior con una pila de navegación por pestaña; las entradas que requieren sesión redirigen al login según el estado expuesto por `SessionManager`.
+- **Pantallas y ViewModels**: cada feature (`artworks`, `cards`, `packs`, `battle`, `profile`, etc.) tiene sus pantallas Compose y un ViewModel que expone un `UiState` como `StateFlow`.
+- **Repositorios**: uno por dominio, sobre su interfaz Retrofit; traducen el error estándar del backend a un `AppError` según su `code` (ver [convenciones de API §2](/api-conventions.md#2)).
+- **Cliente HTTP**: OkHttp adjunta el header `Authorization` y, ante un `401`, refresca el token bajo un mutex (los refresh tokens son de un solo uso) y reintenta. Los tokens se guardan cifrados con una clave del Android Keystore ([convenciones de API §5.4](/api-conventions.md#5)).
+- **Dependencias**: se construyen a mano en un `AppContainer` único, sin framework de DI.
+
+Al igual que en web, la única lógica de negocio local es el simulador de batalla (`BattleEngine`), que implementa `battle-formula.md` tal cual para que ambos clientes den el mismo resultado.
 
 ---
 
