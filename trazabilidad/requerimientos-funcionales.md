@@ -18,7 +18,7 @@
 | RF13 | Colección | [CU16](/casos-de-uso/cu16-explorar-coleccion-cartas.md) | `GET /cards`, `GET /users/me/cards` |
 | RF14 | Detalle de carta | [CU16](/casos-de-uso/cu16-explorar-coleccion-cartas.md) | `GET /cards/:id` |
 | RF15 | Paquetes | [CU17](/casos-de-uso/cu17-abrir-paquete.md) | `POST /users/me/packages/open` |
-| RF16 | Regeneración de paquetes | [CU17](/casos-de-uso/cu17-abrir-paquete.md) | `GET /users/me/packages` |
+| RF16 | Regeneración de paquetes | [CU17](/casos-de-uso/cu17-abrir-paquete.md) | `GET /users/me/packages`, `POST /auth/verify-email` |
 | RF17 | Autobattler | [CU18](/casos-de-uso/cu18-jugar-autobattler.md) | `GET /battle/opponent` |
 | RF18 | Seguimiento | [CU19](/casos-de-uso/cu19-seguir-usuario.md) | `POST/DELETE /users/:id/follow` |
 | RF19 | Favoritos | [CU20](/casos-de-uso/cu20-destacar-obra-o-carta.md) | `POST/DELETE /artworks/:id/favorite`, `POST/DELETE /cards/:id/favorite` |

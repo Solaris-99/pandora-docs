@@ -207,7 +207,7 @@ El rol `admin` no se otorga ni se revoca a través de la aplicación — es un r
 | RF13 | Colección | Consultar cartas propias, cantidad de copias y cartas aún no obtenidas. |
 | RF14 | Detalle de carta | Mostrar estadísticas completas si el usuario posee la carta y aplicar ocultamiento cuando no la posee, según las reglas de colección. |
 | RF15 | Paquetes | Permitir abrir paquetes disponibles y recibir cartas, admitiendo repetidas. |
-| RF16 | Regeneración de paquetes | Regenerar un paquete por minuto hasta un máximo de 10. Si se alcanza el máximo, la regeneración se detiene. |
+| RF16 | Regeneración de paquetes | Regenerar un paquete por minuto hasta un máximo de 10. Si se alcanza el máximo, la regeneración se detiene. Un usuario sin email verificado tiene siempre 0 paquetes; al verificarlo recibe 10. |
 | RF17 | Autobattler | Seleccionar una carta propia y solicitar al backend una carta rival aleatoria. La batalla se resuelve localmente en el cliente. |
 | RF18 | Seguimiento | Seguir y dejar de seguir usuarios. |
 | RF19 | Favoritos | Destacar obras propias y cartas de la colección. |
@@ -311,6 +311,8 @@ El rol `admin` no se otorga ni se revoca a través de la aplicación — es un r
 5. Si el usuario ya posee 10, no se genera deuda de regeneración.
 6. La cantidad debe poder calcularse de forma consistente incluso si el usuario estuvo desconectado.
 7. El usuario obtiene 5 cartas por paquete abierto.
+8. Mientras el usuario no haya verificado su email, su cantidad de paquetes es siempre 0 y no hay regeneración.
+9. Al verificar el email (por enlace o al iniciar sesión con Google), el usuario recibe 10 paquetes y la regeneración comienza desde ese momento.
 
 ## 7.7 Rarezas
 1. Las rareza de una carta es determinada en el periodo de calificación, y es definida únicamente por la cantidad de votos (emociones/estrellas) sin importar su valor.
@@ -2065,6 +2067,12 @@ Al consultar o abrir paquetes:
 3. limitar el resultado a 10;
 4. actualizar `last_regeneration_at` de forma consistente;
 5. si se llega a 10, evitar acumular tiempo pendiente de manera que al bajar a 9 aparezcan paquetes de golpe no previstos por el diseño.
+
+Si el email del usuario no está verificado, no se aplica ningún cálculo: la cantidad se mantiene en 0.
+
+## Inventario inicial
+
+Al verificar el email, el inventario se fija en 10 y `last_regeneration_at` se ancla al momento de la verificación. Como el inventario está lleno, no se regenera nada hasta que el usuario abra su primer paquete.
 
 La apertura debe ejecutarse con protección de concurrencia para que dos requests no consuman un único paquete dos veces.
 

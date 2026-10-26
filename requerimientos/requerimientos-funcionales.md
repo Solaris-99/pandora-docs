@@ -18,7 +18,7 @@
 | RF13 | Colección | Consultar cartas propias, cantidad de copias y cartas aún no obtenidas. |
 | RF14 | Detalle de carta | Mostrar estadísticas completas si el usuario posee la carta y aplicar ocultamiento cuando no la posee, según las reglas de colección. |
 | RF15 | Paquetes | Permitir abrir paquetes disponibles y recibir cartas, admitiendo repetidas. |
-| RF16 | Regeneración de paquetes | Regenerar un paquete por minuto hasta un máximo de 10. Si se alcanza el máximo, la regeneración se detiene. |
+| RF16 | Regeneración de paquetes | Regenerar un paquete por minuto hasta un máximo de 10. Si se alcanza el máximo, la regeneración se detiene. Un usuario sin email verificado tiene siempre 0 paquetes; al verificarlo recibe 10. |
 | RF17 | Autobattler | Seleccionar una carta propia y solicitar al backend una carta rival aleatoria. La batalla se resuelve localmente en el cliente. |
 | RF18 | Seguimiento | Seguir y dejar de seguir usuarios. |
 | RF19 | Favoritos | Destacar obras propias y cartas de la colección. |
