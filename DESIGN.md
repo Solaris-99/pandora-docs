@@ -1,5 +1,5 @@
 ---
-name: Pandora — Obsidian Violet
+name: Pandora — Sketchbook Violet
 colors:
   dark:
     surface: '#14121a'
@@ -86,45 +86,48 @@ colors:
     tertiary-fixed-dim: '#abd600'
     on-tertiary-fixed: '#161e00'
     on-tertiary-fixed-variant: '#3c4d00'
+  ink:
+    light: '#2e0a47'
+    dark: '#6d3bd7'
 typography:
   display-xl:
-    fontFamily: Syne
+    fontFamily: Bricolage Grotesque
     fontSize: 72px
     fontWeight: '800'
     lineHeight: 80px
     letterSpacing: -0.03em
   display-xl-mobile:
-    fontFamily: Syne
+    fontFamily: Bricolage Grotesque
     fontSize: 40px
     fontWeight: '800'
     lineHeight: 46px
     letterSpacing: -0.02em
   headline-lg:
-    fontFamily: Syne
+    fontFamily: Bricolage Grotesque
     fontSize: 48px
     fontWeight: '700'
     lineHeight: 56px
     letterSpacing: -0.02em
   headline-lg-mobile:
-    fontFamily: Syne
+    fontFamily: Bricolage Grotesque
     fontSize: 32px
     fontWeight: '700'
     lineHeight: 38px
     letterSpacing: -0.015em
   headline-md:
-    fontFamily: Syne
+    fontFamily: Bricolage Grotesque
     fontSize: 32px
     fontWeight: '700'
     lineHeight: 40px
     letterSpacing: -0.01em
   headline-md-mobile:
-    fontFamily: Syne
+    fontFamily: Bricolage Grotesque
     fontSize: 24px
     fontWeight: '600'
     lineHeight: 32px
     letterSpacing: -0.01em
   headline-sm:
-    fontFamily: Syne
+    fontFamily: Bricolage Grotesque
     fontSize: 20px
     fontWeight: '600'
     lineHeight: 28px
@@ -147,6 +150,18 @@ typography:
     fontWeight: '400'
     lineHeight: 20px
     letterSpacing: 0.01em
+  hand-lg:
+    fontFamily: Caveat
+    fontSize: 24px
+    fontWeight: '500'
+    lineHeight: 28px
+    letterSpacing: 0em
+  hand-md:
+    fontFamily: Caveat
+    fontSize: 20px
+    fontWeight: '500'
+    lineHeight: 24px
+    letterSpacing: 0em
   label-lg:
     fontFamily: JetBrains Mono
     fontSize: 14px
@@ -166,12 +181,21 @@ typography:
     lineHeight: 14px
     letterSpacing: 0.1em
 rounded:
-  sm: 0.125rem
-  DEFAULT: 0.25rem
-  md: 0.375rem
-  lg: 0.5rem
-  xl: 0.75rem
+  sm: 0.525rem
+  md: 0.7rem
+  lg: 0.875rem
+  xl: 1.225rem
+  2xl: 1.575rem
   full: 9999px
+shadow:
+  sticker-sm: 2px 2px 0 0 ink
+  sticker: 3px 3px 0 0 ink
+  sticker-lg: 5px 5px 0 0 ink
+texture:
+  dot-grid: 22px (página) / 16px (superficies), foreground al 13% claro / 10% oscuro
+  grain-opacity: 0.07 claro / 0.09 oscuro
+  doodle-opacity: 0.07 claro / 0.09 oscuro
+  doodle-tile: 360px — public/patterns/doodles.svg
 spacing:
   gutter: 1.5rem
   gutter-mobile: 0.75rem
@@ -187,17 +211,20 @@ spacing:
 
 > Fuente de verdad del sistema de diseño de Pandora, para que web y mobile compartan la misma identidad visual — igual que `battle-formula.md` para la mecánica de combate. Se escribió a partir de una plantilla de referencia (paleta M3 + especificación de componentes) adaptada al dominio real de Pandora (obras → calificación → cartas → colección → batalla), no una traducción literal.
 >
-> **Relación con la implementación web actual:** `src/index.css` ya tiene un acento violeta aplicado (ver `docs/shared/_todo-frontend.md`), pero sólo cubre los roles de shadcn (`primary`, `secondary`, `accent`, `muted`, `border`...) — no todavía la paleta M3 completa de acá (roles `tertiary`, niveles de `surface-container`, paleta clara derivada formalmente, tipografía Syne/Plus Jakarta Sans/JetBrains Mono, radios más angostos). Migrar el CSS del frontend para que coincida 1:1 con este documento es un paso aparte, todavía no hecho — ver tabla de mapeo al final.
+> **Relación con la implementación web actual:** `src/index.css` implementa este documento — paleta clara/oscura mapeada a los roles de shadcn (ver tabla de mapeo al final), las cuatro familias tipográficas, los tokens `ink`/`sticker` y las texturas de fondo. Los niveles de `surface-container` siguen colapsados en `--card`/`--muted`/`--popover`.
+>
+> **Cambio de dirección (2026-11):** la versión anterior ("Obsidian Violet") apuntaba a un tono de *archivo curado*: radios angostos, badges filosos, sin sombras, fondos planos. Se reemplazó por una dirección **informal tipo cuaderno de bocetos / fanzine** — más cercana a una comunidad de gente que dibuja que a un museo. La paleta de color no cambió; cambiaron forma, tipografía, elevación y fondos.
 
 ## Marca y estilo
 
 Pandora es una comunidad donde el arte se convierte en cartas coleccionables: se sube una obra, la comunidad la califica durante una semana (Q2Q), y al cierre se genera una carta con estadísticas de combate según la rareza obtenida. El sistema de diseño tiene que servir dos modos a la vez — **galería** (obras, perfiles, exploración) y **juego de cartas** (colección, rareza, batalla) — sin que ninguno de los dos se sienta como un añadido.
 
 Rasgos clave:
-- **Obsidiana nocturna:** superficies oscuras y profundas (`surface` / `surface-container-*`) que dejan que el arte subido por los usuarios sea el punto de mayor contraste de la pantalla — nunca compite cromáticamente con las miniaturas.
-- **Precisión eléctrica:** el violeta (`primary`) y la lila (`secondary`) marcan estados interactivos e indicadores vivos con intención quirúrgica, no decorativa — se usan donde hay una acción o un estado, no como relleno.
-- **Rigor de catálogo:** bordes definidos, líneas estructurales y tipografía editorial (Syne) le dan al catálogo de obras/cartas una sensación de archivo curado, no de red social genérica.
-- **Señal de rareza:** el verde lima (`tertiary`) queda reservado a lo que de verdad importa destacar — rareza "Legendaria", insignias de verificación, indicadores en vivo — nunca para texto o superficies comunes.
+- **Cuaderno de bocetos:** el fondo nunca es un color plano — lleva grilla de puntos, garabatos tenues y grano de papel (ver "Fondos y texturas"). La página se siente llena y "habitada" aunque una lista esté vacía o tenga pocos elementos.
+- **Stickers, no paneles:** las superficies interactivas (tarjetas de obra/carta, botones, diálogos) son "stickers": contorno de tinta (`ink`) de 2px + sombra dura desplazada, sin difuminar. Al pasar el mouse se levantan y giran apenas.
+- **Tono conversacional:** títulos gruesos y amigables (Bricolage Grotesque) y notas al margen manuscritas (Caveat) — "¡votá las que te gusten!", "uy, acá no hay nada…". Textos de UI en voseo y con humor liviano, nunca a costa de la claridad de un error o una acción destructiva.
+- **El arte sigue mandando:** las texturas viven *detrás* del contenido y a muy baja opacidad; nunca se aplican encima de una miniatura ni de la imagen de una obra/carta. Los marcos de imagen sí pueden llevar patrón (rayas) para que el espacio vacío mientras carga no quede plano.
+- **Señal de rareza:** el verde lima (`tertiary`) queda reservado a lo que de verdad importa destacar — rareza "Legendaria", insignias de verificación, "Última obra subida", indicadores en vivo — nunca para texto o superficies comunes.
 
 ## Colores
 
@@ -242,13 +269,12 @@ Estos son convenciones del frontend que preceden a este documento y **se mantien
 
 ## Tipografía
 
-Tres familias con roles bien separados — igual criterio que la plantilla de referencia:
+Cuatro familias con roles bien separados, todas cargadas vía `@fontsource-variable/*`:
 
-- **Syne** (`display-*`, `headline-*`): expresiva, geométrica, con personalidad — títulos de página, nombre de obra/carta en su detalle, hero.
-- **Plus Jakarta Sans** (`body-*`): lectura continua — descripciones, comentarios, texto de formularios.
-- **JetBrains Mono** (`label-*`): metadatos y datos de precisión — nombres de usuario (`@handle`), timestamps, contadores, stats de carta, códigos de rareza. Reemplaza el uso ad-hoc de `font-medium` en metadatos por una familia dedicada que comunica "este es un dato, no prosa".
-
-El frontend web hoy sólo carga **Geist Variable** (`@fontsource-variable/geist`) para todo. Adoptar esta escala de tres familias es parte del trabajo pendiente de aplicar este documento al código (ver nota al principio) — hay que sumar `Syne`, `Plus Jakarta Sans` y `JetBrains Mono` vía `@fontsource` o Google Fonts.
+- **Bricolage Grotesque** (`display-*`, `headline-*`, utilidad `font-heading`, aplicada por defecto a `h1`–`h4`): grotesca con personalidad, en pesos 700–800 — títulos de página, nombre de obra/carta en su detalle, hero. Los títulos de página de listados llevan subrayado ondulado (`squiggle`).
+- **Plus Jakarta Sans** (`body-*`, `font-sans`, la default): lectura continua — descripciones, comentarios, texto de formularios.
+- **Caveat** (`hand-*`, `font-hand`): notas al margen manuscritas — tagline del logo, comentarios al costado de un título de sección, estados vacíos, pie de foto del hero. Siempre como acento corto (una frase), suele ir apenas rotada (`-rotate-2`) y nunca lleva información imprescindible: si se quita, la pantalla se tiene que seguir entendiendo.
+- **JetBrains Mono** (`label-*`, `font-mono`): datos numéricos — stats de carta, contadores. Ya no se usa en badges ni en etiquetas de texto (eran el tono "de catálogo" que se abandonó).
 
 Las escalas `*-mobile` son los tamaños a usar por debajo de 768px — mismo criterio de "achicar pero no perder jerarquía" que ya sigue el breakpoint `sm:`/`md:` de Tailwind en el proyecto.
 
@@ -264,49 +290,78 @@ La escala `space-xs` → `space-2xl` reemplaza los valores sueltos de Tailwind (
 
 ## Elevación y profundidad
 
-Igual que la plantilla: **sin sombras difusas**. La jerarquía se construye con superficie + borde, no con `box-shadow` suave:
+**Sin sombras difusas** — pero sí **sombras duras de sticker**: un desplazamiento sólido en color `ink` (ciruela oscuro en claro, violeta en oscuro), sin blur. La jerarquía se construye con superficie + contorno de tinta + sombra dura:
 
-- **Capa 0 (lienzo):** `surface` / `background`.
-- **Capa 1 (paneles, tarjetas de obra/carta):** `surface-container-low`, borde 1px `outline-variant`.
-- **Capa 2 (overlays flotantes — modales, dropdowns, popovers):** `surface-container-high`, borde 1px en `primary/40`.
-- **Resplandor de foco eléctrico** — reservado a estados interactivos activos (no decorativo): `box-shadow: 0 0 0 1px var(--primary), 0 0 24px -4px color-mix(in oklch, var(--primary) 45%, transparent)`.
+- **Capa 0 (lienzo):** `background` + texturas de fondo (ver "Fondos y texturas").
+- **Capa 1 (tarjetas de obra/carta, `Card`):** `bg-card`, utilidad `sticker` (borde 2px `ink` + `shadow-sticker`). Si es clickeable, además `sticker-hover`: se desplaza −2px y gira −0.6° con `shadow-sticker-lg`.
+- **Capa 1b (contenedores "suaves" — estados vacíos, bloques de comentarios, sección "¿Qué es Pandora?"):** borde 2px **punteado** (`border-dashed border-ink/30`) con fondo semitransparente y un patrón (`pattern-dots`/`pattern-grid`). Comunican "zona de contenido" sin competir con las tarjetas.
+- **Capa 2 (overlays — modales, dropdowns, popovers, selects):** `bg-popover` + `sticker`; los modales además `pattern-dots`.
+- **Botones:** `shadow-sticker-sm` en reposo, `shadow-sticker` al hover (se levantan), sin sombra al presionar (se "aprietan" contra la hoja).
+- **Navbar:** pegajosa (`sticky`), fondo `background/75` con `backdrop-blur` y borde inferior punteado — deja ver la textura al hacer scroll.
 
 ## Formas
 
-Radio **más angosto y estructural** que el actual (`--radius: 0.625rem` en `index.css` hoy, bastante más redondeado que esto):
+Formas **blandas y redondeadas** (`--radius: 0.875rem`):
 
-- Controles interactivos core (inputs, botones, chips): `rounded` (0.25rem / 4px).
-- Tarjetas, paneles, modales: `rounded-lg` (0.5rem / 8px) — un paso más que hoy en `card.tsx` (`rounded-xl`), a achicar si se aplica este documento.
-- Insignias/badges: esquinas filosas, `rounded-sm` (2px) en vez del `rounded-full` (píldora) que usa `badge.tsx` hoy — cambio de forma deliberado, no sólo de color, para reforzar el carácter "de catálogo" en vez de "red social".
-- Círculo completo (`rounded-full`) reservado a avatares y controles circulares (ej. el picker de batalla) — como ya es hoy.
+- Botones, badges/chips, tabs: píldora (`rounded-full`).
+- Inputs, textareas, selects, marcos de imagen dentro de una tarjeta: `rounded-xl`.
+- Tarjetas, modales, estados vacíos: `rounded-2xl`; bloques grandes de sección: `rounded-3xl`.
+- **Rotación como recurso:** elementos decorativos o destacados pueden ir levemente girados (±1–6°): logo, chip "Última obra subida", marco del hero, tarjetas de features alternando `rotate-1`/`-rotate-1`, notas manuscritas. Nunca se rota un formulario, una lista de datos ni texto largo.
 
 ## Componentes
 
 ### Botones
-- **Primario:** fondo `primary`, texto `on-primary`, tipografía `label-md` en mayúsculas. Hover: `color-mix` hacia un tono más oscuro + resplandor eléctrico (ver Elevación). Mapea al `Button` default de shadcn.
-- **Secundario / ghost:** fondo transparente, texto `on-surface`, borde `outline-variant`. Hover: borde y texto pasan a `secondary`. Mapea a `variant="outline"`/`variant="ghost"`.
-- **Acción de alto compromiso:** fondo `tertiary`, texto `on-tertiary` — reservado a muy pocas acciones por pantalla (ej. "Abrir paquete", "Confirmar batalla"), nunca el botón por defecto de un formulario.
+- Píldora, borde 2px, `font-semibold`, sentence case (no mayúsculas).
+- **Primario (`default`) / `secondary` / `outline`:** contorno `ink` + `shadow-sticker-sm`; hover se levanta (`-translate-y-0.5`, `shadow-sticker`); activo se aplasta (sin sombra). `outline` usa `bg-background` (claro) / `bg-card` (oscuro).
+- **Ghost / link:** sin contorno ni sombra — navegación y acciones terciarias.
+- **Acción de alto compromiso:** fondo `tertiary`, texto `on-tertiary` — reservado a muy pocas acciones por pantalla (ej. "Abrir paquete", "Confirmar batalla").
 
 ### Chips e insignias
-- Radio `rounded-sm`, tipografía `label-sm`, borde 1px.
-  - Estándar (tags, filtros inactivos): fondo `surface-container`, borde `outline-variant`, texto `on-surface-variant`.
+- Píldora (`rounded-full`), `text-xs font-semibold`, Plus Jakarta Sans.
+  - Estándar (`outline` — tags, filtros inactivos): borde `ink/40`, fondo `background/70`.
   - Activo/seleccionado: fondo `primary-container`, texto `on-primary-container`.
-  - Señal (rareza Legendaria, verificado, "en vivo"): fondo `tertiary` al 8–10% de opacidad, borde `tertiary`, texto `tertiary`.
+  - Señal (rareza Legendaria, "Última obra subida", "en vivo"): fondo `tertiary`, texto `on-tertiary`, `shadow-sticker-sm`, levemente rotado.
 
 ### Tarjetas de obra/carta
-- Superficie `surface-container-low`, borde 1px `outline-variant`, imagen a ancho completo con separador de 1px antes de los metadatos — mismo patrón que `ArtworkCard`/`CardTile` ya siguen, sólo migrando los colores concretos a los roles de este documento.
-- Hover: borde pasa a `primary`, título pasa a `primary` (ya es el comportamiento de `CardTile`/`ArtworkCard` con `group-hover:text-primary`, se mantiene).
+- `bg-card` + `sticker sticker-hover`, `rounded-2xl`, padding interno 8px. Imagen en marco `rounded-xl` con `pattern-stripes` de fondo (se ve mientras carga).
+- Título en `font-heading` bold, pasa a `primary` al hover. Autor como `por @usuario`. Stats en `font-mono`.
+
+### Títulos
+- `h1` de página de listado: `font-heading` extrabold `text-3xl` con `squiggle` (subrayado ondulado en `primary`). Títulos de detalle (obra, carta, perfil) sin `squiggle`.
+- `h2` de sección: igual, acompañado opcionalmente por una nota manuscrita a la derecha (`font-hand`, `text-muted-foreground`, `-rotate-2`) — ver `SectionTitle` en `HomePage`.
+
+### Estados vacíos
+- `EmptyState`: caja punteada `rounded-2xl` con `pattern-dots` y un gesto manuscrito (`¯\_(ツ)_/¯` en `font-hand`, `primary`) sobre el título. Nunca un texto suelto sobre el fondo.
+
+### Banners de sistema
+- `VerifyEmailBanner` / `BannedBanner`: ancho completo, borde inferior punteado, `pattern-stripes` sobre el color de rol (`secondary` / `destructive/10`).
 
 ### Inputs y búsqueda
-- Fondo `surface-container-low`, borde 1px `outline-variant`, texto `on-surface`, placeholder `outline`.
-- Foco: borde `primary` 1px, sin outline de navegador — ya el comportamiento de `Input`/`Combobox` de shadcn, sólo cambia la variable de color subyacente.
+- `rounded-xl`, borde 2px `input`, fondo `background/70` (deja asomar la textura). Foco: borde `ring` + anillo de 3px.
 
 ### Checkboxes y toggles
-- Checkbox cuadrado, radio `sm`. Sin marcar: borde 1px `outline`. Marcado: fondo `primary`, check en `on-primary`.
-- Toggle: track `surface-container-high` con borde `outline-variant`; thumb pasa a `secondary` cuando está activo.
+- Checkbox radio 5px, borde 2px. Marcado: fondo `primary`, check en `on-primary`.
 
 ### Listas indexadas (ranking, cola de moderación, notificaciones)
-- Filas de ancho completo con borde inferior 1px `outline-variant`. Numeral/índice en `label-sm` monoespaciado, color `outline`. Hover: fondo `primary` al 6% de opacidad.
+- Filas de ancho completo con borde inferior 1px `border`. Hover: fondo `primary` al 6% de opacidad.
+
+## Fondos y texturas
+
+Objetivo: que ninguna pantalla se vea "vacía", aunque tenga poco contenido. Todo se define en `src/index.css`:
+
+- **Página (`body`)**, en capas, de atrás hacia adelante:
+  1. Color `background`.
+  2. Tres manchas de color radiales fijas (`primary` 16% arriba a la izquierda, `secondary` 12% a la derecha, `tertiary` 9% abajo) — `background-attachment: fixed`.
+  3. Grilla de puntos de 22px (`--dot-color`), que sí scrollea con el contenido.
+  4. `body::before`: garabatos (`public/patterns/doodles.svg` — estrellas, espirales, cartitas, corazones…) como máscara teñida de `primary`, opacidad `--doodle-opacity`.
+  5. `body::after`: grano de papel (`feTurbulence` en data-URI) como máscara teñida de `foreground`, opacidad `--grain-opacity`.
+
+  Las capas 4–5 son `position: fixed; z-index: -1; pointer-events: none` — quedan **debajo** de todo el contenido, así el grano nunca ensucia una obra.
+- **Utilidades para superficies** (sólo setean `background-image`, se combinan con cualquier `bg-*`):
+  - `pattern-dots` — puntos de 16px: estados vacíos, modales, bloques de comentarios.
+  - `pattern-grid` — papel cuadriculado de 22px: secciones explicativas grandes.
+  - `pattern-stripes` — rayas diagonales finas: footer, banners, pie de `Card`, marcos de imagen, skeletons.
+- **Regla:** a lo sumo un patrón por superficie, y nunca encima de una imagen subida por un usuario.
 
 ## Tabla de mapeo: roles M3 → variables actuales de `index.css`
 
@@ -325,10 +380,12 @@ Para cuando se encare la migración del CSS del frontend — qué variable de sh
 | `secondary` / `on-secondary` | `--secondary` / `--secondary-foreground` | Hoy siguen siendo neutros (gris) — pendiente de tintar a lila. |
 | `tertiary` / `on-tertiary` / `*-container` | *(no existe)* | Rol nuevo — variables a agregar, sin equivalente hoy. |
 | `error` / `on-error` | `--destructive` / *(implícito)* | — |
-| `radius` (`rounded`) | `--radius` | Valor actual más grande que lo que pide este documento — a achicar. |
+| `radius` (`rounded`) | `--radius` | `0.875rem` — la escala `rounded-*` de Tailwind deriva de este valor. |
+| `ink` | `--ink` → `border-ink`, `shadow-sticker*` | Nuevo — contorno y sombra dura de las superficies "sticker". |
 
 ## Fuera de alcance de esta versión
 
 - Íconos: la plantilla de referencia usa Material Symbols; el proyecto ya usa `lucide-react` en todos lados — **no se cambia la librería de íconos**, sólo su color sigue los roles de arriba.
 - Modo claro para mobile nativo (Android `ColorScheme`/Compose Material3): los valores de `light`/`dark`/`fixed` de este documento son compatibles directamente si mobile usa Jetpack Compose + Material3, pero no se generó ni se validó un `Theme.kt` — queda para cuando se encare esa implementación.
-- Migrar el CSS/componentes del frontend web a este sistema completo (tipografía de tres familias, radios angostos, niveles de `surface-container`, rol `tertiary`) es trabajo aparte, no incluido en este documento — ver nota al principio y la tabla de mapeo.
+- Niveles separados de `surface-container` (`low`/`DEFAULT`/`high`/`highest`) en el CSS web — hoy colapsados en `--card`/`--muted`/`--popover`.
+- Mobile: las texturas (grano, garabatos) pueden replicarse con un `ImageShader`/`Brush` en Compose o un drawable tileado, usando el mismo `doodles.svg` y las mismas opacidades. No se implementó todavía.
