@@ -48,9 +48,9 @@ La fórmula (dodge/crítico/reducción de daño) quedó acordada y documentada e
 
 ## Notificaciones y apelaciones
 
-### ~~Notificaciones sin referencia al recurso afectado~~ — resuelto en el backend, pendiente de migrar en el frontend
+### ~~Notificaciones sin referencia al recurso afectado~~ — resuelto y consumido
 
-Las notificaciones de moderación ya traen `data: { targetType, targetId }` (§16.6) en `artwork_removed`/`comment_removed`/`artwork_restored`/`comment_restored`/`appeal_resolved`. El frontend todavía no lo usa: una notificación de contenido eliminado no permite deep-link hasta la apelación — `MyAppealsPage`/`AppealContentDialog` le siguen pidiendo el tipo y el ID manualmente al usuario. Pendiente reemplazar ese diálogo por un botón directo cuando la notificación traiga esos datos.
+Las notificaciones de moderación traen `data: { targetType, targetId }` (§16.6). `NotificationsPage` lo usa para ofrecer "Apelar" en `artwork_removed`/`comment_removed` (`AppealContentButton`), que reemplazó al diálogo que pedía el tipo y el ID a mano. Las notificaciones viejas sin `data` no ofrecen la opción.
 
 No hay mecanismo de push: el contador de no leídas (`useUnreadCount`) hace polling en un intervalo corto en vez de recibir un evento. Si se agrega push/WebSocket en el backend más adelante, ambos clientes podrían dejar de hacer polling.
 
@@ -62,11 +62,31 @@ No hay mecanismo de push: el contador de no leídas (`useUnreadCount`) hace poll
 
 ### ~~Cambiar email (CU07)~~ — resuelto y consumido
 
-`POST /users/me/email` + `POST /auth/confirm-email-change` (§7.6/§8.7). El frontend agregó una sección "Cambiar email" en `SettingsProfilePage` (`useRequestEmailChange`) y una página pública nueva, `ConfirmEmailChangePage`, para confirmar desde el link del correo (mismo patrón que `VerifyEmailPage`/`ResetPasswordPage`). El email de sesión no se actualiza hasta confirmarse.
+`POST /users/me/email` + `POST /auth/confirm-email-change` (§7.6/§8.7). El frontend agregó una sección "Cambiar email" en `SettingsProfilePage` (`useRequestEmailChange`) y una página pública nueva, `ConfirmEmailChangePage`, para confirmar desde el link del correo (mismo patrón que `VerifyEmailPage`/`ResetPasswordPage`). El email de sesión no se actualiza hasta confirmarse. El formulario pide confirmación en un popup antes de enviar la solicitud (CU07-A4).
 
 ### ~~Subir avatar (CU31)~~ — resuelto y consumido
 
 `POST /users/me/avatar` (§8.8, multipart, campo `avatar`, máx. 2 MB). El frontend agregó una sección "Avatar" en `SettingsProfilePage` (`useUploadAvatar`), gateada en el cliente a `user.emailVerified` para no depender de que el 403 `USER_NOT_VERIFIED` llegue recién al enviar.
+
+## Interfaz (detectado al documentar el [prototipo](/prototipo/README.md))
+
+### ~~Controles recortados en móvil~~ — resuelto, salvo la barra de navegación a 320 px
+
+Los encabezados de Notificaciones, Denuncias y Apelaciones pasan el control a otra línea cuando no entra, y las etiquetas de estado de las obras se ajustan al ancho de la tarjeta. La barra de navegación redujo su espaciado en pantallas chicas y ya entra desde 360 px.
+
+**Pendiente:** a 320 px la barra de navegación todavía se pasa unos 35 px y recorta sus últimos controles. Resolverlo requiere una decisión de diseño, como compactar el logo o agrupar accesos en un menú.
+
+### ~~Denunciar un comentario en pantallas táctiles~~ — resuelto
+
+La bandera de `CommentItem` ahora está siempre visible, en lugar de aparecer sólo al pasar el cursor.
+
+### ~~Contraste de notificaciones no leídas~~ — resuelto
+
+El texto sobre `bg-secondary` usa `text-secondary-foreground`, los mismos colores del tema pero más claros u oscuros según corresponda. El contraste pasó de 2,9:1 a entre 5,2:1 y 6,0:1 en tema claro, y de 1,3:1 a entre 6,6:1 y 7,7:1 en tema oscuro.
+
+### ~~Bio en Configuración de perfil~~ — resuelto
+
+`ProfileForm` pide `GET /auth/me` al abrirse y completa la bio con esa respuesta. Mientras tanto, el campo queda deshabilitado con un indicador de carga y no se puede guardar. Si la carga falla, el campo sigue deshabilitado y la bio se omite del `PATCH`, para no borrarla al guardar otro dato.
 
 ## Administración
 

@@ -9,6 +9,7 @@
 - [Diseño de Arquitectura](/diseno-arquitectura/README.md)
 - [Interfaces entre Sistemas](/interfaces-entre-sistemas/README.md)
 - [Casos de Prueba](/casos-de-prueba/README.md)
+- [Prototipo](/prototipo/README.md)
 - [Diseño (estilos)](/DESIGN.md)
 - [Fórmula de Batalla](/battle-formula.md)
 - [Cronograma del proyecto](/project-timeline.md)

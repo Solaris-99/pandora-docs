@@ -6,8 +6,8 @@
 
 ## Flujo principal
 
-1. El usuario entra a la sección de paquetes.
-2. El cliente solicita abrir un paquete.
+1. El usuario abre el panel de paquetes: en la web está dentro de Colección y de Batalla; en la app Android, en la pestaña Paquetes.
+2. Pulsa "Abrir paquete" y el cliente solicita la apertura.
 3. El backend verifica disponibilidad.
 4. Se consume exactamente un paquete.
 5. Se seleccionan cartas según las reglas del sistema.

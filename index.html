@@ -251,6 +251,16 @@
             "cp22-disparar-el-ciclo-de-conversion-manualmente",
             "cp23-recuperar-contrasena-olvidada"
           ].map((p) => "/casos-de-prueba/" + p),
+          "/prototipo/",
+          ...[
+            "general",
+            "cuenta",
+            "obras",
+            "cartas-y-juego",
+            "social",
+            "moderacion",
+            "administracion"
+          ].map((p) => "/prototipo/" + p),
           "/DESIGN",
           "/battle-formula",
           "/project-timeline",
@@ -300,6 +310,7 @@
   <!-- Plugins (optional) -->
   <!-- Adds the breadcrumb JavaScript -->
   <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/zoom-image.min.js"></script>
   <script type="module">
     import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@12/dist/mermaid.esm.min.mjs";
     // Rendering is driven by the docsify plugin above (doneEach), not on page load.
@@ -310,6 +321,10 @@
   <style>
     .mermaid > svg {
       min-height: 500px;
+    }
+    /* Prototipo: capturas de distinta altura alineadas arriba. */
+    .markdown-section td:has(img) {
+      vertical-align: top;
     }
 </style>
 </body>

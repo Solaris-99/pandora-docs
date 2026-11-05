@@ -390,10 +390,10 @@ Los casos de uso cubren subir obra, calificar, explorar, colección, moderación
 3. El backend valida formato, longitud y unicidad.
 4. Se hashea la contraseña.
 5. Se crea la cuenta.
-6. Se genera un token/challenge de verificación.
-7. Se envía el correo de verificación.
-8. El usuario abre el enlace o introduce el código recibido.
-9. El backend valida el challenge.
+6. Se genera un token de verificación.
+7. Se envía un correo con un enlace que contiene el token.
+8. El usuario abre el enlace, que lleva al portal web.
+9. El portal envía el token y el backend lo valida.
 10. La cuenta queda verificada.
 11. Se informa que el registro fue exitoso.
 
@@ -404,8 +404,8 @@ Los casos de uso cubren subir obra, calificar, explorar, colección, moderación
 - **A3:** Email inválido. Se devuelve error de validación.
 - **A4:** Contraseña no válida. Se devuelve error de validación.
 - **A5:** El envío del correo falla. La cuenta queda pendiente y se permite reintentar el envío.
-- **A6:** Challenge expirado. Se solicita uno nuevo.
-- **A7:** Challenge inválido. Se rechaza la confirmación.
+- **A6:** Enlace expirado. Se rechaza la confirmación y se puede solicitar uno nuevo.
+- **A7:** Enlace inválido o ya utilizado. Se rechaza la confirmación y se puede solicitar uno nuevo.
 
 ### Notas de implementación
 
@@ -580,7 +580,7 @@ NestJS cuenta con un Scheduler, utilizar esto antes que el propio cron o schedul
 
 ### Flujo principal
 
-1. El usuario entra a la sección de paquetes.
+1. El usuario abre el panel de paquetes: en la web está dentro de Colección y de Batalla; en la app Android, en la pestaña Paquetes.
 2. El cliente solicita abrir un paquete.
 3. El backend verifica disponibilidad.
 4. Se consume exactamente un paquete.
@@ -655,11 +655,10 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ### Flujo principal
 
-1. El usuario abre su perfil.
-2. Selecciona una obra propia o una carta que posee.
-3. Pulsa “Destacar”.
-4. Se registra la relación de favorito/destacado.
-5. El perfil muestra el elemento en su sección correspondiente.
+1. El usuario abre el detalle de una obra propia o de una carta que posee. En la web también puede hacerlo directamente desde “Mis obras” o “Colección”.
+2. Pulsa “Destacar”.
+3. Se registra la relación de favorito/destacado.
+4. El elemento pasa a figurar en sus destacados, accesibles desde su perfil.
 
 ### Alternativo
 
@@ -794,9 +793,9 @@ No almacenar resultado, replay, victoria, derrota ni historial de batallas en ba
 
 ### Flujo principal
 
-1. El admin abre el panel de administración.
-2. Selecciona un usuario.
-3. Otorga o revoca el rol `moderator`.
+1. El admin abre el perfil público del usuario objetivo.
+2. Pulsa “Otorgar rol de moderador” o “Quitar rol de moderador”, según corresponda.
+3. Se otorga o revoca el rol `moderator`.
 4. El sistema actualiza los roles del usuario objetivo.
 5. Se confirma la acción.
 
