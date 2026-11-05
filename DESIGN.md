@@ -192,9 +192,9 @@ shadow:
   sticker: 3px 3px 0 0 ink
   sticker-lg: 5px 5px 0 0 ink
 texture:
-  dot-grid: 22px (página) / 16px (superficies), foreground al 13% claro / 10% oscuro
-  grain-opacity: 0.07 claro / 0.09 oscuro
-  doodle-opacity: 0.07 claro / 0.09 oscuro
+  dot-grid: 22px (página) / 16px (superficies), foreground al 20% claro / 10% oscuro
+  grain-opacity: 0.10 claro / 0.09 oscuro
+  doodle-opacity: 0.12 claro / 0.09 oscuro
   doodle-tile: 360px — public/patterns/doodles.svg
 spacing:
   gutter: 1.5rem
@@ -224,7 +224,7 @@ Rasgos clave:
 - **Stickers, no paneles:** las superficies interactivas (tarjetas de obra/carta, botones, diálogos) son "stickers": contorno de tinta (`ink`) de 2px + sombra dura desplazada, sin difuminar. Al pasar el mouse se levantan y giran apenas.
 - **Tono conversacional:** títulos gruesos y amigables (Bricolage Grotesque) y notas al margen manuscritas (Caveat) — "¡votá las que te gusten!", "uy, acá no hay nada…". Textos de UI en voseo y con humor liviano, nunca a costa de la claridad de un error o una acción destructiva.
 - **El arte sigue mandando:** las texturas viven *detrás* del contenido y a muy baja opacidad; nunca se aplican encima de una miniatura ni de la imagen de una obra/carta. Los marcos de imagen sí pueden llevar patrón (rayas) para que el espacio vacío mientras carga no quede plano.
-- **Señal de rareza:** el verde lima (`tertiary`) queda reservado a lo que de verdad importa destacar — rareza "Legendaria", insignias de verificación, "Última obra subida", indicadores en vivo — nunca para texto o superficies comunes.
+- **Señal destacada:** el verde lima (`tertiary`) queda reservado a lo que de verdad importa destacar — insignias de verificación, "Última obra subida", indicadores en vivo — nunca para texto o superficies comunes.
 
 ## Colores
 
@@ -236,7 +236,7 @@ Rasgos clave:
 | `primary-container` / `on-primary-container` | Superficie suave para resaltar sin gritar: fondo de insignia de tag activo, fondo de ícono de feature en `/about`, estado "seleccionado" de un filtro. |
 | `secondary` / `on-secondary` | Acciones secundarias con intención propia (no un simple "botón gris"): "Seguir", contador de favoritos, chips de metadatos vivos. |
 | `secondary-container` / `on-secondary-container` | Variante suave de lo anterior, mismo criterio que `primary-container`. |
-| `tertiary` / `on-tertiary` | **Reservado.** Insignia de rareza Legendaria, verificación de cuenta, punto de notificación no leída, badge "Curador's Choice"-style (ej. "Obra destacada"). Nunca como color de texto de cuerpo ni fondo general. |
+| `tertiary` / `on-tertiary` | **Reservado.** Verificación de cuenta, punto de notificación no leída, badge "Curador's Choice"-style (ej. "Obra destacada"). Nunca como color de texto de cuerpo ni fondo general. |
 | `error` / `on-error` / `error-container` | Igual que `destructive` ya usado en el frontend (toasts de error, validación, eliminar/banear). |
 | `surface` / `on-surface` | Fondo de página y texto principal. |
 | `surface-container-low/DEFAULT/high/highest` | Jerarquía de superficies elevadas: tarjetas, popovers, modales, dropdowns, en ese orden creciente de elevación. |
@@ -247,7 +247,9 @@ Rasgos clave:
 
 Los valores exactos (hex) están en el frontmatter de este documento, separados en `dark` (tema por defecto, ver "Elección de tema por defecto" abajo) y `light`. Los `fixed` son los mismos en ambos.
 
-**Elección de tema por defecto:** a diferencia del resto de la app (que hoy respeta la preferencia del SO vía `next-themes`), la paleta oscura es la identidad "de marca" principal — está pensada primero para que el arte resalte. La paleta clara existe y tiene que ser igual de usable, pero cualquier superficie de marketing/landing (ej. el Hero de `/`) puede sesgarse hacia el tema oscuro si hace falta.
+**Selector de tema:** la navbar tiene un selector (ícono sol/luna, `ThemeToggle`) con tres opciones — *Claro*, *Oscuro* y *Sistema* (por defecto). La elección se persiste en el navegador vía `next-themes` (clase `.dark` en `<html>`), y el `theme-color` de `index.html` sigue al esquema del SO. Al cambiar de tema se desactivan las transiciones (`disableTransitionOnChange`) para que el cambio sea instantáneo.
+
+**Elección de tema por defecto:** aunque la app arranca en *Sistema*, la paleta oscura es la identidad "de marca" principal — está pensada primero para que el arte resalte. La paleta clara existe y tiene que ser igual de usable, pero cualquier superficie de marketing/landing (ej. el Hero de `/`) puede sesgarse hacia el tema oscuro si hace falta.
 
 **Nota sobre la derivación de la paleta clara:** los valores de `light` están construidos para mantener el mismo rol y la misma familia de tono que `dark` (y dos de ellos, `primary` y `inverse-surface`, salen directamente de los campos `inverse-*` ya provistos por el generador de la paleta oscura, no son inventados). No corren el algoritmo HCT de Material exacto — si en algún momento mobile necesita paridad pixel-perfecta con `ColorScheme` nativo de Android/Material3, regenerar ambos temas juntos desde *Material Theme Builder* con semilla `#8B5CF6` y confirmar que coincide con lo documentado acá (y actualizar este archivo si no).
 
@@ -257,15 +259,15 @@ Estos son convenciones del frontend que preceden a este documento y **se mantien
 
 - **Stats de carta** (`CardDetailPage`, `CardTile`, `BattleArena`): ataque en rojo (`red-600`/`red-400`), defensa en ámbar (`amber-600`/`amber-400`), vida en esmeralda (`emerald-600`/`emerald-400`), velocidad en celeste (`sky-600`/`sky-400`). Son colores "de juego" (icono + número), no roles de marca — no se tocan.
 - **Log de batalla**: turnos del jugador en celeste, del rival en rojo, resultado en esmeralda (victoria) o rojo (derrota) — mismo criterio que los colores de stats, sin semántica definida más allá de esta implementación.
-- **Rareza de carta** (`common` → `legendary`): hoy sólo usa 3 variantes genéricas de `Badge` (`outline`/`secondary`/`default`). Este documento propone — a confirmar antes de implementar — una escala propia de 5 pasos para que cada rareza se reconozca de un vistazo en la colección:
+- **Rareza de carta** (`common` → `legendary`): escala propia de 5 pasos para que cada rareza se reconozca de un vistazo. Cada rareza tiene además un código de una letra (en `font-mono`). Implementada en el indicador de rareza de la apertura de paquetes (`RARITY_CODE` en `PackOpenReveal.tsx`); el `Badge` de rareza de `CardTile` todavía usa las 3 variantes genéricas (`outline`/`secondary`/`default`) y queda pendiente de migrar a esta escala.
 
-  | Rareza | Color sugerido |
-  | --- | --- |
-  | Común | `on-surface-variant` sobre `surface-container` (neutro) |
-  | Poco común | verde — reusar el `emerald` ya usado para HP |
-  | Rara | celeste — reusar el `sky` ya usado para velocidad |
-  | Épica | `secondary` (lila) |
-  | Legendaria | `tertiary` (lima) — único uso de `tertiary` compartido con el resto del sistema |
+  | Rareza | Letra | Color (claro / oscuro) |
+  | --- | --- | --- |
+  | Común | C | neutro: `muted` + `muted-foreground` |
+  | Poco común | P | verde: `green-600` texto blanco / `green-400` texto `green-950` |
+  | Rara | R | cian: `cyan-600` texto blanco / `cyan-400` texto `cyan-950` |
+  | Épica | E | índigo: `indigo-600` texto blanco / `indigo-400` texto `indigo-950` |
+  | Legendaria | L | carmesí: `rose-700` / `rose-500`, texto blanco en ambos |
 
 ## Tipografía
 
@@ -298,6 +300,7 @@ La escala `space-xs` → `space-2xl` reemplaza los valores sueltos de Tailwind (
 - **Capa 2 (overlays — modales, dropdowns, popovers, selects):** `bg-popover` + `sticker`; los modales además `pattern-dots`.
 - **Botones:** `shadow-sticker-sm` en reposo, `shadow-sticker` al hover (se levantan), sin sombra al presionar (se "aprietan" contra la hoja).
 - **Navbar:** pegajosa (`sticky`), fondo `background/75` con `backdrop-blur` y borde inferior punteado — deja ver la textura al hacer scroll.
+- **Pantalla completa (apertura de paquetes):** ocupa el 100% del viewport con `bg-background` + `pattern-dots`, sin contorno ni sombra — es una "toma" de pantalla, no una tarjeta flotante.
 
 ## Formas
 
@@ -316,15 +319,44 @@ Formas **blandas y redondeadas** (`--radius: 0.875rem`):
 - **Ghost / link:** sin contorno ni sombra — navegación y acciones terciarias.
 - **Acción de alto compromiso:** fondo `tertiary`, texto `on-tertiary` — reservado a muy pocas acciones por pantalla (ej. "Abrir paquete", "Confirmar batalla").
 
+### Navbar
+- Compacta: alto 48px (`h-12`), separación mínima entre botones, logo "Pandora" en sticker `primary` rotado. La nota manuscrita "arte → cartas" sólo aparece desde `xl`.
+- **Todos los botones llevan ícono** (`lucide-react`). Los enlaces de navegación (`NavButton`) son `ghost` `sm`: por debajo de `lg` se colapsan a sólo ícono (con `aria-label` + `title`), desde `lg` muestran ícono + texto.
+
+  | Botón | Ícono |
+  | --- | --- |
+  | Nuevas Obras | `Sparkles` |
+  | Todas las Obras | `GalleryHorizontalEnd` |
+  | Jugar | `Swords` |
+  | Mis obras | `Images` |
+  | Colección | `LayoutGrid` |
+  | Subir obra | `Plus` |
+  | Iniciar sesión | `LogIn` |
+  | Registrarse | `UserPlus` (botón primario, siempre con texto) |
+
+- Selector de tema, notificaciones (`Bell`) y avatar son botones de sólo ícono `icon-sm` (28px), con el mismo hover `ghost`.
+
 ### Chips e insignias
 - Píldora (`rounded-full`), `text-xs font-semibold`, Plus Jakarta Sans.
   - Estándar (`outline` — tags, filtros inactivos): borde `ink/40`, fondo `background/70`.
   - Activo/seleccionado: fondo `primary-container`, texto `on-primary-container`.
-  - Señal (rareza Legendaria, "Última obra subida", "en vivo"): fondo `tertiary`, texto `on-tertiary`, `shadow-sticker-sm`, levemente rotado.
+  - Señal ("Última obra subida", "en vivo"): fondo `tertiary`, texto `on-tertiary`, `shadow-sticker-sm`, levemente rotado.
 
 ### Tarjetas de obra/carta
 - `bg-card` + `sticker sticker-hover`, `rounded-2xl`, padding interno 8px. Imagen en marco `rounded-xl` con `pattern-stripes` de fondo (se ve mientras carga).
 - Título en `font-heading` bold, pasa a `primary` al hover. Autor como `por @usuario`. Stats en `font-mono`.
+
+### Apertura de paquetes
+Pantalla completa (ver "Elevación"), con semántica de diálogo (foco atrapado, `Esc` cierra, scroll bloqueado). Barra superior: contador "Carta N de M" en `font-mono` a la izquierda; "Saltar" (`FastForward`, va directo al resumen) y cerrar (`X`) a la derecha.
+
+1. **Una carta a la vez:** la carta aparece boca abajo — dorso `bg-primary` + `sticker` + `pattern-stripes`, con "Pandora" en `font-heading` y "¿qué será?" en `font-hand` — y se levanta levemente al hover.
+2. **Revelar:** un clic sobre la carta la voltea en 3D (`rotateY`, 0.6s) y muestra el `CardTile` (sin enlace mientras dura la revelación).
+3. **Avanzar:** un clic sobre la carta ya revelada pasa a la siguiente (sale hacia la izquierda, la nueva entra desde la derecha). No hay botón "Siguiente": una nota en `font-hand` debajo indica la acción ("Toca la carta para revelarla / para continuar / para ver todas").
+4. **Resumen:** tras la última carta se muestran todas en grilla (2 / 3 / 5 columnas), cada una enlazando a su detalle, con aparición escalonada y el botón "Continuar".
+
+**Indicador de rareza:** debajo de la carta (y del resumen) hay una fila de cuadrados, uno por carta del paquete — `size-9`, `rounded-lg`, borde 2px `ink` + `shadow-sticker-sm`, letra en `font-mono`. Sin revelar: `?` sobre `bg-card`. Al revelarse, la letra y el color de su rareza (ver tabla de "Rareza de carta"). La carta actual lleva un anillo `ring`.
+
+Las animaciones respetan `prefers-reduced-motion` (`MotionConfig reducedMotion="user"`).
 
 ### Títulos
 - `h1` de página de listado: `font-heading` extrabold `text-3xl` con `squiggle` (subrayado ondulado en `primary`). Títulos de detalle (obra, carta, perfil) sin `squiggle`.
