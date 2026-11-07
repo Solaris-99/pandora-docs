@@ -25,6 +25,7 @@ Pandora es una plataforma para compartir arte y darle visibilidad a las obras de
 
 ### Contenido Adicional
 
+- [Sitio live](https://pandoraapp.eproyectos.link)
 - [Benchmarking y análisis de mercado](https://docs.google.com/spreadsheets/d/1uW3d385rGzWVIMEybCAxQR9j3rkssYR3kLL8zCJ1jJk/edit?usp=sharing)
 - [Planificación inicial](https://docs.google.com/spreadsheets/d/1Pac3W-_2BSfXYbdyJ8NoriYz-wObWC4Bnzf4_2b_www/edit?usp=sharing)
 - [Convenciones API](/api-conventions.md)
